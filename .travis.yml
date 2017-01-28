@@ -4,10 +4,10 @@ python:
   - "3.5"
   - "3.6"
 
-addons:
-  apt:
-    packages:
-      - graphviz
+# addons:
+#   apt:
+#     packages:
+#       - graphviz
 
 # command to install dependencies
 install:

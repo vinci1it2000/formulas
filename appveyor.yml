@@ -72,7 +72,7 @@ install:
   - "%CMD_IN_ENV% pip install -r dev-requirements.txt"
 
   # Install graphviz
-  - cinst graphviz.portable
+  # - cinst graphviz.portable
 
 build: off  # Not a C# project, build stuff at the test step instead.
 
