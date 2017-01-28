@@ -106,7 +106,11 @@ setup(
     install_requires=[
         'regex',
         'sphinx',
-        'schedula', 'numpy'
+        'schedula',
+        'numpy'
+    ],
+    dependency_links=[
+        'https://github.com/vinci1it2000/pycel/tarball/master#egg=pycel-0.0.1'
     ],
     test_suite='nose.collector',
     setup_requires=['nose>=1.0'],

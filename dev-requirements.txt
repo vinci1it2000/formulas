@@ -1,3 +1,4 @@
+git+https://github.com/vinci1it2000/pycel.git
 schedula
 nose
 wheel
