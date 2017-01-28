@@ -1,0 +1,10 @@
+schedula
+nose
+wheel
+coveralls
+sphinx>=1.4.8
+regex
+ddt
+numpy
+sphinx_rtd_theme
+sphinxcontrib-restbuilder

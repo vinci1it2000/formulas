@@ -1,0 +1,21 @@
+language: python
+python:
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
+addons:
+  apt:
+    packages:
+      - graphviz
+
+# command to install dependencies
+install:
+  - pip install -r dev-requirements.txt
+  - python setup.py install
+# command to run tests
+script:
+  - coverage run --source=formulas setup.py test
+
+after_success:
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then coveralls; fi
