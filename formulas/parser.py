@@ -20,7 +20,13 @@ from .builder import AstBuilder
 
 
 class Parser(object):
-    formula_check = regex.compile('^\s*=\s*(?P<name>\S.*)')
+    formula_check = regex.compile(
+        r"""
+        (?P<array>^\s*{\s*=\s*(?P<formula>\S.*)\s*}\s*$)
+        |
+        (?P<value>^\s*=\s*(?P<formula>\S.*))
+        """, regex.IGNORECASE | regex.X | regex.DOTALL
+    )
     ast_builder = AstBuilder
     filters = [
         String, Error, Range, Number, OperatorToken, Separator, Function, Array,
@@ -28,13 +34,12 @@ class Parser(object):
     ]
 
     def ast(self, expression, context=None):
-        expr = expression
-        if self.formula_check:
-            try:
-                expr = self.formula_check.match(expr).groups()[0]
-            except AttributeError:
-                raise FormulaError(expression)
-        builder = self.ast_builder()
+        try:
+            match = self.formula_check.match(expression).groupdict()
+            expr = match['formula']
+        except (AttributeError, KeyError):
+            raise FormulaError(expression)
+        builder = self.ast_builder(match=match)
         filters, tokens, stack = self.filters, [], []
         Parenthesis('(').ast(tokens, stack, builder)
         while expr:

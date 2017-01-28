@@ -21,8 +21,9 @@ from schedula.utils.alg import get_unused_node_id
 
 
 class AstBuilder(collections.deque):
-    def __init__(self, *args, dsp=None, map=None, **kwargs):
+    def __init__(self, *args, dsp=None, map=None, match=None, **kwargs):
         super(AstBuilder, self).__init__(*args, **kwargs)
+        self.match = match
         self.dsp = dsp or schedula.Dispatcher()
         self.map = map or {}
         self.missing_operands = set()

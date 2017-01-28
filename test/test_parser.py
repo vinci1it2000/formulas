@@ -23,7 +23,7 @@ class TestParser(unittest.TestCase):
         ('="  a"', '  a'),
         ('=#NULL!', '#NULL!'),
         ('=1 + 2', '1+2'),
-        ('=a1:b1 + INDIRECT("A1:B2")', 'a1:b1+A1:B2'),
+        ('{=a1:b1 + INDIRECT("A1:B2")}', 'a1:b1+A1:B2'),
         ('= a + IF(a, b, c)', 'a+IF(a,b,c)'),
         ('=AVERAGE(((123 + 4 + AVERAGE(A1:A2))))',
          'AVERAGE(((123+4+AVERAGE(A1:A2))))'),
@@ -54,7 +54,8 @@ class TestParser(unittest.TestCase):
         ('=" "" a"', ' " a'),
         ('=#NULL!',  'NULL!'),
         ('=1 + 2', '3'),
-        ('=AVERAGE(((123 + 4 + AVERAGE({1,2}))))', '128.5'))
+        ('=AVERAGE(((123 + 4 + AVERAGE({1,2}))))', '128.5'),
+        ('="a" & "b"""', 'ab"'))
     def test_compile(self, case):
         inputs, result = case
         func = Parser().ast(inputs)[1].compile()
