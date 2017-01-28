@@ -12,7 +12,7 @@ It provides Operator classes.
 
 from . import Token
 from .parenthesis import Parenthesis, _update_n_args
-from ..errors import ParenthesesError
+from ..errors import ParenthesesError, FormulaError
 import regex
 import collections
 
@@ -34,9 +34,13 @@ class Operator(Token):
 
     def update_input_tokens(self, *tokens):
         if self.name in ' ,':
-            self.attr['is_ranges'] = None
+            self.attr['is_ranges'] = True
+            from .operand import Range
             for t in tokens:
-                t.attr['is_ranges'] = None
+                if isinstance(t, Range):
+                    t.attr['is_ranges'] = True
+                elif not t.attr.get('is_ranges', False):
+                    raise FormulaError()
 
     def set_expr(self, *tokens):
         expr, name = [t.get_expr for t in tokens], self.name
@@ -89,7 +93,7 @@ class Operator(Token):
         return OPERATORS[self.name.upper()]
 
 
-class Union(Operator):
+class Intersect(Operator):
     _re = regex.compile('^(?P<name>\s)\s*')
 
 

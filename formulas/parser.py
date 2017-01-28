@@ -13,7 +13,7 @@ It provides formula parser class.
 import regex
 from .errors import TokenError, FormulaError, ParenthesesError
 from .tokens.operand import String, Error, Number, Range
-from .tokens.operator import OperatorToken, Separator, Union
+from .tokens.operator import OperatorToken, Separator, Intersect
 from .tokens.function import Function, Array
 from .tokens.parenthesis import Parenthesis
 from .builder import AstBuilder
@@ -24,7 +24,7 @@ class Parser(object):
     ast_builder = AstBuilder
     filters = [
         String, Error, Range, Number, OperatorToken, Separator, Function, Array,
-        Parenthesis, Union
+        Parenthesis, Intersect
     ]
 
     def ast(self, expression, context=None):
@@ -36,6 +36,7 @@ class Parser(object):
                 raise FormulaError(expression)
         builder = self.ast_builder()
         filters, tokens, stack = self.filters, [], []
+        Parenthesis('(').ast(tokens, stack, builder)
         while expr:
             for f in filters:
                 try:
@@ -47,7 +48,8 @@ class Parser(object):
                     pass
             else:
                 raise FormulaError(expression)
-
+        Parenthesis(')').ast(tokens, stack, builder)
+        tokens = tokens[1:-1]
         while stack:
             if isinstance(stack[-1], Parenthesis):
                 raise ParenthesesError()

@@ -26,7 +26,9 @@ class TestParser(unittest.TestCase):
         ('=a1:b1 + INDIRECT("A1:B2")', 'a1:b1+A1:B2'),
         ('= a + IF(a, b, c)', 'a+IF(a,b,c)'),
         ('=AVERAGE(((123 + 4 + AVERAGE(A1:A2))))',
-         'AVERAGE(((123+4+AVERAGE(A1:A2))))'))
+         'AVERAGE(((123+4+AVERAGE(A1:A2))))'),
+        ('=a,b', 'a,b'),
+        ('=a b', 'a b'))
     def test_valid_formula(self, case):
         inputs, result = case
         tokens, ast = Parser().ast(inputs)
@@ -35,7 +37,7 @@ class TestParser(unittest.TestCase):
 
     @ddt.data(
         '=-', '={}', '=1  -*  4', '={1;2,2}', '= a + IF((a, b, c)',
-        '= a + IF(}a, b, c)', '1+2')
+        '= a + IF(}a, b, c)', '1+2', '=a 1', '=a INT(1)')
     def test_invalid_formulas(self, inputs):
         with self.assertRaises(FormulaError):
             Parser().ast(inputs)

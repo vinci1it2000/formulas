@@ -23,6 +23,8 @@ maxsize = sys.maxsize
 
 class Operand(Token):
     def ast(self, tokens, stack, builder):
+        if tokens and isinstance(tokens[-1], Operand):
+            raise TokenError()
         super(Operand, self).ast(tokens, stack, builder)
         builder.append(self)
         _update_n_args(stack)
@@ -204,13 +206,13 @@ class Range(Operand):
         return _range2parts()(context or {}, d)
 
     def __repr__(self):
-        if self.has_is_ranges:
+        if self.attr.get('is_ranges', False):
             from ..formulas.operators import Ranges
             return '{} <{}>'.format(self.name, Ranges.__name__)
         return super(Range, self).__repr__()
 
     def compile(self):
-        if self.has_is_ranges:
+        if self.attr.get('is_ranges', False):
             from ..formulas.operators import Ranges
             return Ranges().push(self.attr['name'])
         return sh_utl.EMPTY
