@@ -1,8 +1,8 @@
 .. _start-quick:
 
-###########################################
-formulas: An intelligent function scheduler
-###########################################
+##################################################
+formulas: An Excel formulas interpreter in Python.
+##################################################
 |pypi_ver| |travis_status| |appveyor_status| |cover_status| |docs_status|
 |dependencies| |downloads_count| |github_issues| |python_ver| |proj_license|
 
