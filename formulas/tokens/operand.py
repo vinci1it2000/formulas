@@ -203,6 +203,8 @@ class Range(Operand):
                     return {}
             except TokenError:
                 pass
+        if 'ref' in d:
+            self.attr['is_reference'] = True
         return _range2parts()(context or {}, d)
 
     def __repr__(self):

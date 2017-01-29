@@ -76,9 +76,37 @@ def _merge_update(base, rng):
             return True
 
 
+class References(object):
+    def __init__(self, *tokens):
+        self.tokens = tokens
+
+    def push(self, *tokens):
+        self.tokens += tokens
+
+    @property
+    def refs(self):
+        return [t.name for t in self.tokens]
+
+    @property
+    def __name__(self):
+        return '=(%s)' % ';'.join(self.refs)
+
+    def __call__(self, named_refs, *args):
+        func = functools.partial(self.get_ranges, named_refs)
+        return list(map(func, self.refs))
+
+    @staticmethod
+    def get_ranges(named_refs, ref):
+        try:
+            return Ranges().push(named_refs[ref])
+        except KeyError:
+            return sh_utl.NONE
+
+
 class Ranges(object):
     format_range = _range2parts().dsp.dispatch
     input_fields = ('excel', 'sheet', 'n1', 'n2', 'r1', 'r2')
+
     def __init__(self, ranges=()):
         self.ranges = ranges
 
@@ -87,6 +115,8 @@ class Ranges(object):
         for reference in references:
             m = _re_range.match(reference).groupdict().items()
             m = {k: v for k, v in m if v is not None}
+            if 'ref' in m:
+                raise ValueError
             i = sh_utl.combine_dicts(context, m)
             self.ranges += dict(self.format_range(i, ['name', 'n1', 'n2'])),
         return self

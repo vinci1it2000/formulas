@@ -17,6 +17,8 @@ from .errors import FormulaError
 from .tokens.operator import Operator
 from .tokens.function import Function
 from .tokens.operand import Operand
+from .formulas.operators import References
+from .constants import NAME_REFERENCES
 from schedula.utils.alg import get_unused_node_id
 
 
@@ -27,6 +29,7 @@ class AstBuilder(collections.deque):
         self.dsp = dsp or schedula.Dispatcher()
         self.map = map or {}
         self.missing_operands = set()
+        self.references = References()
 
     def append(self, token):
         if isinstance(token, (Operator, Function)):
@@ -59,7 +62,12 @@ class AstBuilder(collections.deque):
         if isinstance(token, Operand):
             self.missing_operands.remove(token)
             token.set_expr()
-            kw = {'default_value': token.compile()}
+            kw = {}
+            if token.attr.get('is_reference', False):
+                self.references.push(token)
+            else:
+                kw['default_value'] = token.compile()
+
             node_id = self.dsp.add_data(data_id=token.node_id, **kw)
         else:
             node_id = token.node_id
@@ -70,9 +78,16 @@ class AstBuilder(collections.deque):
         for token in list(self.missing_operands):
             self.get_node_id(token)
 
-    def compile(self):
+        if self.references.tokens:
+            self.dsp.add_function(
+                function=self.references,
+                inputs=[NAME_REFERENCES],
+                outputs=list(map(self.map.get, self.references.tokens))
+            )
+
+    def compile(self, inputs=None):
         dsp = self.dsp
-        for k, v in dsp.dispatch().items():
+        for k, v in dsp.dispatch(inputs or {}).items():
             dsp.add_data(data_id=k, default_value=v)
 
         i, o, pred = [], self.get_node_id(self[-1]), dsp.dmap.pred

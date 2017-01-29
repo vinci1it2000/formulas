@@ -3,7 +3,7 @@ import unittest
 from formulas.parser import Parser
 from formulas.errors import FormulaError
 import ddt
-
+from formulas.constants import NAME_REFERENCES
 
 @ddt.ddt
 class TestParser(unittest.TestCase):
@@ -61,3 +61,22 @@ class TestParser(unittest.TestCase):
         func = Parser().ast(inputs)[1].compile()
         output = str(func())
         self.assertEqual(result, output, '{} != {}'.format(result, output))
+
+
+    @ddt.data(
+        ('=(a (b, c))', '<Ranges>(L5:L12, N5:N12)',
+         {'a': 'L4:N15', 'b': 'J5:L12', 'c': 'N5:P12'}),)
+    def test_compile_with_refs(self, case):
+        context = {}
+        inputs, result, context[NAME_REFERENCES] = case
+        func = Parser().ast(inputs)[1].compile(context)
+        output = str(func())
+        self.assertEqual(result, output, '{} != {}'.format(result, output))
+
+    @ddt.data(
+        ('=(a (b, c))', {'a': 'L4:N15', 'b': 'J5:L12'}),)
+    def test_compile_with_refs(self, case):
+        context = {}
+        inputs, context[NAME_REFERENCES] = case
+        with self.assertRaises(ValueError):
+            func = Parser().ast(inputs)[1].compile(context)
