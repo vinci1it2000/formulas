@@ -63,7 +63,7 @@ Things yet to do implement the missing excel formulas.
     :target: https://coveralls.io/github/vinci1it2000/formulas?branch=master
     :alt: Code coverage
 
-.. |docs_status| image:: https://readthedocs.org/projects/formulas/badge/
+.. |docs_status| image:: https://readthedocs.org/projects/formulas/badge/?version=master
     :alt: Documentation status
     :scale: 100%
     :target: https://readthedocs.org/builds/formulas/
