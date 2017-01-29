@@ -106,7 +106,7 @@ setup(
     install_requires=[
         'regex',
         'sphinx',
-        'schedula',
+        'schedula>=0.1.3',
         'numpy'
     ],
     dependency_links=[

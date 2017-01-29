@@ -1,5 +1,5 @@
 git+https://github.com/vinci1it2000/pycel.git
-schedula
+schedula>=0.1.3
 nose
 wheel
 coveralls
