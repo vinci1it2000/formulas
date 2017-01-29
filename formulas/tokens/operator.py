@@ -41,6 +41,8 @@ class Operator(Token):
                     t.attr['is_ranges'] = True
                 elif not t.attr.get('is_ranges', False):
                     raise FormulaError()
+        else:
+            super(Operator, self).update_input_tokens(*tokens)
 
     def set_expr(self, *tokens):
         expr, name = [t.get_expr for t in tokens], self.name

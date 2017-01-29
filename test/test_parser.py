@@ -4,6 +4,8 @@ from formulas.parser import Parser
 from formulas.errors import FormulaError
 import ddt
 from formulas.constants import NAME_REFERENCES
+import schedula.utils as sh_utl
+
 
 @ddt.ddt
 class TestParser(unittest.TestCase):
@@ -78,5 +80,6 @@ class TestParser(unittest.TestCase):
     def test_compile_with_refs(self, case):
         context = {}
         inputs, context[NAME_REFERENCES] = case
-        with self.assertRaises(ValueError):
+        with self.assertRaises(sh_utl.DispatcherError):
             func = Parser().ast(inputs)[1].compile(context)
+            func()
