@@ -2,6 +2,7 @@
 import unittest
 from formulas.formulas.operators import Ranges
 import ddt
+import numpy as np
 
 
 @ddt.ddt
@@ -22,7 +23,7 @@ class TestTokens(unittest.TestCase):
          ' Q26:Q27, P18:P19, L26:L32, M31:N32)'))
     def test_union_ranges(self, case):
         (range1, range2), result = case
-        output = str(Ranges().push(*range1) + Ranges().push(*range2))
+        output = str(Ranges().pushes(range1) + Ranges().pushes(range2))
         self.assertEqual(result, output, '%s != %s' % (result, output))
 
     @ddt.data(
@@ -39,7 +40,7 @@ class TestTokens(unittest.TestCase):
          '<Ranges>(P23:P27, Q20:Q25, P20:P22, M25:N30, L25)'))
     def test_intersection_ranges(self, case):
         (range1, range2), result = case
-        output = str(Ranges().push(*range1) - Ranges().push(*range2))
+        output = str(Ranges().pushes(range1) - Ranges().pushes(range2))
         self.assertEqual(result, output, '%s != %s' % (result, output))
 
     @ddt.data(
@@ -47,5 +48,50 @@ class TestTokens(unittest.TestCase):
          '<Ranges>(C:C, D:D15, E:E15, F7:F14)'))
     def test_simplify_ranges(self, case):
         ranges, result = case
-        output = str(Ranges().push(*ranges).simplify())
+        output = str(Ranges().pushes(ranges).simplify())
         self.assertEqual(result, output, '%s != %s' % (result, output))
+
+    @ddt.data(
+        ((('B2:E5',), ('D4:F5',)),
+         (([(1, 1, 2, 2),
+            (1, 1, 2, 2),
+            (3, 3, 4, 4),
+            (3, 3, 4, 4)],),
+          ([(4, 4, 1),
+            (4, 4, 1)],)),
+         [(4, 4),
+          (4, 4)]),
+        ((('B2:E5', 'G2:H5'), ('E2:G5',)),
+         (([(1, 1, 2, 2),
+            (1, 1, 2, 2),
+            (3, 3, 4, 4),
+            (3, 3, 4, 4)],
+           [(5, 5),
+            (5, 5),
+            (5, 5),
+            (5, 5)]),
+          ([(2, 0, 5),
+            (2, 0, 5),
+            (4, 0, 5),
+            (4, 0, 5),],)),
+         [5, 5, 5, 5, 2, 2, 4, 4])
+    )
+    def test_value_intersection_ranges(self, case):
+        (r1, r2), (v1, v2), result = case
+        rng = Ranges().pushes(r1, v1) - Ranges().pushes(r2, v2)
+        np.testing.assert_array_equal(result, rng.value)
+
+    @ddt.data(
+        ((('B2:E5',), ('D4:F5',)),
+         (([(1, 1, 2, 2),
+            (1, 1, 2, 2),
+            (3, 3, 4, 4),
+            (3, 3, 4, 4)],),
+          (([(4, 4, 5),
+             (4, 4, 5)],))),
+         [5, 5, 1, 1, 2, 2, 1, 1, 2, 2, 3, 3, 4, 4, 3, 3, 4, 4]),)
+    def test_value_union_ranges(self, case):
+        (r1, r2), (v1, v2), result = case
+        rng = Ranges().pushes(r1, v1) + Ranges().pushes(r2, v2)
+        output = rng.value
+        np.testing.assert_array_equal(result, output)

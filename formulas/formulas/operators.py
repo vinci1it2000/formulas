@@ -15,6 +15,8 @@ from ..errors import FunctionError
 from ..tokens.operand import _re_range, _range2parts, _index2col
 import schedula.utils as sh_utl
 import functools
+import itertools
+import numpy as np
 
 
 def not_implemeted(*args, **kwargs):
@@ -43,10 +45,13 @@ def _single_intersect(x, y):
     return {}
 
 
-def _split(base, range):
+def _split(base, range, intersect=None):
     z = _have_intersect(base, range)
     if not z:
         return range,
+
+    if intersect is not None:
+        intersect.update(z)
 
     ranges = []
     range = sh_utl.selector(('excel', 'sheet', 'n1', 'n2', 'r1', 'r2'), range)
@@ -65,7 +70,7 @@ def _split(base, range):
 
 
 def _intersect(range, ranges):
-    it =  map(functools.partial(_single_intersect, range), ranges)
+    it = map(functools.partial(_single_intersect, range), ranges)
     return tuple(r for r in it if r)
 
 
@@ -74,6 +79,13 @@ def _merge_update(base, rng):
         if base['n1'] == rng['n2'] and int(base['r2']) + 1 >= int(rng['r1']):
             base['r2'] = rng['r2']
             return True
+
+
+def _get_indices_intersection(base, i):
+    r, c = int(base['r1']), int(base['n1'])
+    r = range(int(i['r1']) - r, int(i['r2']) - r + 1)
+    c = range(int(i['n1']) - c, int(i['n2']) - c + 1)
+    return r, c
 
 
 class References(object):
@@ -107,18 +119,28 @@ class Ranges(object):
     format_range = _range2parts().dsp.dispatch
     input_fields = ('excel', 'sheet', 'n1', 'n2', 'r1', 'r2')
 
-    def __init__(self, ranges=()):
+    def __init__(self, ranges=(), values=None, is_set=False):
         self.ranges = ranges
+        self.values = values or {}
+        self.is_set = is_set
 
-    def push(self, *references, context=None):
+    def pushes(self, refs, values=(), context=None):
+        for r, v in itertools.zip_longest(refs, values, fillvalue=sh_utl.EMPTY):
+            self.push(r, value=v, context=context)
+        self.is_set = self.is_set or len(self.ranges) > 1
+        return self
+
+    def push(self, ref, value=sh_utl.EMPTY, context=None):
         context = context or {}
-        for reference in references:
-            m = _re_range.match(reference).groupdict().items()
-            m = {k: v for k, v in m if v is not None}
-            if 'ref' in m:
-                raise ValueError
-            i = sh_utl.combine_dicts(context, m)
-            self.ranges += dict(self.format_range(i, ['name', 'n1', 'n2'])),
+        m = _re_range.match(ref).groupdict().items()
+        m = {k: v for k, v in m if v is not None}
+        if 'ref' in m:
+            raise ValueError
+        i = sh_utl.combine_dicts(context, m)
+        rng = self.format_range(i, ['name', 'n1', 'n2'])
+        self.ranges += dict(rng),
+        if value != sh_utl.EMPTY:
+            self.values[rng['name']] = (rng, np.asarray(value))
         return self
 
     def __add__(self, ranges):
@@ -131,20 +153,21 @@ class Ranges(object):
                 for r in s:
                     stack.extend(_split(b, r))
             base += tuple(stack)
-
-        return Ranges(base)
+        values = sh_utl.combine_dicts(self.values, ranges.values)
+        return Ranges(base, values, True)
 
     def __sub__(self, ranges):
         r = []
         for range in ranges.ranges:
             r.extend(_intersect(range, self.ranges))
-        return Ranges(r)
+        values = sh_utl.combine_dicts(self.values, ranges.values)
+        return Ranges(r, values, self.is_set or ranges.is_set)
 
     def simplify(self):
         rng = self.ranges
         it = range(min(r['n1'] for r in rng), max(r['n2'] for r in rng) + 1)
         it = ['{0}:{0}'.format(_index2col(c)) for c in it]
-        return (self - Ranges().push(*it))._merge()
+        return (self - Ranges(is_set=False).pushes(it))._merge()
 
     def _merge(self):
         key = lambda x: (x['n1'], int(x['r1']), -x['n2'], -int(x['r2']))
@@ -156,11 +179,30 @@ class Ranges(object):
                     stack.append(dict(self.format_range(i, ['name'])))
                 stack.append(r)
 
-        return Ranges(tuple(stack))
+        return Ranges(tuple(stack), self.values, self.is_set)
 
     def __repr__(self):
         ranges = ', '.join(r['name'] for r in self.ranges)
         return '<%s>(%s)' % (self.__class__.__name__, ranges)
+
+    @property
+    def value(self):
+        stack, values = list(self.ranges), []
+        while stack:
+            for k, (rng, value) in sorted(self.values.items()):
+                if not stack:
+                    break
+                i = {}
+                new_rngs = _split(rng, stack[-1], intersect=i)
+                if i:
+                    stack.pop()
+                    stack.extend(new_rngs)
+                    r, c = _get_indices_intersection(rng, i)
+                    values.append(value[:, c][r])
+
+        if self.is_set:
+            return np.concatenate([v.ravel() for v in values])
+        return values[0]
 
 
 OPERATORS = collections.defaultdict(lambda: not_implemeted)
