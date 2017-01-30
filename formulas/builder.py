@@ -17,7 +17,7 @@ from .errors import FormulaError
 from .tokens.operator import Operator
 from .tokens.function import Function
 from .tokens.operand import Operand
-from .formulas.operators import References
+from .formulas.operators import References, wrap_ranges_func
 from .constants import NAME_REFERENCES
 from schedula.utils.alg import get_unused_node_id
 
@@ -84,6 +84,9 @@ class AstBuilder(collections.deque):
                 inputs=[NAME_REFERENCES],
                 outputs=list(map(self.map.get, self.references.tokens))
             )
+        node_id = self.get_node_id(self[-1])
+        attr = self.dsp.get_node(node_id, node_attr=None)[0]
+        attr['filters'] = wrap_ranges_func(sh_utl.bypass),
 
     def compile(self, inputs=None):
         dsp = self.dsp

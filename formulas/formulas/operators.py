@@ -229,6 +229,22 @@ class Ranges(object):
         return values[0]
 
 
+def wrap_ranges_func(func, n_out=1):
+    def wrapper(*args, **kwargs):
+        try:
+            args, kwargs = parse_ranges(*args, **kwargs)
+            return func(*args, **kwargs)
+        except RangeValueError:
+            return sh_utl.bypass(*((sh_utl.NONE,) * n_out))
+    return functools.update_wrapper(wrapper, func)
+
+
+def parse_ranges(*args, **kw):
+    args = tuple(v.value if isinstance(v, Ranges) else v for v in args)
+    kw = {k: v.value if isinstance(v, Ranges) else v for k, v in kw.items()}
+    return args, kw
+
+
 OPERATORS = collections.defaultdict(lambda: not_implemeted)
 OPERATORS.update({
     '+': lambda x, y: x + y,

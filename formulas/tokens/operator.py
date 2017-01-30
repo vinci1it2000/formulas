@@ -91,8 +91,12 @@ class Operator(Token):
         stack.append(self)
 
     def compile(self):
-        from ..formulas.operators import OPERATORS
-        return OPERATORS[self.name.upper()]
+        from ..formulas.operators import OPERATORS, wrap_ranges_func
+        name = self.name.upper()
+        func = OPERATORS[name]
+        if name not in ' ,:':
+            func = wrap_ranges_func(func)
+        return func
 
 
 class Intersect(Operator):

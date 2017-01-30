@@ -1,8 +1,10 @@
 
 import unittest
-from formulas.formulas.operators import Ranges
+from formulas.formulas.operators import Ranges, wrap_ranges_func
+import schedula.utils as sh_utl
 import ddt
 import numpy as np
+import inspect
 
 
 @ddt.ddt
@@ -111,3 +113,20 @@ class TestOperators(unittest.TestCase):
         rng = Ranges().pushes(r1, v1) + Ranges().pushes(r2, v2)
         output = rng.value
         np.testing.assert_array_equal(result, output)
+
+    def test_ast_function(self):
+        def function(a, b):
+            """Doc."""
+            return a + b
+
+        func = wrap_ranges_func(function)
+        self.assertEqual(func.__name__, function.__name__)
+        self.assertEqual(func.__doc__, function.__doc__)
+        self.assertEqual(inspect.signature(func), inspect.signature(function))
+
+        rng1 = Ranges().push('A1:A1', [[1]])
+        output = func(rng1, Ranges().push('B1:B1'))
+        self.assertEqual(output, sh_utl.NONE)
+
+        output = func(rng1, Ranges().push('B1:B1', [[2]]))
+        np.testing.assert_array_equal([[3]], output)
