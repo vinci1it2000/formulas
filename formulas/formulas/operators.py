@@ -11,7 +11,7 @@ Python equivalents of excel operators.
 """
 
 import collections
-from ..errors import FunctionError
+from ..errors import FunctionError, RangeValueError
 from ..tokens.operand import _re_range, _range2parts, _index2col
 import schedula.utils as sh_utl
 import functools
@@ -119,10 +119,11 @@ class Ranges(object):
     format_range = _range2parts().dsp.dispatch
     input_fields = ('excel', 'sheet', 'n1', 'n2', 'r1', 'r2')
 
-    def __init__(self, ranges=(), values=None, is_set=False):
+    def __init__(self, ranges=(), values=None, is_set=False, all_values=True):
         self.ranges = ranges
         self.values = values or {}
         self.is_set = is_set
+        self.all_values = all_values
 
     def pushes(self, refs, values=(), context=None):
         for r, v in itertools.zip_longest(refs, values, fillvalue=sh_utl.EMPTY):
@@ -141,11 +142,12 @@ class Ranges(object):
         self.ranges += dict(rng),
         if value != sh_utl.EMPTY:
             self.values[rng['name']] = (rng, np.asarray(value))
+        else:
+            self.all_values = False
         return self
 
     def __add__(self, ranges):
         base = self.ranges
-
         for r0 in ranges.ranges:
             stack = [r0]
             for b in base:
@@ -154,20 +156,23 @@ class Ranges(object):
                     stack.extend(_split(b, r))
             base += tuple(stack)
         values = sh_utl.combine_dicts(self.values, ranges.values)
-        return Ranges(base, values, True)
+        return Ranges(base, values, True, self.all_values and ranges.all_values)
 
     def __sub__(self, ranges):
         r = []
         for range in ranges.ranges:
             r.extend(_intersect(range, self.ranges))
         values = sh_utl.combine_dicts(self.values, ranges.values)
-        return Ranges(r, values, self.is_set or ranges.is_set)
+        is_set = self.is_set or ranges.is_set
+        return Ranges(r, values, is_set, self.all_values and ranges.all_values)
 
     def simplify(self):
         rng = self.ranges
         it = range(min(r['n1'] for r in rng), max(r['n2'] for r in rng) + 1)
         it = ['{0}:{0}'.format(_index2col(c)) for c in it]
-        return (self - Ranges(is_set=False).pushes(it))._merge()
+        simpl = (self - Ranges(is_set=False).pushes(it))._merge()
+        simpl.all_values = self.all_values
+        return simpl
 
     def _merge(self):
         key = lambda x: (x['n1'], int(x['r1']), -x['n2'], -int(x['r2']))
@@ -178,8 +183,7 @@ class Ranges(object):
                     i = sh_utl.selector(self.input_fields, stack.pop())
                     stack.append(dict(self.format_range(i, ['name'])))
                 stack.append(r)
-
-        return Ranges(tuple(stack), self.values, self.is_set)
+        return Ranges(tuple(stack), self.values, self.is_set, self.all_values)
 
     def __repr__(self):
         ranges = ', '.join(r['name'] for r in self.ranges)
@@ -187,6 +191,8 @@ class Ranges(object):
 
     @property
     def value(self):
+        if not self.all_values:
+            raise RangeValueError(str(self))
         stack, values = list(self.ranges), []
         while stack:
             for k, (rng, value) in sorted(self.values.items()):
