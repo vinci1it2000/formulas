@@ -17,7 +17,7 @@ class TestTokens(unittest.TestCase):
     @ddt.data(
         (' <=', '<='), (' <>', '<>'), ('  <', '<'), ('>', '>'), ('>=', '>='),
         ('=', '='), ('++', '+'), ('---', '-'), ('++--+', '+'), (' *', '*'),
-        ('^ ', '^'), (' & ', '&'), ('/', '/'), ('%', '%'))
+        ('^ ', '^'), (' & ', '&'), ('/', '/'), ('%', '%'), (' : ', ':'))
     def test_valid_operators(self, case):
         inputs, result = case
         output = OperatorToken(inputs).name
@@ -25,7 +25,7 @@ class TestTokens(unittest.TestCase):
 
     @ddt.data(
         '=<', '> <', ' < <', '>>', '=>', '==', '+*', '**', '^ ^', 'z&', '\/',
-        '', '%%', ', ,')
+        '', '%%', ', ,', ' : : ')
     def test_invalid_operators(self, inputs):
         with self.assertRaises(TokenError):
             OperatorToken(inputs)

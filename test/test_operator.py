@@ -6,7 +6,7 @@ import numpy as np
 
 
 @ddt.ddt
-class TestTokens(unittest.TestCase):
+class TestOperators(unittest.TestCase):
     @ddt.data(
         ((('D7:F14',), ('C:E',)), '<Ranges>(D7:F14, C:C, D:E6, D15:E)'),
         ((('D7:F14',), ('C4:E9',)), '<Ranges>(D7:F14, C4:C9, D4:E6)'),
@@ -24,6 +24,22 @@ class TestTokens(unittest.TestCase):
     def test_union_ranges(self, case):
         (range1, range2), result = case
         output = str(Ranges().pushes(range1) + Ranges().pushes(range2))
+        self.assertEqual(result, output, '%s != %s' % (result, output))
+
+    @ddt.data(
+        ((('D7:F14',), ('C:E',)), '<Ranges>(C:F)'),
+        ((('D7:F14',), ('C4:E9',)), '<Ranges>(C4:F14)'),
+        ((('I7:L14',), ('H9:M12',)), '<Ranges>(H7:M14)'),
+        ((('I7:L14',), ('J5:K16',)), '<Ranges>(I5:L16)'),
+        ((('F24:I32',), ('G20:H26',)), '<Ranges>(F20:I32)'),
+        ((('M23:P30',), ('L20:Q25',)), '<Ranges>(L20:Q30)'),
+        ((('M23:P30', 'L20:L25', 'Q20:Q25', 'M20:P22',), ('L20:Q25',)),
+         '<Ranges>(L20:Q30)'),
+        ((('M23:P30', 'L20:L25', 'Q20:Q25', 'M20:P22',),
+          ('P18:R27', 'L25:N32')), '<Ranges>(L18:R32)'))
+    def test_and_ranges(self, case):
+        (range1, range2), result = case
+        output = str(Ranges().pushes(range1) & Ranges().pushes(range2))
         self.assertEqual(result, output, '%s != %s' % (result, output))
 
     @ddt.data(

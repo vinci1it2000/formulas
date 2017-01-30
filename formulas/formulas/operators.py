@@ -146,6 +146,24 @@ class Ranges(object):
             self.all_values = False
         return self
 
+    def __and__(self, other):
+        ranges = self.ranges[1:] + other.ranges
+        rng = sh_utl.selector(self.input_fields, self.ranges[0])
+        for k in ('r1', 'r2', 'n1', 'n2'):
+            rng[k] = int(rng[k])
+
+        for r in ranges:
+            if not _has_same_sheet(rng, r):
+                raise RangeValueError('{}:{}'.format(self, other))
+            else:
+                rng['r1'] = min(rng['r1'], int(r['r1']))
+                rng['n1'] = min(rng['n1'], int(r['n1']))
+                rng['r2'] = max(rng['r2'], int(r['r2']))
+                rng['n2'] = max(rng['n2'], int(r['n2']))
+
+        rng = dict(self.format_range(rng, ['name', 'n1', 'n2'])),
+        return Ranges(rng, all_values=False)
+
     def __add__(self, ranges):
         base = self.ranges
         for r0 in ranges.ranges:
@@ -229,4 +247,5 @@ OPERATORS.update({
     '%': lambda x: x / 100.0,
     ',': lambda x, y: x + y,
     ' ': lambda x, y: x - y,
+    ':': lambda x, y: x & y
 })

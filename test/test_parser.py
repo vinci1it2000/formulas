@@ -10,6 +10,9 @@ import schedula.utils as sh_utl
 @ddt.ddt
 class TestParser(unittest.TestCase):
     @ddt.data(
+        ('=L4:N15 : J5:L12', 'L4:N15:J5:L12'),
+        ('=L4:N15 : c', 'L4:N15:c'),
+        ('=ciao:bau', 'ciao:bau'),
         ('=SUM(L4:N15 (J5:L12, J5:L12, N5:P12, J5:L12, J5:L12))',
          'SUM(L4:N15 (J5:L12,J5:L12,N5:P12,J5:L12,J5:L12))'),
         ('=SUM(L4:N15 (J5:L12, N5:P12))', 'SUM(L4:N15 (J5:L12,N5:P12))'),

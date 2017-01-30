@@ -20,8 +20,8 @@ import collections
 class Operator(Token):
     # http://office.microsoft.com/en-us/excel-help/calculation-operators-and-precedence-HP010078886.aspx
     _precedences = {
-        ' ': 8, ',': 8, 'u-': 7, '%': 6, '^': 5, '*': 4, '/': 4, '+': 3, '-': 3,
-        '&': 2, '=': 1, '<': 1, '>': 1, '<=': 1, '>=': 1, '<>': 1
+        ':': 8, ' ': 8, ',': 8, 'u-': 7, '%': 6, '^': 5, '*': 4, '/': 4, '+': 3,
+        '-': 3, '&': 2, '=': 1, '<': 1, '>': 1, '<=': 1, '>=': 1, '<>': 1
     }
     _n_args = collections.defaultdict(lambda: 2)
     _n_args.update({'u-': 1, '%': 1})
@@ -33,7 +33,7 @@ class Operator(Token):
         return '{} <{}>'.format(self.name, Operator.__name__)
 
     def update_input_tokens(self, *tokens):
-        if self.name in ' ,':
+        if self.name in ' ,:':
             self.attr['is_ranges'] = True
             from .operand import Range
             for t in tokens:
@@ -50,7 +50,7 @@ class Operator(Token):
             expr = '{}%'.format(*expr)
         elif name == 'u-':
             expr = '-{}'.format(*expr)
-        elif name in ' ,':
+        elif name in ' ,:':
             expr = '(%s)' % ('%s ' % name.strip(' ')).join(expr)
         else:
             expr = '(%s)' % (' %s ' % name).join(expr)
@@ -112,9 +112,9 @@ class Separator(Operator):
 
 
 class OperatorToken(Operator):
-    _re = regex.compile('^([\+\-\*\/\^&<>=\s]+|[\s%]+)')
+    _re = regex.compile('^([\+\-\*\/\^&<>=\s:]+|[\s%]+)')
     _re_process = regex.compile(
-        '^(?P<name>(?P<sum_minus>[\+\-]+)|[\*\/\^&\%]|[<>]?=|[<>]|<>)$'
+        '^(?P<name>(?P<sum_minus>[\+\-]+)|[\*\/\^&\%:]|[<>]?=|[<>]|<>)$'
     )
 
     def process(self, match, context=None):
