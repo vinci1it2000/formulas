@@ -10,18 +10,20 @@
 Defines the formulas exception.
 """
 
-class FormulaError(Exception):
-    msg = 'Not a valid formula:\n%s'
+
+class BaseError(Exception):
+    msg = ''
 
     def __init__(self, *args):
-        super(FormulaError, self).__init__(self.msg, *args)
+        super(BaseError, self).__init__(self.msg, *args)
+
+
+class FormulaError(BaseError):
+    msg = 'Not a valid formula:\n%s'
 
 
 class TokenError(FormulaError):
     msg = 'Invalid string: %s'
-
-    def __init__(self, *args):
-        super(FormulaError, self).__init__(self.msg, *args)
 
 
 class ParenthesesError(FormulaError):
@@ -30,3 +32,7 @@ class ParenthesesError(FormulaError):
 
 class FunctionError(FormulaError):
     msg = 'Function not implemented!'
+
+
+class RangeValueError(BaseError):
+    msg = 'Range %s has not value!'
