@@ -60,58 +60,58 @@ proj_ver = read_project_version()
 url = 'https://github.com/vinci1it2000/%s' % name
 download_url = '%s/tarball/v%s' % (url, proj_ver)
 
-setup(
-    name=name,
-    version=proj_ver,
-    packages=find_packages(exclude=[
-        'test', 'test.*',
-        'doc', 'doc.*',
-        'appveyor'
-    ]),
-    url=url,
-    download_url=download_url,
-    license='EUPL 1.1+',
-    author='Vincenzo Arcidiacono',
-    author_email='vinci1it2000@gmail.com',
-    description='Produce a plan that dispatches calls based on a graph of '
-                'functions, satisfying data dependencies.',
-    long_description=get_long_description(),
-    keywords=[
-        "python", "utility", "library", "excel", "formulas", "processing",
-        "calculation", "dependencies", "resolution", "scientific",
-        "engineering", "dispatch", "compiling",
-    ],
-    classifiers=[
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "Development Status :: 3 - Alpha",
-        'Natural Language :: English',
-        "Intended Audience :: Developers",
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: European Union Public Licence 1.1 "
-        "(EUPL 1.1)",
-        "Operating System :: MacOS :: MacOS X",
-        "Operating System :: Microsoft :: Windows",
-        "Operating System :: POSIX",
-        "Operating System :: Unix",
-        "Operating System :: OS Independent",
-        "Topic :: Scientific/Engineering",
-        "Topic :: Scientific/Engineering :: Information Analysis",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Topic :: Utilities",
-    ],
-    install_requires=[
-        'regex',
-        'sphinx',
-        'schedula>=0.1.3',
-        'numpy'
-    ],
-    dependency_links=[
-        'https://github.com/vinci1it2000/pycel/tarball/master#egg=pycel-0.0.1'
-    ],
-    test_suite='nose.collector',
-    setup_requires=['nose>=1.0'],
-)
+if __name__ == '__main__':
+    setup(
+        name=name,
+        version=proj_ver,
+        packages=find_packages(exclude=[
+            'test', 'test.*',
+            'doc', 'doc.*',
+            'appveyor'
+        ]),
+        url=url,
+        download_url=download_url,
+        license='EUPL 1.1+',
+        author='Vincenzo Arcidiacono',
+        author_email='vinci1it2000@gmail.com',
+        description='Parse and compile excel formulas in python code.',
+        long_description=get_long_description(),
+        keywords=[
+            "python", "utility", "library", "excel", "formulas", "processing",
+            "calculation", "dependencies", "resolution", "scientific",
+            "engineering", "dispatch", "compiling",
+        ],
+        classifiers=[
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Development Status :: 3 - Alpha",
+            'Natural Language :: English',
+            "Intended Audience :: Developers",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: European Union Public Licence 1.1 "
+            "(EUPL 1.1)",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX",
+            "Operating System :: Unix",
+            "Operating System :: OS Independent",
+            "Topic :: Scientific/Engineering",
+            "Topic :: Scientific/Engineering :: Information Analysis",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: Utilities",
+        ],
+        install_requires=[
+            'regex',
+            'sphinx',
+            'schedula>=0.1.3',
+            'numpy'
+        ],
+        dependency_links=[
+            'https://github.com/vinci1it2000/pycel/tarball/master#egg=pycel-0.0.1'
+        ],
+        test_suite='nose.collector',
+        setup_requires=['nose>=1.0'],
+    )
