@@ -67,7 +67,6 @@ class TestParser(unittest.TestCase):
         output = str(func())
         self.assertEqual(result, output, '{} != {}'.format(result, output))
 
-
     @ddt.data(
         ('=(a (b, c))', '<Ranges>(L5:L12, N5:N12)',
          {'a': 'L4:N15', 'b': 'J5:L12', 'c': 'N5:P12'}),)

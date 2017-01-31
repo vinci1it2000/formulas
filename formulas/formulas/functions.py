@@ -12,6 +12,8 @@ Python equivalents of various excel functions.
 
 from decimal import Decimal, ROUND_HALF_UP
 import collections
+
+# noinspection PyBroadException
 try:
     import builtins
 except:
@@ -53,7 +55,8 @@ def is_number(number):
     return True
 
 
-# Excel reference: https://support.office.com/en-us/article/ROUND-function-c018c5d8-40fb-4053-90b1-b3e7f61a213c
+# Excel reference: https://support.office.com/en-us/article/ROUND-function-
+# c018c5d8-40fb-4053-90b1-b3e7f61a213c
 def xround(number, num_digits=0):
     if not is_number(number):
         raise TypeError("%s is not a number" % str(number))
@@ -77,8 +80,9 @@ def xif(c, t, f=''):
     except ValueError:
         return t if c.any() else f
 
-
-def date(year, month, day):  # Excel reference: https://support.office.com/en-us/article/DATE-function-e36c0c8c-4104-49da-ab83-82328b832349
+# Excel reference: https://support.office.com/en-us/article/DATE-function-
+# e36c0c8c-4104-49da-ab83-82328b832349
+def date(year, month, day):
     from datetime import datetime
     if type(year) != int:
         raise TypeError("%s is not an integer" % str(year))
@@ -94,7 +98,7 @@ def date(year, month, day):  # Excel reference: https://support.office.com/en-us
             "Year must be between 1 and 9999, instead %s" % str(year))
 
     if year < 1900:
-        year = 1900 + year
+        year += 1900
 
     date_0 = datetime(1900, 1, 1)
     date = datetime(year, month, day)
@@ -111,6 +115,7 @@ def iserror(value):
     return value in ()
 
 
+# noinspection PyUnusedLocal
 def not_implemeted(*args, **kwargs):
     raise FunctionError()
 

@@ -43,10 +43,10 @@ class Array(Function):
             Function('ARRAY(').ast(tokens, stack, builder, check_n=check_n)
             Function('ARRAY(').ast(tokens, stack, builder, check_n=check_n)
         else:
-            t = Parenthesis(')')
-            t.ast(tokens, stack, builder)
+            token = Parenthesis(')')
+            token.ast(tokens, stack, builder)
             if self.has_sep:
-                n_args = t.get_n_args
+                n_args = token.get_n_args
                 check_n = lambda t: t.n_args == n_args
                 Function('ARRAY(').ast(tokens, stack, builder, check_n=check_n)
             else:
