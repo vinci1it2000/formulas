@@ -48,40 +48,34 @@ class TestParser(unittest.TestCase):
             Parser().ast(inputs)
 
     @ddt.data(
-        ('=(L4:N15 (J5:L12, N5:P12))', '<Ranges>(L5:L12, N5:N12)'),
-        ('=(-INT(2))', '-2'),
-        ('=(1+1)+(1+1)', '4'),
-        ('=( 1 + 2 + 3)*(4 + 5)^(1/5)', '9.311073443492159'),
-        ('={1,2;1,2}', '[[1 2]\n [1 2]]'),
-        ('=PI()', '3.141592653589793'),
-        ('=INT(1)%+3', '3.01'),
-        ('=SUM({1, 3; 4, 2})', '10'),
-        ('=" "" a"', ' " a'),
-        ('=#NULL!',  'NULL!'),
-        ('=1 + 2', '3'),
-        ('=AVERAGE(((123 + 4 + AVERAGE({1,2}))))', '128.5'),
-        ('="a" & "b"""', 'ab"'))
+        ('=(L4:N7 (K5:L6, N5:O6))', (
+            [(2,), (2,)],
+            [(3,), (3,)]
+        ), '[3 3 2 2]'),
+        ('=(a (b, c))', (
+            [(1, 1, 1),
+             (2, 1, 3),
+             (2, 1, 3),
+             (1, 1, 1)],
+            [(3, 3), (3, 3)],
+            [(2, 2), (2, 2)],
+            {'a': 'L4:N7', 'b': 'K5:L6', 'c': 'N5:O6'}
+        ),
+         '[3 3 2 2]'),
+        ('=(-INT(2))', (), '-2'),
+        ('=(1+1)+(1+1)', (), '4'),
+        ('=( 1 + 2 + 3)*(4 + 5)^(1/5)', (), '9.311073443492159'),
+        ('={1,2;1,2}', (), '[[1 2]\n [1 2]]'),
+        ('=PI()', (), '3.141592653589793'),
+        ('=INT(1)%+3', (), '3.01'),
+        ('=SUM({1, 3; 4, 2})', (), '10'),
+        ('=" "" a"', (), ' " a'),
+        ('=#NULL!',  (), 'NULL!'),
+        ('=1 + 2', (), '3'),
+        ('=AVERAGE(((123 + 4 + AVERAGE({1,2}))))', (), '128.5'),
+        ('="a" & "b"""', (), 'ab"'))
     def test_compile(self, case):
-        inputs, result = case
-        func = Parser().ast(inputs)[1].compile()
-        output = str(func())
+        formula, inputs, result = case
+        func = Parser().ast(formula)[1].compile()
+        output = str(func(*inputs))
         self.assertEqual(result, output, '{} != {}'.format(result, output))
-
-    @ddt.data(
-        ('=(a (b, c))', '<Ranges>(L5:L12, N5:N12)',
-         {'a': 'L4:N15', 'b': 'J5:L12', 'c': 'N5:P12'}),)
-    def test_compile_with_refs(self, case):
-        context = {}
-        inputs, result, context[NAME_REFERENCES] = case
-        func = Parser().ast(inputs)[1].compile(context)
-        output = str(func())
-        self.assertEqual(result, output, '{} != {}'.format(result, output))
-
-    @ddt.data(
-        ('=(a (b, c))', {'a': 'L4:N15', 'b': 'J5:L12'}),)
-    def test_compile_with_refs(self, case):
-        context = {}
-        inputs, context[NAME_REFERENCES] = case
-        with self.assertRaises(sh_utl.DispatcherError):
-            func = Parser().ast(inputs)[1].compile(context)
-            func()

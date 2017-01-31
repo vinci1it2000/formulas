@@ -84,8 +84,8 @@ def _merge_update(base, rng):
 
 def _get_indices_intersection(base, i):
     r, c = int(base['r1']), int(base['n1'])
-    r = range(int(i['r1']) - r, int(i['r2']) - r + 1)
-    c = range(int(i['n1']) - c, int(i['n2']) - c + 1)
+    r = slice(int(i['r1']) - r, int(i['r2']) - r + 1)
+    c = slice(int(i['n1']) - c, int(i['n2']) - c + 1)
     return r, c
 
 
@@ -182,7 +182,8 @@ class Ranges(object):
 
     def __repr__(self):
         ranges = ', '.join(r['name'] for r in self.ranges)
-        return '<%s>(%s)' % (self.__class__.__name__, ranges)
+        value = '={}'.format(self.value) if self.all_values else ''
+        return '<%s>(%s)%s' % (self.__class__.__name__, ranges, value)
 
     @property
     def value(self):
@@ -241,9 +242,11 @@ class Values2Ranges(object):
                 else:
                     args.pop()
                     res.append(sh_utl.NONE)
-        val = dict(zip((r['name'] for r in self.ranges.ranges), args))
-        return res + [Ranges(r.ranges, val, r.is_set) for r in
-                      self.nodes.values()]
+        val = {}
+        for rng, v in zip(self.ranges.ranges, args):
+            val[rng['name']] = rng, np.asarray(v)
+        res += [Ranges(r.ranges, val, r.is_set) for r in self.nodes.values()]
+        return sh_utl.bypass(*res)
 
     @property
     def __name__(self):
