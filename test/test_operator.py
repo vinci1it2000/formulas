@@ -1,6 +1,7 @@
 
 import unittest
-from formulas.formulas.operators import Ranges, wrap_ranges_func
+from formulas.formulas.operators import wrap_ranges_func
+from formulas.ranges import Ranges
 import schedula.utils as sh_utl
 import ddt
 import numpy as np
@@ -91,7 +92,7 @@ class TestOperators(unittest.TestCase):
           ([(2, 0, 5),
             (2, 0, 5),
             (4, 0, 5),
-            (4, 0, 5),],)),
+            (4, 0, 5)],)),
          [5, 5, 5, 5, 2, 2, 4, 4])
     )
     def test_value_intersection_ranges(self, case):

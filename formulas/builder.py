@@ -17,8 +17,8 @@ from .errors import FormulaError
 from .tokens.operator import Operator
 from .tokens.function import Function
 from .tokens.operand import Operand
-from .formulas.operators import References, wrap_ranges_func
-from .constants import NAME_REFERENCES
+from .formulas.operators import wrap_ranges_func
+from .ranges import Values2Ranges, Ranges
 from schedula.utils.alg import get_unused_node_id
 
 
@@ -29,7 +29,7 @@ class AstBuilder(collections.deque):
         self.dsp = dsp or schedula.Dispatcher()
         self.map = map or {}
         self.missing_operands = set()
-        self.references = References()
+        self.inputs = Values2Ranges()
 
     def append(self, token):
         if isinstance(token, (Operator, Function)):
@@ -62,13 +62,12 @@ class AstBuilder(collections.deque):
         if isinstance(token, Operand):
             self.missing_operands.remove(token)
             token.set_expr()
-            kw = {}
             if token.attr.get('is_reference', False):
-                self.references.push(token)
+                node_id = self.dsp.add_data(data_id=token.node_id)
+                self.inputs.references[node_id] = token.attr['name']
             else:
-                kw['default_value'] = token.compile()
-
-            node_id = self.dsp.add_data(data_id=token.node_id, **kw)
+                kw = {'default_value': token.compile()}
+                node_id = self.dsp.add_data(data_id=token.node_id, **kw)
         else:
             node_id = token.node_id
         self.map[token] = node_id
@@ -78,24 +77,28 @@ class AstBuilder(collections.deque):
         for token in list(self.missing_operands):
             self.get_node_id(token)
 
-        if self.references.tokens:
-            self.dsp.add_function(
-                function=self.references,
-                inputs=[NAME_REFERENCES],
-                outputs=list(map(self.map.get, self.references.tokens))
-            )
-        node_id = self.get_node_id(self[-1])
-        attr = self.dsp.get_node(node_id, node_attr=None)[0]
-        attr['filters'] = wrap_ranges_func(sh_utl.bypass),
-
     def compile(self, inputs=None):
         dsp = self.dsp
-        for k, v in dsp.dispatch(inputs or {}).items():
+        for k, v in dsp(inputs or {}).items():
             dsp.add_data(data_id=k, default_value=v)
 
-        i, o, pred = [], self.get_node_id(self[-1]), dsp.dmap.pred
-        for k, v in sorted(dsp.data_nodes.items()):
-            if not (k in dsp.default_values or len(pred[k])):
-                i.append(k)
+        o = self.get_node_id(self[-1])
+        dsp = dsp.get_sub_dsp_from_workflow(
+            [o], graph=dsp.dmap, reverse=True, blockers=dsp.default_values,
+            wildcard=False
+        )
+        for k, v in list(dsp.default_values.items()):
+            if isinstance(v['value'], Ranges):
+                self.inputs.push(k, dsp.default_values.pop(k)['value'])
 
+        if self.inputs.inputs:
+            self.inputs.simplify()
+            dsp.add_function(
+                function=self.inputs,
+                inputs=self.inputs.inputs,
+                outputs=self.inputs.outputs
+            )
+
+        dsp.nodes[o]['filters'] = wrap_ranges_func(sh_utl.bypass),
+        i = self.inputs.inputs
         return sh_utl.SubDispatchPipe(dsp, '=%s' % o, i, [o], wildcard=False)

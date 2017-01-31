@@ -21,4 +21,5 @@ Modules:
     ~errors
     ~tokens
     ~formulas
+    ~ranges
 """
