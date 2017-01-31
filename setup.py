@@ -106,7 +106,7 @@ if __name__ == '__main__':
         install_requires=[
             'regex',
             'sphinx',
-            'schedula>=0.1.3',
+            'schedula>=0.1.4',
             'numpy'
         ],
         dependency_links=[
