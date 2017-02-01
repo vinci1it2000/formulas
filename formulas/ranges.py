@@ -11,9 +11,7 @@ It provides Ranges class.
 """
 import itertools
 import numpy as np
-from .constants import NAME_REFERENCES
 from .tokens.operand import _re_range, _range2parts, _index2col
-import collections
 from .errors import RangeValueError
 import schedula.utils as sh_utl
 import functools
@@ -75,11 +73,19 @@ def _intersect(rng, ranges):
     return tuple(r for r in it if r)
 
 
-def _merge_update(base, rng):
+def _merge_raw_update(base, rng):
     if _has_same_sheet(base, rng):
         if base['n1'] == rng['n2'] and int(base['r2']) + 1 >= int(rng['r1']):
             base['r2'] = rng['r2']
             return True
+
+
+def _merge_col_update(base, rng):
+    if _has_same_sheet(base, rng):
+        if (base['n2'] + 1) == rng['n1']:
+            if base['r1'] == rng['r1'] and base['r2'] == rng['r2']:
+                base['n2'] = rng['n2']
+                return True
 
 
 def _get_indices_intersection(base, i):
@@ -161,7 +167,7 @@ class Ranges(object):
 
     def simplify(self):
         rng = self.ranges
-        if not rng:
+        if len(rng) <= 1:
             return self
         it = range(min(r['n1'] for r in rng), max(r['n2'] for r in rng) + 1)
         it = ['{0}:{0}'.format(_index2col(c)) for c in it]
@@ -171,14 +177,18 @@ class Ranges(object):
 
     def _merge(self):
         key = lambda x: (x['n1'], int(x['r1']), -x['n2'], -int(x['r2']))
-        stack = []
-        for r in sorted(self.ranges, key=key):
-            if not (stack and _merge_update(stack[-1], r)):
-                if stack:
-                    i = sh_utl.selector(self.input_fields, stack.pop())
-                    stack.append(dict(self.format_range(i, ['name'])))
-                stack.append(r)
-        return Ranges(tuple(stack), self.values, self.is_set, self.all_values)
+        rng = self.ranges
+        for merge, select in ((_merge_raw_update, 1), (_merge_col_update, 0)):
+            it, rng = sorted(rng, key=key), []
+            for r in it:
+                if not (rng and merge(rng[-1], r)):
+                    if rng:
+                        rng.append(rng.pop())
+                    if select:
+                        r = sh_utl.selector(self.input_fields, r)
+                    rng.append(r)
+        rng = [dict(self.format_range(r, ['name'])) for r in rng]
+        return Ranges(tuple(rng), self.values, self.is_set, self.all_values)
 
     def __repr__(self):
         ranges = ', '.join(r['name'] for r in self.ranges)
@@ -205,49 +215,3 @@ class Ranges(object):
         if self.is_set:
             return np.concatenate([v.ravel() for v in values])
         return values[0]
-
-
-class Values2Ranges(object):
-    def __init__(self, ranges=None, outputs=None):
-        self.ranges = ranges or Ranges()
-        self.references = collections.OrderedDict()
-        self.nodes = outputs or collections.OrderedDict()
-
-    def push(self, node_id, rng):
-        self.nodes[node_id] = rng
-        self.ranges += rng
-
-    def simplify(self):
-        self.ranges = self.ranges.simplify()
-        return self
-
-    @property
-    def inputs(self):
-        rng = [r['name'] for r in self.ranges.ranges]
-        if self.references:
-            rng += list(self.references.values())[::-1] + [NAME_REFERENCES]
-        return rng
-
-    @property
-    def outputs(self):
-        return list(self.references) + list(self.nodes)
-
-    def __call__(self, *args, **kwargs):
-        res, args = [], list(args)
-        if self.references:
-            named_refs = args.pop()
-            for k in self.references.values():
-                if k in named_refs:
-                    res.append(Ranges().push(named_refs[k], args.pop()))
-                else:
-                    args.pop()
-                    res.append(sh_utl.NONE)
-        val = {}
-        for rng, v in zip(self.ranges.ranges, args):
-            val[rng['name']] = rng, np.asarray(v)
-        res += [Ranges(r.ranges, val, r.is_set) for r in self.nodes.values()]
-        return sh_utl.bypass(*res)
-
-    @property
-    def __name__(self):
-        return '=->(%s)' % ';'.join(self.inputs)
