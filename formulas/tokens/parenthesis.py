@@ -12,6 +12,7 @@ It provides Parenthesis class.
 
 from . import Token
 from ..errors import ParenthesesError, TokenError
+# noinspection PyCompatibility
 import regex
 
 

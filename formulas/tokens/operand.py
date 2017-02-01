@@ -11,6 +11,7 @@ It provides Operand classes.
 """
 
 from . import Token
+# noinspection PyCompatibility
 import regex
 import sys
 import schedula.utils as sh_utl
@@ -165,12 +166,15 @@ def _build_id(ref, sheet='', excel=''):
     return '!'.join(s for s in (sheet, ref) if s)
 
 
+def _sum(*args):
+    return sum(map(float, args))
+
+
 @functools.lru_cache(None)
 def _range2parts():
     dsp = sh.Dispatcher()
     dsp.add_data(data_id='cr', default_value='1')
     dsp.add_data(data_id='cc', default_value='1')
-    _sum = lambda *args: sum(map(float, args))
     dsp.add_function('relative2absolute', _sum, ['cr', 'rr1'], ['r1'])
     dsp.add_function('relative2absolute', _sum, ['cc', 'rc1'], ['n1'])
     dsp.add_function('relative2absolute', _sum, ['cr', 'rr2'], ['r2'])

@@ -109,6 +109,7 @@ if __name__ == '__main__':
             'schedula>=0.1.4',
             'numpy'
         ],
+        tests_require=['nose>=1.0', 'ddt'],
         dependency_links=[
             'https://github.com/vinci1it2000/pycel/tarball/master#egg=pycel-0.0.1'
         ],

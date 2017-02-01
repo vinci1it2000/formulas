@@ -10,6 +10,7 @@
 It provides formula parser class.
 """
 
+# noinspection PyCompatibility
 import regex
 from .errors import TokenError, FormulaError, ParenthesesError
 from .tokens.operand import String, Error, Number, Range

@@ -13,6 +13,7 @@ It provides Operator classes.
 from . import Token
 from .parenthesis import Parenthesis, _update_n_args
 from ..errors import ParenthesesError, FormulaError
+# noinspection PyCompatibility
 import regex
 import collections
 

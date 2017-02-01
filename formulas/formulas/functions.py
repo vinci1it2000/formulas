@@ -13,12 +13,7 @@ Python equivalents of various excel functions.
 from decimal import Decimal, ROUND_HALF_UP
 import collections
 
-# noinspection PyBroadException
-try:
-    import builtins
-except:
-    import __builtins__ as builtins
-
+import builtins
 import numpy as np
 import math
 from ..errors import FunctionError
@@ -80,6 +75,7 @@ def xif(c, t, f=''):
     except ValueError:
         return t if c.any() else f
 
+
 # Excel reference: https://support.office.com/en-us/article/DATE-function-
 # e36c0c8c-4104-49da-ab83-82328b832349
 def date(year, month, day):
@@ -101,8 +97,6 @@ def date(year, month, day):
         year += 1900
 
     date_0 = datetime(1900, 1, 1)
-    date = datetime(year, month, day)
-
     result = (datetime(year, month, day) - date_0).days + 2
 
     if result <= 0:

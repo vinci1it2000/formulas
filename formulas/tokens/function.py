@@ -10,7 +10,9 @@
 It provides Function classes.
 """
 
+# noinspection PyCompatibility
 import regex
+import functools
 from . import Token
 from .parenthesis import Parenthesis
 
@@ -35,6 +37,10 @@ class Function(Token):
         self.attr['expr'] = '%s(%s)' % (self.name.upper(), args)
 
 
+def _check_tkn_n_args(n_args, token):
+    return token.n_args == n_args
+
+
 class Array(Function):
     _re = regex.compile('^\s*(?P<name>(?P<start>{)|(?P<end>})|(?P<sep>;))\s*')
 
@@ -46,8 +52,7 @@ class Array(Function):
             token = Parenthesis(')')
             token.ast(tokens, stack, builder)
             if self.has_sep:
-                n_args = token.get_n_args
-                check_n = lambda t: t.n_args == n_args
+                check_n = functools.partial(_check_tkn_n_args, token.get_n_args)
                 Function('ARRAY(').ast(tokens, stack, builder, check_n=check_n)
             else:
                 Parenthesis(')').ast(tokens, stack, builder)
