@@ -1,10 +1,20 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+#
+# Copyright 2016-2017 European Commission (JRC);
+# Licensed under the EUPL (the 'Licence');
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 import unittest
+import ddt
+import inspect
+import numpy as np
+import schedula.utils as sh_utl
 from formulas.parser import Parser
 from formulas.errors import FormulaError
-import ddt
-from formulas.constants import NAME_REFERENCES
-import schedula.utils as sh_utl
+from formulas.ranges import Ranges
+from formulas.formulas.operators import wrap_ranges_func
 
 
 @ddt.ddt
@@ -49,17 +59,12 @@ class TestParser(unittest.TestCase):
 
     @ddt.data(
         ('=(L4:N7 (K5:L6, N5:O6))', (
-            [(2,), (2,)],
-            [(3,), (3,)]
+            Ranges().pushes(('L5:L6', 'N5:N6'), ([(2,), (2,)], [(3,), (3,)])),
         ), '[3 3 2 2]'),
         ('=(a (b, c))', (
-            [(1, 1, 1),
-             (2, 1, 3),
-             (2, 1, 3),
-             (1, 1, 1)],
-            [(3, 3), (3, 3)],
-            [(2, 2), (2, 2)],
-            {'a': 'L4:N7', 'b': 'K5:L6', 'c': 'N5:O6'}
+            Ranges().push('L4:N6', [(1, 1, 1), (2, 1, 3), (2, 1, 3)]),
+            Ranges().push('K5:L6', [(2, 2), (2, 2)]),
+            Ranges().push('N5:O6', [(3, 3), (3, 3)])
         ),
          '[3 3 2 2]'),
         ('=(-INT(2))', (), '-2'),
@@ -79,3 +84,20 @@ class TestParser(unittest.TestCase):
         func = Parser().ast(formula)[1].compile()
         output = str(func(*inputs))
         self.assertEqual(result, output, '{} != {}'.format(result, output))
+
+    def test_ast_function(self):
+        def function(a, b):
+            """Doc."""
+            return a + b
+
+        func = wrap_ranges_func(function)
+        self.assertEqual(func.__name__, function.__name__)
+        self.assertEqual(func.__doc__, function.__doc__)
+        self.assertEqual(inspect.signature(func), inspect.signature(function))
+
+        rng1 = Ranges().push('A1:A1', [[1]])
+        output = func(rng1, Ranges().push('B1:B1'))
+        self.assertEqual(output, sh_utl.NONE)
+
+        output = func(rng1, Ranges().push('B1:B1', [[2]]))
+        np.testing.assert_array_equal([[3]], output)

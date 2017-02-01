@@ -1,11 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+#
+# Copyright 2016-2017 European Commission (JRC);
+# Licensed under the EUPL (the 'Licence');
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 import unittest
-from formulas.formulas.operators import wrap_ranges_func
-from formulas.ranges import Ranges
-import schedula.utils as sh_utl
 import ddt
 import numpy as np
-import inspect
+from formulas.ranges import Ranges
+from formulas.errors import RangeValueError
 
 
 @ddt.ddt
@@ -32,7 +37,8 @@ class TestOperators(unittest.TestCase):
     @ddt.data(
         ((('D7:F14',), ('C:E',)), '<Ranges>(C:F)'),
         ((('D7:F14',), ('C4:E9',)), '<Ranges>(C4:F14)'),
-        ((('I7:L14',), ('H9:M12',)), '<Ranges>(H7:M14)'),
+        ((("'[xl.xls]s1'!I7:L14",), ("'[xl.xls]s1'!H9:M12",)),
+         "<Ranges>('[xl.xls]s1'!H7:M14)"),
         ((('I7:L14',), ('J5:K16',)), '<Ranges>(I5:L16)'),
         ((('F24:I32',), ('G20:H26',)), '<Ranges>(F20:I32)'),
         ((('M23:P30',), ('L20:Q25',)), '<Ranges>(L20:Q30)'),
@@ -44,6 +50,16 @@ class TestOperators(unittest.TestCase):
         (range1, range2), result = case
         output = str(Ranges().pushes(range1) & Ranges().pushes(range2))
         self.assertEqual(result, output, '%s != %s' % (result, output))
+
+    @ddt.data(
+        (('sheet1!D7:F14',), ('C:E',)),
+        (('sheet2!D7:F14',), ('sheet1!C4:E9',)),
+        (("'[excel.xls]sheet2'!I7:L14",), ('H9:M12',)),
+        )
+    def test_invalid_and_ranges(self, case):
+        range1, range2 = case
+        with self.assertRaises(RangeValueError):
+            Ranges().pushes(range1) & Ranges().pushes(range2)
 
     @ddt.data(
         ((('D7:F14',), ('C:E',)), '<Ranges>(D7:E14)'),
@@ -64,7 +80,10 @@ class TestOperators(unittest.TestCase):
 
     @ddt.data(
         (('D7:F14', 'C:C', 'D:E6', 'D15:E'),
-         '<Ranges>(C:C, D:D15, E:E15, F7:F14)'))
+         '<Ranges>(C:C, D:E15, F7:F14)'),
+        (('D7:F14',), '<Ranges>(D7:F14)'),
+        (('D7:D14', 'E7:E14', 'F7:F14'), '<Ranges>(D7:F14)')
+    )
     def test_simplify_ranges(self, case):
         ranges, result = case
         output = str(Ranges().pushes(ranges).simplify())
@@ -115,19 +134,6 @@ class TestOperators(unittest.TestCase):
         output = rng.value
         np.testing.assert_array_equal(result, output)
 
-    def test_ast_function(self):
-        def function(a, b):
-            """Doc."""
-            return a + b
-
-        func = wrap_ranges_func(function)
-        self.assertEqual(func.__name__, function.__name__)
-        self.assertEqual(func.__doc__, function.__doc__)
-        self.assertEqual(inspect.signature(func), inspect.signature(function))
-
-        rng1 = Ranges().push('A1:A1', [[1]])
-        output = func(rng1, Ranges().push('B1:B1'))
-        self.assertEqual(output, sh_utl.NONE)
-
-        output = func(rng1, Ranges().push('B1:B1', [[2]]))
-        np.testing.assert_array_equal([[3]], output)
+    def test_invalid_ranges(self):
+        with self.assertRaises(ValueError):
+            Ranges().push('reference')
