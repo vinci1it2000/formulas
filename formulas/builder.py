@@ -39,17 +39,16 @@ class AstBuilder(collections.deque):
             token.update_input_tokens(*tokens)
             inputs = [self.get_node_id(i) for i in tokens]
             token.set_expr(*tokens)
-            out, dmap = token.node_id, self.dsp.dmap
-            get_node_id = sh_utl.alg.get_unused_node_id
+            out, dmap, get_id = token.node_id, self.dsp.dmap, get_unused_node_id
             if out not in self.dsp.nodes:
                 self.dsp.add_function(
-                    function_id=get_node_id(dmap, token.name),
+                    function_id=get_id(dmap, token.name),
                     function=token.compile(),
                     inputs=inputs or None,
                     outputs=[out]
                 )
             else:
-                self.nodes[token] = n_id = get_node_id(dmap, out, 'c%d>{}')
+                self.nodes[token] = n_id = get_id(dmap, out, 'c%d>{}')
                 self.dsp.add_function(None, sh_utl.bypass, [out], [n_id])
         elif isinstance(token, Operand):
             self.missing_operands.add(token)
