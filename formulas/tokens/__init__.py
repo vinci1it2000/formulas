@@ -44,10 +44,7 @@ class Token(object):
 
     @property
     def node_id(self):
-        node_id = self.get_expr
-        if self.attr.get('is_ranges', False):
-            node_id = '->%s' % node_id
-        return node_id
+        return self.get_expr
 
     @property
     def name(self):

@@ -18,18 +18,17 @@ from .tokens.operator import Operator
 from .tokens.function import Function
 from .tokens.operand import Operand
 from .formulas.operators import wrap_ranges_func
-from .ranges import Values2Ranges, Ranges
+from .ranges import Ranges
 from schedula.utils.alg import get_unused_node_id
 
 
 class AstBuilder(collections.deque):
-    def __init__(self, *args, dsp=None, map=None, match=None, **kwargs):
+    def __init__(self, *args, dsp=None, nodes=None, match=None, **kwargs):
         super(AstBuilder, self).__init__(*args, **kwargs)
         self.match = match
         self.dsp = dsp or schedula.Dispatcher()
-        self.map = map or {}
+        self.nodes = nodes or {}
         self.missing_operands = set()
-        self.inputs = Values2Ranges()
 
     def append(self, token):
         if isinstance(token, (Operator, Function)):
@@ -41,15 +40,16 @@ class AstBuilder(collections.deque):
             inputs = [self.get_node_id(i) for i in tokens]
             token.set_expr(*tokens)
             out, dmap = token.node_id, self.dsp.dmap
+            get_node_id = sh_utl.alg.get_unused_node_id
             if out not in self.dsp.nodes:
                 self.dsp.add_function(
-                    function_id=get_unused_node_id(dmap, token.name),
+                    function_id=get_node_id(dmap, token.name),
                     function=token.compile(),
                     inputs=inputs or None,
                     outputs=[out]
                 )
             else:
-                self.map[token] = n_id = get_unused_node_id(dmap, out, 'c%d>{}')
+                self.nodes[token] = n_id = get_node_id(dmap, out, 'c%d>{}')
                 self.dsp.add_function(None, sh_utl.bypass, [out], [n_id])
         elif isinstance(token, Operand):
             self.missing_operands.add(token)
@@ -57,48 +57,45 @@ class AstBuilder(collections.deque):
         super(AstBuilder, self).append(token)
 
     def get_node_id(self, token):
-        if token in self.map:
-            return self.map[token]
+        if token in self.nodes:
+            return self.nodes[token]
         if isinstance(token, Operand):
             self.missing_operands.remove(token)
             token.set_expr()
-            if token.attr.get('is_reference', False):
-                node_id = self.dsp.add_data(data_id=token.node_id)
-                self.inputs.references[node_id] = token.attr['name']
-            else:
-                kw = {'default_value': token.compile()}
-                node_id = self.dsp.add_data(data_id=token.node_id, **kw)
+            kw = {}
+            if not token.attr.get('is_reference', False):
+                kw['default_value'] = token.compile()
+            node_id = self.dsp.add_data(data_id=token.node_id, **kw)
         else:
             node_id = token.node_id
-        self.map[token] = node_id
+        self.nodes[token] = node_id
         return node_id
 
     def finish(self):
         for token in list(self.missing_operands):
             self.get_node_id(token)
 
-    def compile(self, inputs=None):
+    def compile(self, references=None):
         dsp = self.dsp
-        for k, v in dsp(inputs or {}).items():
-            dsp.add_data(data_id=k, default_value=v)
-
-        o = self.get_node_id(self[-1])
+        if references:
+            references = {k: Ranges().push(v) for k, v in references.items()}
+        res, o = dsp(references or {}), self.get_node_id(self[-1])
         dsp = dsp.get_sub_dsp_from_workflow(
-            [o], graph=dsp.dmap, reverse=True, blockers=dsp.default_values,
+            [o], graph=dsp.dmap, reverse=True, blockers=res,
             wildcard=False
         )
-        for k, v in list(dsp.default_values.items()):
-            if isinstance(v['value'], Ranges):
-                self.inputs.push(k, dsp.default_values.pop(k)['value'])
 
-        if self.inputs.inputs:
-            self.inputs.simplify()
-            dsp.add_function(
-                function=self.inputs,
-                inputs=self.inputs.inputs,
-                outputs=self.inputs.outputs
-            )
+        i = collections.OrderedDict()
+        for k in sorted(dsp.data_nodes):
+            if not dsp.dmap.pred[k]:
+                if k in res:
+                    v = res[k]
+                    if isinstance(v, Ranges):
+                        i[k] = v
+                    else:
+                        dsp.add_data(data_id=k, default_value=v)
+                else:
+                    i[k] = None
 
         dsp.nodes[o]['filters'] = wrap_ranges_func(sh_utl.bypass),
-        i = self.inputs.inputs
         return sh_utl.SubDispatchPipe(dsp, '=%s' % o, i, [o], wildcard=False)
