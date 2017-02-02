@@ -15,10 +15,13 @@ from formulas.errors import TokenError
 
 @ddt.ddt
 class TestTokens(unittest.TestCase):
-    @ddt.data(('A:A', 'A:A'), ('1:1', '1:1'))
+    @ddt.data(('A:A', 'A:A'), ('1:1', '1:1'), ('A1', 'A1'), ('A:A5','A:A5'),
+              ('A1:B2', 'A1:B2'))
     def test_range(self, case):
         inputs, result = case
-        output = Range(inputs).name
+        token = Range(inputs)
+        self.assertFalse(bool({'r1', 'r2', 'n1', 'n2'} - set(token.attr)))
+        output = token.name
         self.assertEqual(result, output, '%s != %s' % (result, output))
 
     @ddt.data(
@@ -61,6 +64,6 @@ class TestTokens(unittest.TestCase):
 
     @ddt.data(
         '#NUL L!', ' #DIV\/0!', '# VALUE!', '#REF', '#NME?', '#NUM !', '#N\A ')
-    def test_invalid_strings(self, inputs):
+    def test_invalid_errors(self, inputs):
         with self.assertRaises(TokenError):
             Error(inputs)
