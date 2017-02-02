@@ -11,15 +11,11 @@ Python equivalents of excel operators.
 """
 
 import collections
-from ..errors import FunctionError, RangeValueError
+from ..errors import RangeValueError
 import schedula.utils as sh_utl
 import functools
 from ..ranges import Ranges
-
-
-# noinspection PyUnusedLocal
-def not_implemeted(*args, **kwargs):
-    raise FunctionError()
+from ..formulas.functions import not_implemeted
 
 
 def wrap_ranges_func(func, n_out=1):
