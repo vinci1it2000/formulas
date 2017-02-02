@@ -26,7 +26,7 @@ class AstBuilder(collections.deque):
     def __init__(self, *args, dsp=None, nodes=None, match=None, **kwargs):
         super(AstBuilder, self).__init__(*args, **kwargs)
         self.match = match
-        self.dsp = dsp or schedula.Dispatcher()
+        self.dsp = dsp or schedula.Dispatcher(raises=True)
         self.nodes = nodes or {}
         self.missing_operands = set()
 
@@ -83,6 +83,7 @@ class AstBuilder(collections.deque):
             [o], graph=dsp.dmap, reverse=True, blockers=res,
             wildcard=False
         )
+        dsp.nodes.update({k: v.copy() for k, v in dsp.nodes.items()})
 
         i = collections.OrderedDict()
         for k in sorted(dsp.data_nodes):
@@ -94,7 +95,10 @@ class AstBuilder(collections.deque):
                     else:
                         dsp.add_data(data_id=k, default_value=v)
                 else:
-                    i[k] = None
+                    try:
+                        i[k] = Ranges().push(k)
+                    except ValueError:
+                        i[k] = None
 
         dsp.nodes[o]['filters'] = wrap_ranges_func(sh_utl.bypass),
         return sh_utl.SubDispatchPipe(dsp, '=%s' % o, i, [o], wildcard=False)
