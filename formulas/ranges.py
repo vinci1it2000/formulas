@@ -11,7 +11,7 @@ It provides Ranges class.
 """
 import itertools
 import numpy as np
-from .tokens.operand import _re_range, _range2parts, _index2col
+from .tokens.operand import _re_range, _range2parts, _index2col, maxsize
 from .errors import RangeValueError
 import schedula.utils as sh_utl
 import functools
@@ -95,6 +95,12 @@ def _get_indices_intersection(base, i):
     return r, c
 
 
+def _shape(n1, n2, r1, r2, **kw):
+    c = -1 if int(n1) == 0 or int(n2) == maxsize else (int(n2) - int(n1) + 1)
+    r = -1 if int(r1) == 0 or int(r2) == maxsize else (int(r2) - int(r1) + 1)
+    return r, c
+
+
 class Ranges(object):
     format_range = _range2parts().dsp
     input_fields = ('excel', 'sheet', 'n1', 'n2', 'r1', 'r2')
@@ -118,10 +124,11 @@ class Ranges(object):
         if 'ref' in m:
             raise ValueError
         i = sh_utl.combine_dicts(context, m)
-        rng = self.format_range(i, ['name', 'n1', 'n2'])
-        self.ranges += dict(rng),
-        if value != sh_utl.EMPTY:
-            self.values[rng['name']] = (rng, np.asarray(value))
+        rng = dict(self.format_range(i, ['name', 'n1', 'n2']))
+        self.ranges += rng,
+        if value is not sh_utl.EMPTY:
+            value = np.asarray(value, object)
+            self.values[rng['name']] = (rng, np.resize(value, _shape(**rng)))
         else:
             self.all_values = False
         return self
