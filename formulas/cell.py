@@ -103,8 +103,6 @@ class Cell(object):
 class RangesAssembler(object):
     def __init__(self, ref, context=None):
         self.missing = self.range = Ranges().push(ref, context=context)
-        if not self.range.is_range:
-            raise ValueError('This is a cell reference!')
         self.inputs = []
 
     @property
@@ -112,8 +110,8 @@ class RangesAssembler(object):
         return self.range.ranges[0]['name']
 
     def push(self, cell):
-        rng = self.range & cell.range
-        if rng.ranges:
+        if self.missing.ranges and (self.missing & cell.range).ranges:
+            self.missing = self.range - cell.range
             self.inputs.append(cell.output)
 
     @property
