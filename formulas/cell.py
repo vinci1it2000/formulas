@@ -86,7 +86,7 @@ class Cell(object):
     def add(self, dsp, context=None):
         if self.func or self.value is not sh_utl.EMPTY:
             output = self.output
-            f = functools.partial(Ranges().push, output, context=context)
+            f = functools.partial(format_output, output, context=context)
             dsp.add_data(output, filters=(f,), default_value=self.value)
 
             if self.func:
