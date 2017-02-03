@@ -35,6 +35,8 @@ class TestCell(unittest.TestCase):
         ('A1', '=SUM(B2:B4)', {'B2:B4':('', 1, '')}, '<Ranges>(A1)=[[1]]'))
     def test_output(self, case):
         reference, formula, inputs, result = case
+        dsp = sh.Dispatcher()
         cell = Cell(reference, formula).compile()
-        output = str(cell.add(sh.Dispatcher())(inputs)[cell.output])
+        assert cell.add(dsp)
+        output = str(dsp(inputs)[cell.output])
         self.assertEqual(result, output, '{} != {}'.format(result, output))

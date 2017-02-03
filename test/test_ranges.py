@@ -38,7 +38,7 @@ class TestOperators(unittest.TestCase):
         ((('D7:F14',), ('C:E',)), '<Ranges>(C:F)'),
         ((('D7:F14',), ('C4:E9',)), '<Ranges>(C4:F14)'),
         ((("'[xl.xls]s1'!I7:L14",), ("'[xl.xls]s1'!H9:M12",)),
-         "<Ranges>('[xl.xls]s1'!H7:M14)"),
+         "<Ranges>('[XL.XLS]S1'!H7:M14)"),
         ((('I7:L14',), ('J5:K16',)), '<Ranges>(I5:L16)'),
         ((('F24:I32',), ('G20:H26',)), '<Ranges>(F20:I32)'),
         ((('M23:P30',), ('L20:Q25',)), '<Ranges>(L20:Q30)'),
@@ -131,6 +131,24 @@ class TestOperators(unittest.TestCase):
     def test_value_union_ranges(self, case):
         (r1, r2), (v1, v2), result = case
         rng = Ranges().pushes(r1, v1) + Ranges().pushes(r2, v2)
+        output = rng.value
+        np.testing.assert_array_equal(result, output)
+
+    @ddt.data(
+        ((('B2:E5',), ('D4:F5',)),
+         (([(1, 1, 2, 2),
+            (1, 1, 2, 2),
+            (3, 3, 4, 4),
+            (3, 3, 4, 4)],),
+          (([(4, 4, 5),
+             (4, 4, 5)],))),
+         [(1, 1, 2, 2, None),
+          (1, 1, 2, 2, None),
+          (3, 3, 4, 4, 5),
+          (3, 3, 4, 4, 5)]),)
+    def test_value_and_ranges(self, case):
+        (r1, r2), (v1, v2), result = case
+        rng = Ranges().pushes(r1, v1) & Ranges().pushes(r2, v2)
         output = rng.value
         np.testing.assert_array_equal(result, output)
 
