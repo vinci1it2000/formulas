@@ -19,7 +19,7 @@ from ..errors import FunctionError
 def is_number(number):
     try:
         float(number)
-    except ValueError:
+    except (ValueError, TypeError):
         return False
     return True
 
@@ -33,11 +33,11 @@ def flatten(l, check=is_number):
 
 
 def xsum(*args):
-    return sum(list(flatten(*args)))
+    return sum(list(flatten(args)))
 
 
 def average(*args):
-    l = list(flatten(*args))
+    l = list(flatten(args))
     return sum(l) / len(l)
 
 
