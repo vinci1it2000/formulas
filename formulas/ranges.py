@@ -139,7 +139,7 @@ class Ranges(object):
         self.ranges = ranges
         self.values = values or {}
         self.is_set = is_set
-        self.all_values = all_values
+        self.all_values = all_values or not ranges
 
     def pushes(self, refs, values=(), context=None):
         for r, v in itertools.zip_longest(refs, values, fillvalue=sh_utl.EMPTY):
@@ -283,4 +283,4 @@ class Ranges(object):
             return np.concatenate([v.ravel() for v in values])
         if values:
             return values[0]
-        return np.asarray([[]], object)
+        return np.asarray([[Error.errors['#NULL!']]], object)
