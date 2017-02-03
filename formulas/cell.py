@@ -13,33 +13,58 @@ import collections
 import functools
 import schedula.utils as sh_utl
 from .parser import Parser
-from .ranges import Ranges
+from .ranges import Ranges, _assemble_values
 from .tokens.operand import Error
+
+
+def return_ref_error(*args, **kwargs):
+    return Error.errors['#REF!']
+
+
+def wrap_cell_func(func, parse_args=lambda *a: a, parse_kwargs=lambda **kw: kw):
+    def wrapper(*args, **kwargs):
+        return func(*parse_args(*args), **parse_kwargs(**kwargs))
+    return functools.update_wrapper(wrapper, func)
+
+
+def format_output(*args, **kwargs):
+    return Ranges().push(*args, **kwargs)
 
 
 class Cell(object):
     parser = Parser()
 
-    def __init__(self, reference, formula, context=None):
+    def __init__(self, reference, value, context=None):
         self.func = None
         self.inputs = None
         self.range = Ranges().push(reference, context=context)
-        self.tokens, self.builder = self.parser.ast(formula, context=context)
+        self.value = sh_utl.EMPTY
+        self.tokens, self.builder = (), None
+        if isinstance(value, str) and self.parser.formula_check.match(value):
+            self.tokens, self.builder = self.parser.ast(value, context=context)
+        elif value is not None:
+            self.value = value
 
     @property
     def __name__(self):
-        return self.func.__name__
+        if self.func:
+            return self.func.__name__
+        return self.output
 
     @property
     def output(self):
         return self.range.ranges[0]['name']
 
     def compile(self, references=None):
-        self.func = self.builder.compile(references=references)
-        self.update_inputs(references=references)
+        if self.builder:
+            func = self.builder.compile(references=references)
+            self.func = wrap_cell_func(func, self._args)
+            self.update_inputs(references=references)
         return self
 
     def update_inputs(self, references=None):
+        if not self.builder:
+            return
         self.inputs = inp = collections.OrderedDict()
         for k, rng in self.func.inputs.items():
             try:
@@ -58,16 +83,44 @@ class Cell(object):
                 i[k] = (v + i[k]) if k in i else v
         return sh_utl.selector(self.func.inputs, i, output_type='list')
 
-    def __call__(self, *args):
-        if self.inputs is None:
-            return Error.errors['#REF!']
-        return self.func(*self._args(*args))
-
     def add(self, dsp, context=None):
-        inputs, outputs = self.inputs, [self.output]
-        for k in list(inputs or []) + outputs:
-            if k not in dsp.nodes:
-                f = functools.partial(Ranges().push, k, context=context)
-                dsp.add_data(k, filters=(f,))
-        dsp.add_function(self.__name__, self, inputs or None, outputs)
-        return dsp
+        if self.func or self.value is not sh_utl.EMPTY:
+            output = self.output
+            f = functools.partial(Ranges().push, output, context=context)
+            dsp.add_data(output, filters=(f,), default_value=self.value)
+
+            if self.func:
+                inputs = self.inputs
+                for k in inputs or ():
+                    if k not in dsp.nodes:
+                        f = functools.partial(format_output, k, context=context)
+                        dsp.add_data(k, filters=(f,))
+                func = return_ref_error if inputs is None else self.func
+                dsp.add_function(self.__name__, func, inputs or None, [output])
+            return True
+
+
+class RangesAssembler(object):
+    def __init__(self, ref, context=None):
+        self.missing = self.range = Ranges().push(ref, context=context)
+        if not self.range.is_range:
+            raise ValueError('This is a cell reference!')
+        self.inputs = []
+
+    @property
+    def output(self):
+        return self.range.ranges[0]['name']
+
+    def push(self, cell):
+        rng = self.range - cell.range
+        if rng.ranges:
+            self.inputs.append(cell.output)
+
+    @property
+    def __name__(self):
+        return '=%s' % self.output
+
+    def __call__(self, *cells):
+        base = self.range.ranges[0]
+        values = sh_utl.combine_dicts(*(c.values for c in cells))
+        return _assemble_values(base, values)
