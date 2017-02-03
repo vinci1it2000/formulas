@@ -91,7 +91,7 @@ class AstBuilder(collections.deque):
             if not dsp.dmap.pred[k]:
                 if k in res:
                     v = res[k]
-                    if isinstance(v, Ranges):
+                    if isinstance(v, Ranges) and v.ranges:
                         i[k] = v
                     else:
                         dsp.add_data(data_id=k, default_value=v)
