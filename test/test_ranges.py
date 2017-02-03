@@ -173,3 +173,6 @@ class TestOperators(unittest.TestCase):
     def test_invalid_ranges(self):
         with self.assertRaises(ValueError):
             Ranges().push('reference')
+
+    def test_empty_ranges_value(self):
+        np.testing.assert_array_equal(Ranges().value, [[]])
