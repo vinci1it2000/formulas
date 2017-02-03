@@ -111,8 +111,11 @@ class ExcelModel(object):
             filename, sheetname = _get_name(rng['excel'], books), rng['sheet']
 
             if filename not in books:
-                books[filename] = openpyxl.Workbook()
-            book = books[filename]
+                book = books[filename] = openpyxl.Workbook()
+                for ws in book.worksheets:
+                    book.remove_sheet(ws)
+            else:
+                book = books[filename]
             sheetnames = book.sheetnames
             sheetname = _get_name(sheetname, sheetnames)
             if sheetname not in sheetnames:

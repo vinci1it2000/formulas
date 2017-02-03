@@ -9,6 +9,7 @@
 import unittest
 import openpyxl
 import os.path as osp
+import schedula.utils as sh_utl
 from formulas.excel import ExcelModel
 
 
@@ -43,3 +44,9 @@ class TestExcelModel(unittest.TestCase):
         xl_model.calculate()
         books = {k: _book2dict(v) for k, v in xl_model.write(books).items()}
         self.assertEqual(books, self.results)
+
+        books = {k: _book2dict(v) for k, v in xl_model.write().items()}
+        res = {}
+        for k, v in sh_utl.stack_nested_keys(self.results, depth=2):
+            sh_utl.get_nested_dicts(res, *map(str.upper, k), default=lambda: v)
+        self.assertEqual(books, res)
