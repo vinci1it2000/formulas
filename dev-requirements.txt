@@ -1,5 +1,6 @@
 git+https://github.com/vinci1it2000/pycel.git
 schedula>=0.1.4
+openpyxl
 nose
 wheel
 coveralls

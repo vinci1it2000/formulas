@@ -107,7 +107,8 @@ if __name__ == '__main__':
             'regex',
             'sphinx',
             'schedula>=0.1.4',
-            'numpy'
+            'numpy',
+            'openpyxl'
         ],
         tests_require=['nose>=1.0', 'ddt'],
         dependency_links=[
