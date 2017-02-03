@@ -11,7 +11,7 @@ It provides Ranges class.
 """
 import itertools
 import numpy as np
-from .tokens.operand import _re_range, _range2parts, _index2col, maxsize
+from .tokens.operand import _re_range, _range2parts, _index2col, maxsize, Error
 from .errors import RangeValueError
 import schedula.utils as sh_utl
 import functools
@@ -112,6 +112,26 @@ def _shape(n1, n2, r1, r2, **kw):
     return r, c
 
 
+def _reshape_array_as_excel(value, shape):
+    try:
+        return np.reshape(value, shape)
+    except ValueError:
+        res, shape = np.empty(shape, object), value.shape
+        if len(shape) == 0:
+            return res
+        if len(shape) == 0:
+            r, c = 1, shape[0]
+        else:
+            r, c = shape
+        r = None if r == 1 else r
+        c = None if c == 1 else c
+        try:
+            res[:r, :c] = value
+        except ValueError:
+            res[:, :] = Error.errors['#VALUE!']
+    return res
+
+
 class Ranges(object):
     format_range = _range2parts().dsp
     input_fields = ('excel', 'sheet', 'n1', 'n2', 'r1', 'r2')
@@ -147,8 +167,9 @@ class Ranges(object):
         rng = dict(self.format_range(i, ['name', 'n1', 'n2']))
         self.ranges += rng,
         if value is not sh_utl.EMPTY:
-            value = np.asarray(value, object)
-            self.values[rng['name']] = (rng, np.resize(value, _shape(**rng)))
+            value, shape = np.asarray(value, object), _shape(**rng)
+            value = _reshape_array_as_excel(value, shape)
+            self.values[rng['name']] = (rng, value)
         else:
             self.all_values = False
         return self
@@ -248,6 +269,7 @@ class Ranges(object):
             raise RangeValueError(str(self))
         stack, values = list(self.ranges), []
         while stack:
+            update = False
             for k, (rng, value) in sorted(self.values.items()):
                 if not stack:
                     break
@@ -256,10 +278,14 @@ class Ranges(object):
                     rng, stack[-1], intersect=i, format_range=self.format_range
                 )
                 if i:
+                    update = True
                     stack.pop()
                     stack.extend(new_rngs)
                     r, c = _get_indices_intersection(rng, i)
                     values.append(value[:, c][r])
+            else:
+                if not update:
+                    break
 
         if self.is_set:
             return np.concatenate([v.ravel() for v in values])
