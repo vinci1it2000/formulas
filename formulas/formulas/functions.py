@@ -46,14 +46,18 @@ def not_implemeted(*args, **kwargs):
     raise FunctionError()
 
 
+class Array(np.ndarray):
+    pass
+
+
 FUNCTIONS = collections.defaultdict(lambda: not_implemeted)
 FUNCTIONS.update({
     'INT': int,
     'PI': lambda: math.pi,
     'SUM': xsum,
     'AVERAGE': average,
-    'ARRAYROW': lambda *args: np.asarray(args, object),
-    'ARRAY': lambda *args: np.asarray(args, object),
+    'ARRAYROW': lambda *args: np.asarray(args, object).view(Array),
+    'ARRAY': lambda *args: np.asarray(args, object).view(Array),
     'AND': lambda *args: all(args),
     'OR': lambda *args: any(args),
 })

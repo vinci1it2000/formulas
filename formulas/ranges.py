@@ -13,6 +13,7 @@ import itertools
 import numpy as np
 from .tokens.operand import _re_range, _range2parts, _index2col, maxsize, Error
 from .errors import RangeValueError
+from .formulas.functions import Array
 import schedula.utils as sh_utl
 import functools
 
@@ -112,11 +113,11 @@ def _shape(n1, n2, r1, r2, **kw):
     return r, c
 
 
-def _reshape_array_as_excel(value, shape):
+def _reshape_array_as_excel(value, base_shape):
     try:
-        return np.reshape(value, shape)
+        return np.reshape(value, base_shape)
     except ValueError:
-        res, shape = np.empty(shape, object), value.shape
+        res, shape = np.empty(base_shape, object), value.shape
         if len(shape) == 0:
             return res
         if len(shape) == 0:
@@ -128,7 +129,10 @@ def _reshape_array_as_excel(value, shape):
         try:
             res[:r, :c] = value
         except ValueError:
-            res[:, :] = Error.errors['#VALUE!']
+            if isinstance(value, Array):
+                res = np.resize(value, base_shape)
+            else:
+                res[:, :] = Error.errors['#VALUE!']
     return res
 
 
@@ -167,7 +171,9 @@ class Ranges(object):
         rng = dict(self.format_range(i, ['name', 'n1', 'n2']))
         self.ranges += rng,
         if value is not sh_utl.EMPTY:
-            value, shape = np.asarray(value, object), _shape(**rng)
+            if not isinstance(value, Array):
+                value = np.asarray(value, object)
+            shape = _shape(**rng)
             value = _reshape_array_as_excel(value, shape)
             self.values[rng['name']] = (rng, value)
         else:
