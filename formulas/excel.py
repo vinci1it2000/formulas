@@ -40,14 +40,15 @@ class ExcelModel(object):
         for n in book.defined_names.definedName:
             ref, i = n.name.upper(), n.localSheetId
             rng = Ranges().push(n.value, context=context).ranges[0]['name']
-            sheetnames = book.sheetnames if i is None else book.sheetnames[
-                                                           i:i + 1]
-            for sn in sheetnames:
+            sheet_names = book.sheetnames
+            if i is not None:
+                sheet_names = sheet_names[i:i + 1]
+            for sn in sheet_names:
                 name = _range2parts()(context, {'sheet': sn, 'ref': ref})
                 yield name['name'], rng
 
-    def loads(self, *filenames):
-        return dict(map(self.load, filenames))
+    def loads(self, *file_names):
+        return dict(map(self.load, file_names))
 
     def load(self, filename):
         book = openpyxl.load_workbook(filename, data_only=False)
@@ -65,50 +66,47 @@ class ExcelModel(object):
         context = sh_utl.combine_dicts(
             context or {}, base={'sheet': worksheet.title}
         )
-        formulas_refs = {
+        f_refs = {
             k: v['ref'] for k, v in worksheet.formula_attributes.items()
             if v.get('t') == 'array' and 'ref' in v
         }
-        frng = {
-            Ranges().push(ref, context=context)
-            for ref in formulas_refs.values()
-        }
+        f_rng = {Ranges().push(ref, context=context) for ref in f_refs.values()}
         for row in worksheet.iter_rows():
             for c in row:
                 crd = c.coordinate
-                crd = formulas_refs.get(crd, crd)
+                crd = f_refs.get(crd, crd)
+
                 cell = Cell(crd, c.value, context=context).compile()
-                if (cell.value is not sh_utl.EMPTY
-                    and any(not (cell.range - rng).ranges for rng in frng)):
-                    continue
+                if cell.value is not sh_utl.EMPTY:
+                    if any(not (cell.range - rng).ranges for rng in f_rng):
+                        continue
                 cell.update_inputs(references=references)
+
                 if cell.add(self.dsp, context=context):
                     self.cells[cell.output] = cell
         return self
 
     def finish(self):
-        for k in sorted(set(self.dsp.data_nodes) - set(self.cells)):
-            if k is sh_utl.START:
+        for n_id in sorted(set(self.dsp.data_nodes) - set(self.cells)):
+            if n_id is sh_utl.START:
                 continue
-            ra = RangesAssembler(k)
+            ra = RangesAssembler(n_id)
             for k, c in sorted(self.cells.items()):
                 ra.push(c)
                 if not ra.missing.ranges:
                     break
 
-            self.dsp.add_function(
-                function=ra,
-                inputs=ra.inputs or None,
-                outputs=[ra.output]
-            )
+            self.dsp.add_function(None, ra, ra.inputs or None, [ra.output])
+
         return self
 
     def write(self, books=None, solution=None):
         books = {} if books is None else books
         solution = self.dsp.solution if solution is None else solution
-        for k, v in solution.items():
-            rng = v.ranges[0]
-            filename, sheetname = _get_name(rng['excel'], books), rng['sheet']
+
+        for r in solution.values():
+            rng = r.ranges[0]
+            filename, sheet_name = _get_name(rng['excel'], books), rng['sheet']
 
             if filename not in books:
                 book = books[filename] = openpyxl.Workbook()
@@ -116,12 +114,15 @@ class ExcelModel(object):
                     book.remove_sheet(ws)
             else:
                 book = books[filename]
-            sheetnames = book.sheetnames
-            sheetname = _get_name(sheetname, sheetnames)
-            if sheetname not in sheetnames:
-                book.create_sheet(sheetname)
-            sheet = book[sheetname]
+
+            sheet_names = book.sheetnames
+            sheet_name = _get_name(sheet_name, sheet_names)
+            if sheet_name not in sheet_names:
+                book.create_sheet(sheet_name)
+            sheet = book[sheet_name]
+
             ref = '{c1}{r1}:{c2}{r2}'.format(**rng)
-            for c, v in zip(flatten(sheet[ref], None), flatten(v.value, None)):
+            for c, v in zip(flatten(sheet[ref], None), flatten(r.value, None)):
                 c.value = v
+
         return books

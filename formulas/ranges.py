@@ -107,6 +107,7 @@ def _assemble_values(base, values):
     return res
 
 
+# noinspection PyUnusedLocal
 def _shape(n1, n2, r1, r2, **kw):
     c = -1 if int(n1) == 0 or int(n2) == maxsize else (int(n2) - int(n1) + 1)
     r = -1 if int(r1) == 0 or int(r2) == maxsize else (int(r2) - int(r1) + 1)
@@ -230,9 +231,9 @@ class Ranges(object):
             return self
         it = range(min(r['n1'] for r in rng), max(r['n2'] for r in rng) + 1)
         it = ['{0}:{0}'.format(_index2col(c)) for c in it]
-        simpl = (self & Ranges(is_set=False).pushes(it))._merge()
-        simpl.all_values = self.all_values
-        return simpl
+        spl = (self & Ranges(is_set=False).pushes(it))._merge()
+        spl.all_values = self.all_values
+        return spl
 
     def _merge(self):
         key = lambda x: (x['n1'], int(x['r1']), -x['n2'], -int(x['r2']))
@@ -265,13 +266,13 @@ class Ranges(object):
                 if not stack:
                     break
                 i = {}
-                new_rngs = _split(
+                new_rng = _split(
                     rng, stack[-1], intersect=i, format_range=self.format_range
                 )
                 if i:
                     update = True
                     stack.pop()
-                    stack.extend(new_rngs)
+                    stack.extend(new_rng)
                     r, c = _get_indices_intersection(rng, i)
                     values.append(value[:, c][r])
             else:

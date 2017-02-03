@@ -42,7 +42,7 @@ def average(*args):
 
 
 # noinspection PyUnusedLocal
-def not_implemeted(*args, **kwargs):
+def not_implemented(*args, **kwargs):
     raise FunctionError()
 
 
@@ -50,7 +50,7 @@ class Array(np.ndarray):
     pass
 
 
-FUNCTIONS = collections.defaultdict(lambda: not_implemeted)
+FUNCTIONS = collections.defaultdict(lambda: not_implemented)
 FUNCTIONS.update({
     'INT': int,
     'PI': lambda: math.pi,

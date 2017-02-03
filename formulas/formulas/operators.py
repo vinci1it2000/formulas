@@ -15,7 +15,7 @@ from ..errors import RangeValueError
 import schedula.utils as sh_utl
 import functools
 from ..ranges import Ranges
-from ..formulas.functions import not_implemeted
+from ..formulas.functions import not_implemented
 
 
 def wrap_ranges_func(func, n_out=1):
@@ -34,7 +34,7 @@ def parse_ranges(*args, **kw):
     return args, kw
 
 
-OPERATORS = collections.defaultdict(lambda: not_implemeted)
+OPERATORS = collections.defaultdict(lambda: not_implemented)
 OPERATORS.update({
     '+': lambda x, y: x + y,
     '-': lambda x, y: x - y,

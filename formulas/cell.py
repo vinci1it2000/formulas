@@ -17,6 +17,7 @@ from .ranges import Ranges, _assemble_values
 from .tokens.operand import Error
 
 
+# noinspection PyUnusedLocal
 def return_ref_error(*args, **kwargs):
     return Error.errors['#REF!']
 
