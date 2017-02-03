@@ -16,7 +16,7 @@ import schedula as sh
 import schedula.utils as sh_utl
 from .ranges import Ranges
 from .cell import Cell, RangesAssembler
-from .tokens.operand import _range2parts
+from .tokens.operand import _range2parts, Error
 from .formulas.functions import flatten
 
 
@@ -123,6 +123,8 @@ class ExcelModel(object):
 
             ref = '{c1}{r1}:{c2}{r2}'.format(**rng)
             for c, v in zip(flatten(sheet[ref], None), flatten(r.value, None)):
+                if v is None:
+                    v = Error.errors['#N/A']
                 c.value = v
 
         return books
