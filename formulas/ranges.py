@@ -36,15 +36,15 @@ def _have_intersect(x, y):
     return {}
 
 
-def _single_intersect(x, y):
+def _single_intersect(format_range, x, y):
     z = _have_intersect(x, y)
     if z:
         z['r1'], z['r2'] = str(z['r1']), str(z['r2'])
-        return dict(_range2parts().dsp(z, ['name', 'n1', 'n2']))
+        return dict(format_range(z, ['name', 'n1', 'n2']))
     return {}
 
 
-def _split(base, rng, intersect=None):
+def _split(base, rng, intersect=None, format_range=_range2parts().dsp):
     z = _have_intersect(base, rng)
     if not z:
         return rng,
@@ -61,15 +61,15 @@ def _split(base, rng, intersect=None):
             j = '%s%d' % (i[0], 2 - int(i[1]) // 2)
             r = sh_utl.combine_dicts(rng, {j: z[i] - n})
             r['r1'], r['r2'] = str(r['r1']), str(r['r2'])
-            r = dict(_range2parts().dsp(r, ['name', 'n1', 'n2']))
+            r = dict(format_range(r, ['name', 'n1', 'n2']))
             ranges.append(r)
             rng[i] = z[i]
 
     return tuple(ranges)
 
 
-def _intersect(rng, ranges):
-    it = map(functools.partial(_single_intersect, rng), ranges)
+def _intersect(rng, ranges, format_range=_range2parts().dsp):
+    it = map(functools.partial(_single_intersect, format_range, rng), ranges)
     return tuple(r for r in it if r)
 
 
@@ -95,6 +95,14 @@ def _get_indices_intersection(base, i):
     return r, c
 
 
+def _assemble_values(base, values):
+    res = np.empty(_shape(**base), object)
+    for k, (rng, value) in sorted(values.items()):
+        r, c = _get_indices_intersection(base, rng)
+        res[r, c] = value
+    return res
+
+
 def _shape(n1, n2, r1, r2, **kw):
     c = -1 if int(n1) == 0 or int(n2) == maxsize else (int(n2) - int(n1) + 1)
     r = -1 if int(r1) == 0 or int(r2) == maxsize else (int(r2) - int(r1) + 1)
@@ -110,6 +118,15 @@ class Ranges(object):
         self.values = values or {}
         self.is_set = is_set
         self.all_values = all_values
+
+    @property
+    def is_range(self):
+        rng = self.simplify()
+        if len(rng.ranges) == 1:
+            rng = rng.ranges[0]
+            # noinspection PyTypeChecker
+            return not (rng['n1'] == rng['n2'] and rng['r1'] == rng['r2'])
+        return len(rng.ranges) > 1
 
     def pushes(self, refs, values=(), context=None):
         for r, v in itertools.zip_longest(refs, values, fillvalue=sh_utl.EMPTY):
@@ -148,29 +165,36 @@ class Ranges(object):
                 rng['r2'] = max(rng['r2'], int(r['r2']))
                 rng['n2'] = max(rng['n2'], int(r['n2']))
 
-        rng = dict(self.format_range(rng, ['name', 'n1', 'n2'])),
-        return Ranges(rng, all_values=False)
+        rng = dict(self.format_range(rng, ['name', 'n1', 'n2']))
+        all_values, values = self.all_values and other.all_values, None
+        if all_values:
+            values = sh_utl.combine_dicts(self.values, other.values)
+            value = _assemble_values(rng, values)
+            return Ranges().push(rng['name'], value)
+        return Ranges((rng,), all_values=False)
 
-    def __add__(self, ranges):
+    def __add__(self, other):
         base = self.ranges
-        for r0 in ranges.ranges:
+        for r0 in other.ranges:
             stack = [r0]
             for b in base:
                 s = stack.copy()
                 stack = []
                 for r in s:
-                    stack.extend(_split(b, r))
+                    stack.extend(_split(b, r, format_range=self.format_range))
             base += tuple(stack)
-        values = sh_utl.combine_dicts(self.values, ranges.values)
-        return Ranges(base, values, True, self.all_values and ranges.all_values)
+        values = sh_utl.combine_dicts(self.values, other.values)
+        return Ranges(base, values, True, self.all_values and other.all_values)
 
-    def __sub__(self, ranges):
+    def __sub__(self, other):
         r = []
-        for rng in ranges.ranges:
-            r.extend(_intersect(rng, self.ranges))
-        values = sh_utl.combine_dicts(self.values, ranges.values)
-        is_set = self.is_set or ranges.is_set
-        return Ranges(r, values, is_set, self.all_values and ranges.all_values)
+        for rng in other.ranges:
+            r.extend(_intersect(
+                rng, self.ranges, format_range=self.format_range
+            ))
+        values = sh_utl.combine_dicts(self.values, other.values)
+        is_set = self.is_set or other.is_set
+        return Ranges(r, values, is_set, self.all_values and other.all_values)
 
     def simplify(self):
         rng = self.ranges
@@ -199,7 +223,7 @@ class Ranges(object):
 
     def __repr__(self):
         ranges = ', '.join(r['name'] for r in self.ranges)
-        value = '={}'.format(self.value) if self.all_values else ''
+        value = '={}'.format(self.value) if ranges and self.all_values else ''
         return '<%s>(%s)%s' % (self.__class__.__name__, ranges, value)
 
     @property
@@ -212,7 +236,9 @@ class Ranges(object):
                 if not stack:
                     break
                 i = {}
-                new_rngs = _split(rng, stack[-1], intersect=i)
+                new_rngs = _split(
+                    rng, stack[-1], intersect=i, format_range=self.format_range
+                )
                 if i:
                     stack.pop()
                     stack.extend(new_rngs)
@@ -221,4 +247,6 @@ class Ranges(object):
 
         if self.is_set:
             return np.concatenate([v.ravel() for v in values])
-        return values[0]
+        if values:
+            return values[0]
+        return np.asarray([[]], object)
