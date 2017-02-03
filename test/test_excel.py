@@ -34,8 +34,9 @@ class TestCell(unittest.TestCase):
             _filename: _book2dict(openpyxl.load_workbook(self.filename,
                                                          data_only=True))
         }
+        self.maxDiff = None
 
-    def test_sheet_parser(self):
+    def test_excel_model(self):
         xl_model = ExcelModel()
         books = xl_model.loads(self.filename)
         xl_model.finish()
