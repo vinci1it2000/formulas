@@ -22,6 +22,10 @@ from .parenthesis import _update_n_args
 maxsize = sys.maxsize
 
 
+class XlError(sh_utl.Token):
+    pass
+
+
 class Operand(Token):
     def ast(self, tokens, stack, builder):
         if tokens and isinstance(tokens[-1], Operand):
@@ -46,7 +50,7 @@ class Error(Operand):
     errors = {}
     for k in ('NULL!', 'DIV/0!', 'VALUE!', 'REF!', 'NUM!', 'NAME?', 'N/A'):
         k = '#%s' % k
-        errors[k] = sh_utl.Token(k)
+        errors[k] = XlError(k)
 
     def compile(self):
         return self.errors[self.name]
