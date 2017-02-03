@@ -98,8 +98,11 @@ def _get_indices_intersection(base, i):
 def _assemble_values(base, values):
     res = np.empty(_shape(**base), object)
     for k, (rng, value) in sorted(values.items()):
-        r, c = _get_indices_intersection(base, rng)
-        res[r, c] = value
+        ist = _have_intersect(base, rng)
+        if ist:
+            br, bc = _get_indices_intersection(base, ist)
+            rr, rc = _get_indices_intersection(rng, ist)
+            res[br, bc] = value[rr, rc]
     return res
 
 
@@ -150,7 +153,7 @@ class Ranges(object):
             self.all_values = False
         return self
 
-    def __and__(self, other):
+    def __add__(self, other):  # Expand.
         ranges = self.ranges[1:] + other.ranges
         rng = sh_utl.selector(self.input_fields, self.ranges[0])
         for k in ('r1', 'r2', 'n1', 'n2'):
@@ -173,7 +176,7 @@ class Ranges(object):
             return Ranges().push(rng['name'], value)
         return Ranges((rng,), all_values=False)
 
-    def __add__(self, other):
+    def __or__(self, other):  # Union.
         base = self.ranges
         for r0 in other.ranges:
             stack = [r0]
@@ -186,7 +189,7 @@ class Ranges(object):
         values = sh_utl.combine_dicts(self.values, other.values)
         return Ranges(base, values, True, self.all_values and other.all_values)
 
-    def __sub__(self, other):
+    def __and__(self, other):  # Intersection.
         r = []
         for rng in other.ranges:
             r.extend(_intersect(
@@ -196,13 +199,26 @@ class Ranges(object):
         is_set = self.is_set or other.is_set
         return Ranges(r, values, is_set, self.all_values and other.all_values)
 
+    def __sub__(self, other):
+        base = other.ranges
+        for r0 in self.ranges:
+            stack = [r0]
+            for b in base:
+                s = stack.copy()
+                stack = []
+                for r in s:
+                    stack.extend(_split(b, r, format_range=self.format_range))
+            base += tuple(stack)
+        base, values = base[len(other.ranges):], self.values
+        return Ranges(base, values, True, self.all_values)
+
     def simplify(self):
         rng = self.ranges
         if len(rng) <= 1:
             return self
         it = range(min(r['n1'] for r in rng), max(r['n2'] for r in rng) + 1)
         it = ['{0}:{0}'.format(_index2col(c)) for c in it]
-        simpl = (self - Ranges(is_set=False).pushes(it))._merge()
+        simpl = (self & Ranges(is_set=False).pushes(it))._merge()
         simpl.all_values = self.all_values
         return simpl
 

@@ -50,7 +50,7 @@ OPERATORS.update({
     '<>': lambda x, y: x != y,
     '&': '{}{}'.format,
     '%': lambda x: x / 100.0,
-    ',': lambda x, y: x + y,
-    ' ': lambda x, y: x - y,
-    ':': lambda x, y: x & y
+    ',': lambda x, y: x | y,
+    ' ': lambda x, y: x & y,
+    ':': lambda x, y: x + y
 })

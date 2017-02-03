@@ -112,7 +112,7 @@ class RangesAssembler(object):
         return self.range.ranges[0]['name']
 
     def push(self, cell):
-        rng = self.range - cell.range
+        rng = self.range & cell.range
         if rng.ranges:
             self.inputs.append(cell.output)
 
