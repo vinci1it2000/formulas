@@ -22,4 +22,7 @@ Modules:
     ~tokens
     ~formulas
     ~ranges
+    ~cell
+    ~excel
+
 """
