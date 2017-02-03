@@ -70,7 +70,7 @@ _re_range = r"""
                 '(\[(?P<excel>[^\[\]]+)\])?
                  (?P<sheet>(?>''|[^\.\?!*\/\[\]':"])+)?'
             |
-                (?P<sheet>[^\.\?!*\/\[\]':"]+)
+                (?P<sheet>[^\.\?!*\/\[\]':", ]+)
             |
                 '(?P<sheet>(?>''|[^\.\?!*\/\[\]':"])+)'
             )!
@@ -192,8 +192,10 @@ def _range2parts():
     dsp.add_function(function=_col2index, inputs=['c2'], outputs=['n2'])
     dsp.add_function(function=sh_utl.bypass, inputs=['c1'], outputs=['c2'])
     dsp.add_function(function=sh_utl.bypass, inputs=['r1'], outputs=['r2'])
-    dsp.add_data(data_id='excel', default_value='')
-    dsp.add_data(data_id='sheet', default_value='')
+    dsp.add_data(data_id='excel', default_value='', filters=(str.upper,))
+    dsp.add_data(data_id='sheet', default_value='', filters=(str.upper,))
+    dsp.add_data(data_id='ref', filters=(str.upper,))
+    dsp.add_data(data_id='name', filters=(str.upper,))
     dsp.add_data(data_id='n1', default_value=0, initial_dist=100)
     dsp.add_data(data_id='r1', default_value='0', initial_dist=100)
     dsp.add_data(data_id='n2', default_value=maxsize, initial_dist=100)
