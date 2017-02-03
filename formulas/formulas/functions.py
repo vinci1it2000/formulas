@@ -28,7 +28,7 @@ def flatten(l, check=is_number):
     if isinstance(l, collections.Iterable) and not isinstance(l, str):
         for el in l:
             yield from flatten(el, check)
-    elif check(l):
+    elif not check or check(l):
         yield l
 
 
