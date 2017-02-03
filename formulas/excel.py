@@ -65,14 +65,22 @@ class ExcelModel(object):
         context = sh_utl.combine_dicts(
             context or {}, base={'sheet': worksheet.title}
         )
-        coord = {
+        formulas_refs = {
             k: v['ref'] for k, v in worksheet.formula_attributes.items()
             if v.get('t') == 'array' and 'ref' in v
-        }.get
+        }
+        frng = {
+            Ranges().push(ref, context=context)
+            for ref in formulas_refs.values()
+        }
         for row in worksheet.iter_rows():
             for c in row:
                 crd = c.coordinate
-                cell = Cell(coord(crd, crd), c.value, context=context).compile()
+                crd = formulas_refs.get(crd, crd)
+                cell = Cell(crd, c.value, context=context).compile()
+                if (cell.value is not sh_utl.EMPTY
+                    and any(not (cell.range - rng).ranges for rng in frng)):
+                    continue
                 cell.update_inputs(references=references)
                 if cell.add(self.dsp, context=context):
                     self.cells[cell.output] = cell
