@@ -79,16 +79,12 @@ class ExcelModel(object):
         return self
 
     def finish(self):
-        ras = []
-        for k in set(self.dsp.data_nodes) - set(self.cells):
-            try:
-                ras.append(RangesAssembler(k))
-            except ValueError:
-                pass
-
-        for ra in ras:
-            for c in self.cells.values():
+        for k in sorted(set(self.dsp.data_nodes) - set(self.cells)):
+            ra = RangesAssembler(k)
+            for k, c in sorted(self.cells.items()):
                 ra.push(c)
+                if not ra.missing.ranges:
+                    break
 
             self.dsp.add_function(
                 function=ra,
