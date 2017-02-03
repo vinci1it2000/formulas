@@ -76,9 +76,10 @@ class AstBuilder(collections.deque):
 
     def compile(self, references=None):
         dsp = self.dsp
-        if references:
-            references = {k: Ranges().push(v) for k, v in references.items()}
-        res, o = dsp(references or {}), self.get_node_id(self[-1])
+        inputs = {}
+        for k in set(dsp.data_nodes).intersection(references or {}):
+            inputs[k] = Ranges().push(references[k])
+        res, o = dsp(inputs), self.get_node_id(self[-1])
         dsp = dsp.get_sub_dsp_from_workflow(
             [o], graph=dsp.dmap, reverse=True, blockers=res,
             wildcard=False
