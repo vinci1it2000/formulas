@@ -88,6 +88,8 @@ class ExcelModel(object):
 
     def finish(self):
         for k in sorted(set(self.dsp.data_nodes) - set(self.cells)):
+            if k is sh_utl.START:
+                continue
             ra = RangesAssembler(k)
             for k, c in sorted(self.cells.items()):
                 ra.push(c)
