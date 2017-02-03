@@ -27,7 +27,7 @@ def _book2dict(book):
     return res
 
 
-class TestCell(unittest.TestCase):
+class TestExcelModel(unittest.TestCase):
     def setUp(self):
         self.filename = osp.join(mydir, _filename)
         self.results = {
