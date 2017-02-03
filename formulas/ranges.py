@@ -117,13 +117,7 @@ def _reshape_array_as_excel(value, base_shape):
     try:
         return np.reshape(value, base_shape)
     except ValueError:
-        res, shape = np.empty(base_shape, object), value.shape
-        if len(shape) == 0:
-            return res
-        if len(shape) == 0:
-            r, c = 1, shape[0]
-        else:
-            r, c = shape
+        res, (r, c) = np.empty(base_shape, object), value.shape
         r = None if r == 1 else r
         c = None if c == 1 else c
         try:
@@ -145,15 +139,6 @@ class Ranges(object):
         self.values = values or {}
         self.is_set = is_set
         self.all_values = all_values
-
-    @property
-    def is_range(self):
-        rng = self.simplify()
-        if len(rng.ranges) == 1:
-            rng = rng.ranges[0]
-            # noinspection PyTypeChecker
-            return not (rng['n1'] == rng['n2'] and rng['r1'] == rng['r2'])
-        return len(rng.ranges) > 1
 
     def pushes(self, refs, values=(), context=None):
         for r, v in itertools.zip_longest(refs, values, fillvalue=sh_utl.EMPTY):
