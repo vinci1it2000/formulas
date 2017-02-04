@@ -58,6 +58,5 @@ FUNCTIONS.update({
     'AVERAGE': average,
     'ARRAYROW': lambda *args: np.asarray(args, object).view(Array),
     'ARRAY': lambda *args: np.asarray(args, object).view(Array),
-    'AND': lambda *args: all(args),
-    'OR': lambda *args: any(args),
+    'IF': lambda condition, x=True, y=False: np.where(condition, x, y)
 })
