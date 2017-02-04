@@ -122,4 +122,4 @@ class RangesAssembler(object):
     def __call__(self, *cells):
         base = self.range.ranges[0]
         values = sh_utl.combine_dicts(*(c.values for c in cells))
-        return _assemble_values(base, values)
+        return _assemble_values(base, values, sh_utl.EMPTY)

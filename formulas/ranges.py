@@ -96,8 +96,9 @@ def _get_indices_intersection(base, i):
     return r, c
 
 
-def _assemble_values(base, values):
+def _assemble_values(base, values, empty=Error.errors['#N/A']):
     res = np.empty(_shape(**base), object)
+    res[:, :] = empty
     for k, (rng, value) in sorted(values.items()):
         ist = _have_intersect(base, rng)
         if ist:
@@ -119,6 +120,7 @@ def _reshape_array_as_excel(value, base_shape):
         return np.reshape(value, base_shape)
     except ValueError:
         res, (r, c) = np.empty(base_shape, object), value.shape
+        res[:, :] = Error.errors['#N/A']
         r = None if r == 1 else r
         c = None if c == 1 else c
         try:

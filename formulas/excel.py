@@ -123,8 +123,8 @@ class ExcelModel(object):
 
             ref = '{c1}{r1}:{c2}{r2}'.format(**rng)
             for c, v in zip(flatten(sheet[ref], None), flatten(r.value, None)):
-                if v is None:
-                    v = Error.errors['#N/A']
+                if v is sh_utl.EMPTY:
+                    v = None
                 c.value = v
 
         return books
