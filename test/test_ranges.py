@@ -9,6 +9,7 @@
 import unittest
 import ddt
 import numpy as np
+from formulas.tokens.operand import Error
 from formulas.ranges import Ranges
 from formulas.errors import RangeValueError
 
@@ -160,19 +161,20 @@ class TestOperators(unittest.TestCase):
             (3, 3, 4, 4)],),
           (([(4, 4, 5),
              (4, 4, 5)],))),
-         [(1, 1, 2, 2, None),
-          (1, 1, 2, 2, None),
+         [(1, 1, 2, 2, Error.errors['#N/A']),
+          (1, 1, 2, 2, Error.errors['#N/A']),
           (3, 3, 4, 4, 5),
           (3, 3, 4, 4, 5)]),)
     def test_value_add_ranges(self, case):
         (r1, r2), (v1, v2), result = case
         rng = Ranges().pushes(r1, v1) + Ranges().pushes(r2, v2)
         output = rng.value
-        np.testing.assert_array_equal(result, output)
+        np.testing.assert_array_equal(np.asarray(result, object), output)
 
     def test_invalid_ranges(self):
         with self.assertRaises(ValueError):
             Ranges().push('reference')
 
     def test_empty_ranges_value(self):
-        np.testing.assert_array_equal(Ranges().value, [[]])
+        out = np.asarray([[Error.errors['#NULL!']]], object)
+        np.testing.assert_array_equal(Ranges().value, out)

@@ -45,6 +45,7 @@ class TestParser(unittest.TestCase):
         ('=a,b', 'A,B'),
         ('=a b', 'A B'),
         ('=MYFORMULA(1)', 'MYFORMULA(1)'),
+        ('=IF(G9:G12<>H10:H13,1,0)', 'IF(G9:G12<>H10:H13,1,0)'),
         ('=SUM(a,b,d,e,f,g,Sheet2!B3:B4)', 'SUM(A,B,D,E,F,G,SHEET2!B3:B4)')
     )
     def test_valid_formula(self, case):
