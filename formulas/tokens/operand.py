@@ -58,8 +58,8 @@ class Error(Operand):
 
 class Number(Operand):
     _re = regex.compile(
-        '^\s*(?P<name>[1-9]+(?>\.[0-9]+)?'
-        '(?>[eE][\+\-]?[1-9]+|%)?|TRUE|FALSE)\s*',
+        '^\s*(?P<name>[0-9]+(?>\.[0-9]+)?'
+        '(?>[eE][\+\-]?[0-9]+|%)?|TRUE|FALSE)\s*',
         regex.IGNORECASE
     )
 
