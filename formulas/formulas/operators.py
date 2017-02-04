@@ -14,6 +14,7 @@ import collections
 from ..errors import RangeValueError
 import schedula.utils as sh_utl
 import functools
+import numpy as np
 from ..ranges import Ranges
 from ..formulas.functions import not_implemented
 
@@ -34,22 +35,31 @@ def parse_ranges(*args, **kw):
     return args, kw
 
 
+def _replace_empty(x, empty=0):
+    if isinstance(x, np.ndarray):
+        y = x.ravel().tolist()
+        if sh_utl.EMPTY in y:
+            y = [empty if v is sh_utl.EMPTY else v for v in y]
+            return np.asarray(y, object).reshape(*x.shape)
+    return x
+
+
 OPERATORS = collections.defaultdict(lambda: not_implemented)
 OPERATORS.update({
-    '+': lambda x, y: x + y,
-    '-': lambda x, y: x - y,
-    'U-': lambda x: -x,
-    '*': lambda x, y: x * y,
-    '/': lambda x, y: x / y,
-    '^': lambda x, y: x ** y,
+    '+': lambda x, y: _replace_empty(x) + _replace_empty(y),
+    '-': lambda x, y: _replace_empty(x) - _replace_empty(y),
+    'U-': lambda x: -_replace_empty(x),
+    '*': lambda x, y: _replace_empty(x) * _replace_empty(y),
+    '/': lambda x, y: _replace_empty(x) / _replace_empty(y),
+    '^': lambda x, y: _replace_empty(x) ** _replace_empty(y),
     '<': lambda x, y: x < y,
     '<=': lambda x, y: x <= y,
     '>': lambda x, y: x > y,
     '>=': lambda x, y: x >= y,
     '=': lambda x, y: x == y,
     '<>': lambda x, y: x != y,
-    '&': '{}{}'.format,
-    '%': lambda x: x / 100.0,
+    '&': lambda x, y: _replace_empty(x, '') + _replace_empty(y, ''),
+    '%': lambda x: _replace_empty(x) / 100.0,
     ',': lambda x, y: x | y,
     ' ': lambda x, y: x & y,
     ':': lambda x, y: x + y
