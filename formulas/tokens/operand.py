@@ -175,7 +175,10 @@ def _build_ref(c1, r1, c2, r2):
 
 def _build_id(ref, sheet='', excel=''):
     if excel:
-        sheet = "'[%s]%s'" % (excel, sheet.replace("''", "'"))
+        sheet = "[%s]%s" % (excel, sheet.replace("''", "'"))
+        if not regex.match('[0-9]+', excel):
+            sheet = "'%s'" % sheet
+
     return '!'.join(s for s in (sheet, ref) if s)
 
 
@@ -200,8 +203,9 @@ def _range2parts():
     dsp.add_function(function=sh_utl.bypass, inputs=['r1'], outputs=['r2'])
     dsp.add_function(function=lambda x, y: x[y],
                      inputs=['external_links', 'excel_id'], outputs=['excel'])
-    dsp.add_data(data_id='excel', default_value='', initial_dist=10,
-                 filters=(str.upper,))
+    dsp.add_function(function=sh_utl.bypass, weight=1,
+                     inputs=['excel_id'], outputs=['excel'])
+    dsp.add_data(data_id='excel', filters=(str.upper,))
     dsp.add_data(data_id='sheet', default_value='', filters=(str.upper,))
     dsp.add_data(data_id='ref', filters=(str.upper,))
     dsp.add_data(data_id='name', filters=(str.upper,))
@@ -217,6 +221,9 @@ def _range2parts():
             if 'excel_id' in inputs:
                 inputs = inputs.copy()
                 inputs.pop('excel', None)
+            elif 'excel' not in inputs:
+                inputs = inputs.copy()
+                inputs['excel'] = ''
             return func(inputs, *args, **kwargs)
         return functools.update_wrapper(wrapper, func)
     dsp.dispatch = wrap_dispatch(dsp.dispatch)
