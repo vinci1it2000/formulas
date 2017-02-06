@@ -86,16 +86,18 @@ class Cell(object):
 
     def add(self, dsp, context=None):
         if self.func or self.value is not sh_utl.EMPTY:
+            directory = context and context.get('directory') or '.'
             output = self.output
             f = functools.partial(format_output, output, context=context)
-            dsp.add_data(output, filters=(f,), default_value=self.value)
+            dsp.add_data(output, filters=(f,), default_value=self.value,
+                         directory=directory)
 
             if self.func:
                 inputs = self.inputs
                 for k in inputs or ():
                     if k not in dsp.nodes:
                         f = functools.partial(format_output, k, context=context)
-                        dsp.add_data(k, filters=(f,))
+                        dsp.add_data(k, filters=(f,), directory=directory)
                 func = return_ref_error if inputs is None else self.func
                 dsp.add_function(self.__name__, func, inputs or None, [output])
             return True

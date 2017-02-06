@@ -100,9 +100,9 @@ class ExcelModel(object):
             book = get_in(self.books, context['excel'], BOOK)
         else:
             if isinstance(book, str):
-                context.update({'excel': osp.basename(book).upper()})
+                context.update({'excel': osp.basename(book).upper(),
+                                'directory': osp.dirname(osp.abspath(book))})
                 if not are_in(self.books, context['excel'], BOOK):
-                    book = osp.abspath(book)
                     book = openpyxl.load_workbook(book, data_only=data_only)
             book = get_in(
                 self.books, context['excel'], BOOK, default=lambda: book
@@ -192,6 +192,7 @@ class ExcelModel(object):
             return cell
 
     def complete(self):
+        nodes = self.dsp.nodes
         stack = list(sorted(set(self.dsp.data_nodes) - set(self.cells)))
         while stack:
             n_id = stack.pop()
@@ -199,7 +200,8 @@ class ExcelModel(object):
                 continue
 
             rng = Ranges().push(n_id).ranges[0]
-            context = self.add_book(rng['excel'])[1]
+            book = osp.abspath(osp.join(nodes[n_id].get('directory', '.'), rng['excel']))
+            context = self.add_book(book)[1]
             worksheet, context = self.add_sheet(rng['sheet'], context)
             rng = '{c1}{r1}:{c2}{r2}'.format(**rng)
             for c in flatten(worksheet[rng], None):

@@ -13,7 +13,7 @@ import schedula.utils as sh_utl
 from formulas.excel import ExcelModel, BOOK
 
 
-mydir = osp.dirname(__file__)
+mydir = osp.join(osp.dirname(__file__), 'test_files')
 _filename = 'test.xlsx'
 _link_filename = 'test_link.xlsx'
 
@@ -46,6 +46,7 @@ class TestExcelModel(unittest.TestCase):
     def test_excel_model(self):
         xl_model = ExcelModel()
         xl_model.loads(self.filename)
+        xl_model.add_book(self.link_filename)
         xl_model.finish()
         xl_model.calculate()
         books = xl_model.books
