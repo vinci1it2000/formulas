@@ -1,5 +1,4 @@
-git+https://github.com/vinci1it2000/pycel.git
-schedula>=0.1.4
+schedula>=0.1.5
 openpyxl
 nose
 wheel
