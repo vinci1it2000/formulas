@@ -16,7 +16,7 @@ import schedula.utils as sh_utl
 import functools
 import numpy as np
 from ..ranges import Ranges
-from ..formulas.functions import not_implemented
+from ..formulas.functions import not_implemented, wrap_func
 
 
 def wrap_ranges_func(func, n_out=1):
@@ -46,7 +46,7 @@ def _replace_empty(x, empty=0):
 
 OPERATORS = collections.defaultdict(lambda: not_implemented)
 # noinspection PyTypeChecker
-OPERATORS.update({
+OPERATORS.update({k: wrap_func(v) for k, v in {
     '+': lambda x, y: _replace_empty(x) + _replace_empty(y),
     '-': lambda x, y: _replace_empty(x) - _replace_empty(y),
     'U-': lambda x: -_replace_empty(x),
@@ -64,4 +64,4 @@ OPERATORS.update({
     ',': lambda x, y: x | y,
     ' ': lambda x, y: x & y,
     ':': lambda x, y: x + y
-})
+}.items()})

@@ -196,7 +196,7 @@ class ExcelModel(object):
         stack = list(sorted(set(self.dsp.data_nodes) - set(self.cells)))
         while stack:
             n_id = stack.pop()
-            if n_id is sh_utl.START:
+            if isinstance(n_id, sh_utl.Token):
                 continue
 
             rng = Ranges().push(n_id).ranges[0]
@@ -213,7 +213,7 @@ class ExcelModel(object):
         if complete:
             self.complete()
         for n_id in sorted(set(self.dsp.data_nodes) - set(self.cells)):
-            if n_id is sh_utl.START:
+            if isinstance(n_id, sh_utl.Token):
                 continue
             ra = RangesAssembler(n_id)
             for k, c in sorted(self.cells.items()):
@@ -230,7 +230,9 @@ class ExcelModel(object):
         solution = self.dsp.solution if solution is None else solution
         are_in = sh_utl.are_in_nested_dicts
         get_in = sh_utl.get_nested_dicts
-        for r in solution.values():
+        for k, r in solution.items():
+            if isinstance(k, sh_utl.Token):
+                continue
             rng = r.ranges[0]
             filename, sheet_name = _get_name(rng['excel'], books), rng['sheet']
 

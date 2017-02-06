@@ -18,6 +18,11 @@ class BaseError(Exception):
         super(BaseError, self).__init__(self.msg, *args)
 
 
+class FoundError(BaseError):
+    def __init__(self, *args, err=None, **kwargs):
+        self.err = err
+
+
 class FormulaError(BaseError):
     msg = 'Not a valid formula:\n%s'
 

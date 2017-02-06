@@ -11,15 +11,11 @@ It provides Cell class.
 """
 import collections
 import functools
+import numpy as np
 import schedula.utils as sh_utl
 from .parser import Parser
 from .ranges import Ranges, _assemble_values
-from .tokens.operand import Error
-
-
-# noinspection PyUnusedLocal
-def return_ref_error(*args, **kwargs):
-    return Error.errors['#REF!']
+from .tokens.operand import Error, XlError
 
 
 def wrap_cell_func(func, parse_args=lambda *a: a, parse_kwargs=lambda **kw: kw):
@@ -71,8 +67,10 @@ class Cell(object):
             try:
                 rng = rng or Ranges().push((references or {})[k])
             except KeyError:
-                self.inputs = None
-                break
+                sh_utl.get_nested_dicts(
+                    inp, Error.errors['#REF!'], default=list
+                ).append(k)
+                continue
             for r in rng.ranges:
                 sh_utl.get_nested_dicts(inp, r['name'], default=list).append(k)
 
@@ -96,10 +94,15 @@ class Cell(object):
                 inputs = self.inputs
                 for k in inputs or ():
                     if k not in dsp.nodes:
-                        f = functools.partial(format_output, k, context=context)
-                        dsp.add_data(k, filters=(f,), directory=directory)
-                func = return_ref_error if inputs is None else self.func
-                dsp.add_function(self.__name__, func, inputs or None, [output])
+                        if isinstance(k, XlError):
+                            val = Ranges().push('A1:', np.asarray([[k]], object))
+                            dsp.add_data(k, val, directory=directory)
+                        else:
+                            f = functools.partial(format_output, k,
+                                                  context=context)
+                            dsp.add_data(k, filters=(f,), directory=directory)
+
+                dsp.add_function(self.__name__, self.func, inputs or None, [output])
             return True
 
 
