@@ -16,8 +16,12 @@ import schedula as sh
 import schedula.utils as sh_utl
 from .ranges import Ranges
 from .cell import Cell, RangesAssembler
-from .tokens.operand import _range2parts, Error
+from .tokens.operand import _range2parts
 from .formulas.functions import flatten
+
+
+BOOK = sh_utl.Token('Book')
+SHEETS = sh_utl.Token('Sheets')
 
 
 def _get_name(name, names):
@@ -34,10 +38,13 @@ class ExcelModel(object):
         self.dsp = sh.Dispatcher()
         self.calculate = self.dsp.dispatch
         self.cells = {}
+        self.books = {}
 
     @staticmethod
-    def _yield_references(book, context=None):
+    def _yield_refs(book, context=None):
         for n in book.defined_names.definedName:
+            if n.value == '#REF!':
+                continue
             ref, i = n.name.upper(), n.localSheetId
             rng = Ranges().push(n.value, context=context).ranges[0]['name']
             sheet_names = book.sheetnames
@@ -48,45 +55,154 @@ class ExcelModel(object):
                 yield name['name'], rng
 
     def loads(self, *file_names):
-        return dict(map(self.load, file_names))
+        for filename in file_names:
+            self.load(filename)
+        return self
 
     def load(self, filename):
-        book = openpyxl.load_workbook(filename, data_only=False)
-        context = {'excel': osp.basename(filename)}
-        references = dict(self._yield_references(book, context=context))
-        self.pushes(*book.worksheets, context=context, references=references)
-        return context['excel'], book
-
-    def pushes(self, *worksheets, context=None, references=None):
-        for ws in worksheets:
-            self.push(ws, context=context, references=references)
+        book, context = self.add_book(filename)
+        self.pushes(*book.worksheets, context=context)
         return self
 
-    def push(self, worksheet, context=None, references=None):
-        context = sh_utl.combine_dicts(
-            context or {}, base={'sheet': worksheet.title}
-        )
-        f_refs = {
-            k: v['ref'] for k, v in worksheet.formula_attributes.items()
-            if v.get('t') == 'array' and 'ref' in v
-        }
-        f_rng = {Ranges().push(ref, context=context) for ref in f_refs.values()}
+    def pushes(self, *worksheets, context=None):
+        for ws in worksheets:
+            self.push(ws, context=context)
+        return self
+
+    def push(self, worksheet, context):
+        worksheet, context = self.add_sheet(worksheet, context)
+
+        get_in = sh_utl.get_nested_dicts
+        references = get_in(self.books, context['excel'], 'references')
+        d = get_in(self.books, context['excel'], SHEETS, context['sheet'])
+        formula_references = d['formula_references']
+        formula_ranges = d['formula_ranges']
+
         for row in worksheet.iter_rows():
             for c in row:
-                crd = c.coordinate
-                crd = f_refs.get(crd, crd)
-
-                cell = Cell(crd, c.value, context=context).compile()
-                if cell.value is not sh_utl.EMPTY:
-                    if any(not (cell.range - rng).ranges for rng in f_rng):
-                        continue
-                cell.update_inputs(references=references)
-
-                if cell.add(self.dsp, context=context):
-                    self.cells[cell.output] = cell
+                self.add_cell(
+                    c, context, references=references,
+                    formula_references=formula_references,
+                    formula_ranges=formula_ranges
+                )
         return self
 
-    def finish(self):
+    def add_book(self, book, context=None):
+        context = context or {}
+        are_in = sh_utl.are_in_nested_dicts
+        get_in = sh_utl.get_nested_dicts
+
+        if 'excel' in context and are_in(self.books, context['excel'], BOOK):
+            book = get_in(self.books, context['excel'], BOOK)
+        else:
+            if isinstance(book, str):
+                context.update({'excel': osp.basename(book).upper()})
+                if not are_in(self.books, context['excel'], BOOK):
+                    book = openpyxl.load_workbook(book, data_only=False)
+            book = get_in(
+                self.books, context['excel'], BOOK, default=lambda: book
+            )
+
+        if not are_in(self.books, context['excel'], 'references'):
+            get_in(
+                self.books, context['excel'], 'references',
+                default=lambda: dict(self._yield_refs(book, context=context))
+            )
+
+        if not are_in(self.books, context['excel'], 'external_links'):
+            external_links = {str(l.file_link.idx_base + 1): l.file_link.Target
+                              for l in book._external_links}
+            get_in(
+                self.books, context['excel'], 'external_links',
+                default=lambda: external_links
+            )
+
+        return book, context
+
+    def add_sheet(self, worksheet, context):
+        get_in = sh_utl.get_nested_dicts
+        if isinstance(worksheet, str):
+            book = get_in(self.books, context['excel'], BOOK)
+            sheet_names = book.sheetnames
+            worksheet = book.get_sheet_by_name(_get_name(worksheet, sheet_names))
+
+        context = sh_utl.combine_dicts(
+            context, base={'sheet': worksheet.title.upper()}
+        )
+
+        d = get_in(self.books, context['excel'], SHEETS, context['sheet'])
+        if 'formula_references' not in d:
+            d['formula_references'] = formula_references = {
+                k: v['ref'] for k, v in worksheet.formula_attributes.items()
+                if v.get('t') == 'array' and 'ref' in v
+                }
+        else:
+            formula_references = d['formula_references']
+
+        if 'formula_ranges' not in d:
+            d['formula_ranges'] = {
+                Ranges().push(ref, context=context)
+                for ref in formula_references.values()
+                }
+        return worksheet, context
+
+    def add_cell(self, cell, context, references=None, formula_references=None,
+                 formula_ranges=None, external_links=None):
+        get_in = sh_utl.get_nested_dicts
+        if formula_references is None:
+            formula_references = get_in(
+                self.books, context['excel'], SHEETS, context['sheet'],
+                'formula_references'
+            )
+
+        if formula_ranges is None:
+            formula_ranges = get_in(
+                self.books, context['excel'], SHEETS, context['sheet'],
+                'formula_ranges'
+            )
+
+        if references is None:
+            references = get_in(self.books, context['excel'], 'references')
+
+        if external_links is None:
+            external_links = get_in(
+                self.books, context['excel'], 'external_links'
+            )
+        context = sh_utl.combine_dicts(
+            context, base={'external_links': external_links}
+        )
+        crd = cell.coordinate
+        crd = formula_references.get(crd, crd)
+        cell = Cell(crd, cell.value, context=context).compile()
+        if cell.output in self.cells:
+            return
+        if cell.value is not sh_utl.EMPTY:
+            if any(not (cell.range - rng).ranges for rng in formula_ranges):
+                return
+        cell.update_inputs(references=references)
+
+        if cell.add(self.dsp, context=context):
+            self.cells[cell.output] = cell
+            return cell
+
+    def complete(self):
+        stack = list(sorted(set(self.dsp.data_nodes) - set(self.cells)))
+        while stack:
+            n_id = stack.pop()
+            if n_id is sh_utl.START:
+                continue
+
+            rng = Ranges().push(n_id).ranges[0]
+            context = self.add_book(rng['excel'])[1]
+            worksheet, context = self.add_sheet(rng['sheet'], context)
+            for c in flatten(worksheet['{c1}{r1}:{c2}{r2}'.format(**rng)], None):
+                cell = self.add_cell(c, context)
+                if cell:
+                    stack.extend(cell.inputs or ())
+
+    def finish(self, complete=True):
+        if complete:
+            self.complete()
         for n_id in sorted(set(self.dsp.data_nodes) - set(self.cells)):
             if n_id is sh_utl.START:
                 continue
@@ -103,17 +219,18 @@ class ExcelModel(object):
     def write(self, books=None, solution=None):
         books = {} if books is None else books
         solution = self.dsp.solution if solution is None else solution
-
+        are_in = sh_utl.are_in_nested_dicts
+        get_in = sh_utl.get_nested_dicts
         for r in solution.values():
             rng = r.ranges[0]
             filename, sheet_name = _get_name(rng['excel'], books), rng['sheet']
 
-            if filename not in books:
-                book = books[filename] = openpyxl.Workbook()
+            if not are_in(books, filename, BOOK):
+                book = get_in(books, filename, BOOK, default=openpyxl.Workbook)
                 for ws in book.worksheets:
                     book.remove_sheet(ws)
             else:
-                book = books[filename]
+                book = books[filename][BOOK]
 
             sheet_names = book.sheetnames
             sheet_name = _get_name(sheet_name, sheet_names)
