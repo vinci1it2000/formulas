@@ -87,18 +87,23 @@ class ExcelModel(object):
                 )
         return self
 
-    def add_book(self, book, context=None):
+    def add_book(self, book, context=None, data_only=False):
         context = context or {}
         are_in = sh_utl.are_in_nested_dicts
         get_in = sh_utl.get_nested_dicts
 
-        if 'excel' in context and are_in(self.books, context['excel'], BOOK):
+        if 'excel' in context:
+            context = context.copy()
+            context['excel'] = context['excel'].upper()
+
+        if are_in(self.books, context.get('excel'), BOOK):
             book = get_in(self.books, context['excel'], BOOK)
         else:
             if isinstance(book, str):
                 context.update({'excel': osp.basename(book).upper()})
                 if not are_in(self.books, context['excel'], BOOK):
-                    book = openpyxl.load_workbook(book, data_only=False)
+                    book = osp.abspath(book)
+                    book = openpyxl.load_workbook(book, data_only=data_only)
             book = get_in(
                 self.books, context['excel'], BOOK, default=lambda: book
             )
