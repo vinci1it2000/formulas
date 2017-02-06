@@ -20,6 +20,9 @@ from formulas.formulas.operators import wrap_ranges_func
 @ddt.ddt
 class TestParser(unittest.TestCase):
     @ddt.data(
+        ('=[0]S.H.E.E.t!_r_e_f_1__', '[0]S.H.E.E.T!_R_E_F_1__'),
+        ('=INDIRECT("S.H.E.E.t!_r_e_f_1__")', 'S.H.E.E.T!_R_E_F_1__'),
+        ('=INDIRECT("_sheet1.disco!ref")', '_SHEET1.DISCO!REF'),
         ('=L4:N15 : J5:L12', 'L4:N15:J5:L12'),
         ('=L4:N15 : c', 'L4:N15:C'),
         ('=ciao:bau', 'CIAO:BAU'),

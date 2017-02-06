@@ -10,11 +10,12 @@ import unittest
 import openpyxl
 import os.path as osp
 import schedula.utils as sh_utl
-from formulas.excel import ExcelModel
+from formulas.excel import ExcelModel, BOOK
 
 
 mydir = osp.dirname(__file__)
 _filename = 'test.xlsx'
+_link_filename = 'test_link.xlsx'
 
 
 def _book2dict(book):
@@ -31,21 +32,28 @@ def _book2dict(book):
 class TestExcelModel(unittest.TestCase):
     def setUp(self):
         self.filename = osp.join(mydir, _filename)
+        self.link_filename = osp.join(mydir, _link_filename)
         self.results = {
-            _filename: _book2dict(openpyxl.load_workbook(self.filename,
-                                                         data_only=True))
+            _filename.upper(): _book2dict(
+                openpyxl.load_workbook(self.filename, data_only=True)
+            ),
+            _link_filename.upper(): _book2dict(
+                openpyxl.load_workbook(self.link_filename, data_only=True)
+            ),
         }
         self.maxDiff = None
 
     def test_excel_model(self):
         xl_model = ExcelModel()
-        books = xl_model.loads(self.filename)
+        xl_model.loads(self.filename)
         xl_model.finish()
         xl_model.calculate()
-        books = {k: _book2dict(v) for k, v in xl_model.write(books).items()}
+        books = xl_model.books
+        books = {k: _book2dict(v[BOOK])
+                 for k, v in xl_model.write(books).items()}
         self.assertEqual(books, self.results)
 
-        books = {k: _book2dict(v) for k, v in xl_model.write().items()}
+        books = {k: _book2dict(v[BOOK]) for k, v in xl_model.write().items()}
         res = {}
         for k, v in sh_utl.stack_nested_keys(self.results, depth=2):
             sh_utl.get_nested_dicts(res, *map(str.upper, k), default=lambda: v)
