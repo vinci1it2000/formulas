@@ -24,5 +24,9 @@ Modules:
     ~ranges
     ~cell
     ~excel
-
 """
+
+from .excel import ExcelModel
+from .parser import Parser
+from .formulas.functions import FUNCTIONS
+from .formulas.operators import OPERATORS

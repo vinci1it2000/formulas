@@ -45,6 +45,7 @@ def _replace_empty(x, empty=0):
 
 
 OPERATORS = collections.defaultdict(lambda: not_implemented)
+# noinspection PyTypeChecker
 OPERATORS.update({
     '+': lambda x, y: _replace_empty(x) + _replace_empty(y),
     '-': lambda x, y: _replace_empty(x) - _replace_empty(y),

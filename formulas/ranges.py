@@ -238,6 +238,7 @@ class Ranges(object):
         return spl
 
     def _merge(self):
+        # noinspection PyPep8
         key = lambda x: (x['n1'], int(x['r1']), -x['n2'], -int(x['r2']))
         rng = self.ranges
         for merge, select in ((_merge_raw_update, 1), (_merge_col_update, 0)):
