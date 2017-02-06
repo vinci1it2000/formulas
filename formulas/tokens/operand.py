@@ -72,11 +72,13 @@ _re_range = r"""
         (?>
             (?>
                 '(\[(?P<excel>[^\[\]]+)\])?
-                 (?P<sheet>(?>''|[^\.\?!*\/\[\]':"])+)?'
+                 (?P<sheet>(?>''|[^\?!*\/\[\]':"])+)?'
             |
-                (?P<sheet>[^\.\?!*\/\[\]':", ]+)
+                (\[(?P<excel_id>[0-9]+)\])(?P<sheet>(?>[^\?!*\/\[\]':"])+)
             |
-                '(?P<sheet>(?>''|[^\.\?!*\/\[\]':"])+)'
+                (?P<sheet>[^\?!*\/\[\]':", ]+)
+            |
+                '(?P<sheet>(?>''|[^\?!*\/\[\]':"])+)'
             )!
         )?
         (?>
@@ -106,7 +108,7 @@ _re_range = r"""
                 C(?P<n1>[1-9]\d*):C(?P<n2>[1-9]\d*)
             )
         |
-            (?P<ref>[A-Z_\\]+[A-Z\.\_]*)
+            (?P<ref>[A-Z_\\]+[A-Z0-9\.\_]*)
         )
     |
         (?>
@@ -196,7 +198,10 @@ def _range2parts():
     dsp.add_function(function=_col2index, inputs=['c2'], outputs=['n2'])
     dsp.add_function(function=sh_utl.bypass, inputs=['c1'], outputs=['c2'])
     dsp.add_function(function=sh_utl.bypass, inputs=['r1'], outputs=['r2'])
-    dsp.add_data(data_id='excel', default_value='', filters=(str.upper,))
+    dsp.add_function(function=lambda x, y: x[y],
+                     inputs=['external_links', 'excel_id'], outputs=['excel'])
+    dsp.add_data(data_id='excel', default_value='', initial_dist=10,
+                 filters=(str.upper,))
     dsp.add_data(data_id='sheet', default_value='', filters=(str.upper,))
     dsp.add_data(data_id='ref', filters=(str.upper,))
     dsp.add_data(data_id='name', filters=(str.upper,))
@@ -206,6 +211,15 @@ def _range2parts():
     dsp.add_data(data_id='r2', default_value='%s' % maxsize, initial_dist=100)
     dsp.add_function(None, _build_ref, ['c1', 'r1', 'c2', 'r2'], ['ref'])
     dsp.add_function(None, _build_id, ['ref', 'sheet', 'excel'], ['name'])
+
+    def wrap_dispatch(func):
+        def wrapper(inputs, *args, **kwargs):
+            if 'excel_id' in inputs:
+                inputs = inputs.copy()
+                inputs.pop('excel', None)
+            return func(inputs, *args, **kwargs)
+        return functools.update_wrapper(wrapper, func)
+    dsp.dispatch = wrap_dispatch(dsp.dispatch)
     return sh_utl.SubDispatch(dsp)
 
 
