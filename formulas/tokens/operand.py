@@ -176,7 +176,7 @@ def _build_ref(c1, r1, c2, r2):
 def _build_id(ref, sheet='', excel=''):
     if excel:
         sheet = "[%s]%s" % (excel, sheet.replace("''", "'"))
-        if not regex.match('[0-9]+', excel):
+        if not regex.match('^[0-9]+$', excel):
             sheet = "'%s'" % sheet
 
     return '!'.join(s for s in (sheet, ref) if s)
