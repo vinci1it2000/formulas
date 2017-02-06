@@ -14,6 +14,7 @@ import collections
 import math
 import numpy as np
 from ..errors import FunctionError
+from ..tokens.operand import XlError
 
 
 def is_number(number):
@@ -50,6 +51,12 @@ class Array(np.ndarray):
     pass
 
 
+def iferror(val, val_if_error):
+    b = np.asarray([isinstance(v, XlError) for v in val.ravel().tolist()], bool)
+    b.resize(val.shape)
+    return np.where(~b, val, val_if_error)
+
+
 FUNCTIONS = collections.defaultdict(lambda: not_implemented)
 FUNCTIONS.update({
     'INT': int,
@@ -58,5 +65,6 @@ FUNCTIONS.update({
     'AVERAGE': average,
     'ARRAYROW': lambda *args: np.asarray(args, object).view(Array),
     'ARRAY': lambda *args: np.asarray(args, object).view(Array),
-    'IF': lambda condition, x=True, y=False: np.where(condition, x, y)
+    'IF': lambda condition, x=True, y=False: np.where(condition, x, y),
+    'IFERROR': iferror,
 })
