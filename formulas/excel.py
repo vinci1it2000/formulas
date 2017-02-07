@@ -239,7 +239,7 @@ class ExcelModel(object):
             if not are_in(books, filename, BOOK):
                 book = get_in(books, filename, BOOK, default=openpyxl.Workbook)
                 for ws in book.worksheets:
-                    book.remove_sheet(ws)
+                    book.remove(ws)
             else:
                 book = books[filename][BOOK]
 
