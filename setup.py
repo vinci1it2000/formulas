@@ -63,6 +63,7 @@ if __name__ == '__main__':
         long_description = get_long_description()
     except:
         long_description = ''
+
     setup(
         name=name,
         version=proj_ver,
