@@ -109,7 +109,7 @@ if __name__ == '__main__':
         install_requires=[
             'regex',
             'sphinx',
-            'schedula>=0.1.5',
+            'schedula>=0.1.9',
             'numpy',
             'openpyxl'
         ],
