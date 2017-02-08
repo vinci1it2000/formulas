@@ -28,15 +28,12 @@ def read_project_version():
 
 
 def get_long_description(cleanup=True):
-    # noinspection PyBroadException
-    try:
-        from sphinx.application import Sphinx
-        from sphinx.util.osutil import abspath
-        import tempfile
-        import shutil
-        from sphinxcontrib.writers.rst import RstTranslator
-    except:
-        return ''
+    from sphinx.application import Sphinx
+    from sphinx.util.osutil import abspath
+    import tempfile
+    import shutil
+    from sphinxcontrib.writers.rst import RstTranslator
+
     outdir = tempfile.mkdtemp(prefix='setup-', dir='.')
     exclude_patterns = os.listdir(mydir or '.')
     exclude_patterns.remove('pypi.rst')
@@ -61,6 +58,11 @@ url = 'https://github.com/vinci1it2000/%s' % name
 download_url = '%s/tarball/v%s' % (url, proj_ver)
 
 if __name__ == '__main__':
+    # noinspection PyBroadException
+    try:
+        long_description = get_long_description()
+    except:
+        long_description = ''
     setup(
         name=name,
         version=proj_ver,
@@ -75,7 +77,7 @@ if __name__ == '__main__':
         author='Vincenzo Arcidiacono',
         author_email='vinci1it2000@gmail.com',
         description='Parse and compile excel formulas in python code.',
-        long_description=get_long_description(),
+        long_description=long_description,
         keywords=[
             "python", "utility", "library", "excel", "formulas", "processing",
             "calculation", "dependencies", "resolution", "scientific",
