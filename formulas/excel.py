@@ -128,9 +128,7 @@ class ExcelModel(object):
         get_in = sh_utl.get_nested_dicts
         if isinstance(worksheet, str):
             book = get_in(self.books, context['excel'], BOOK)
-            worksheet = book.get_sheet_by_name(
-                _get_name(worksheet, book.sheetnames)
-            )
+            worksheet = book[_get_name(worksheet, book.sheetnames)]
 
         context = sh_utl.combine_dicts(
             context, base={'sheet': worksheet.title.upper()}
