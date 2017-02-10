@@ -36,7 +36,7 @@ class Operand(Token):
 
 
 class String(Operand):
-    _re = regex.compile('^\s*"(?P<name>(?>""|[^"])*)"\s*')
+    _re = regex.compile(r'^\s*"(?P<name>(?>""|[^"])*)"\s*')
 
     def compile(self):
         return self.name.replace('""', '"')
@@ -44,7 +44,7 @@ class String(Operand):
 
 class Error(Operand):
     _re = regex.compile(
-        '^\s*(?P<name>\#(?>NULL!|DIV/0!|VALUE!|REF!|NUM!|NAME\?|N/A))\s*',
+        r'^\s*(?P<name>\#(?>NULL!|DIV/0!|VALUE!|REF!|NUM!|NAME\?|N/A))\s*',
         regex.IGNORECASE
     )
     errors = {}
@@ -58,8 +58,7 @@ class Error(Operand):
 
 class Number(Operand):
     _re = regex.compile(
-        '^\s*(?P<name>[0-9]+(?>\.[0-9]+)?'
-        '(?>[eE][\+\-]?[0-9]+|%)?|TRUE|FALSE)\s*',
+        r'^\s*(?P<name>[0-9]+(?>\.[0-9]+)?(?>E[+-]?[0-9]+|%)?|TRUE|FALSE)\s*',
         regex.IGNORECASE
     )
 
@@ -176,7 +175,7 @@ def _build_ref(c1, r1, c2, r2):
 def _build_id(ref, sheet='', excel=''):
     if excel:
         sheet = "[%s]%s" % (excel, sheet.replace("''", "'"))
-        if not regex.match('^[0-9]+$', excel):
+        if not regex.match(r'^[0-9]+$', excel):
             sheet = "'%s'" % sheet
 
     return '!'.join(s for s in (sheet, ref) if s)

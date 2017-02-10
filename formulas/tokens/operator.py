@@ -102,12 +102,12 @@ class Operator(Token):
 
 
 class Intersect(Operator):
-    _re = regex.compile('^(?P<name>\s)\s*')
+    _re = regex.compile(r'^(?P<name>\s)\s*')
 
 
 class Separator(Operator):
-    _re = regex.compile('^([,\s]+)')
-    _re_process = regex.compile('^(?P<name>,)$')
+    _re = regex.compile(r'^([,\s]+)')
+    _re_process = regex.compile(r'^(?P<name>,)$')
 
     def ast(self, tokens, stack, builder):
         super(Operator, self).ast(tokens, stack, builder)
@@ -118,9 +118,9 @@ class Separator(Operator):
 
 
 class OperatorToken(Operator):
-    _re = regex.compile('^([\+\-\*\/\^&<>=\s:]+|[\s%]+)')
+    _re = regex.compile(r'^([\+\-\*\/\^&<>=\s:]+|[\s%]+)')
     _re_process = regex.compile(
-        '^(?P<name>(?P<sum_minus>[\+\-]+)|[\*\/\^&\%:]|[<>]?=|[<>]|<>)$'
+        r'^(?P<name>(?P<sum_minus>[\+\-]+)|[\*\/\^&\%:]|[<>]?=|[<>]|<>)$'
     )
 
     def process(self, match, context=None):

@@ -18,7 +18,7 @@ from .parenthesis import Parenthesis
 
 
 class Function(Token):
-    _re = regex.compile('^\s*@?(?P<name>[A-Z_][\w\.]*)\(\s*', regex.IGNORECASE)
+    _re = regex.compile(r'^\s*@?(?P<name>[A-Z_][\w\.]*)\(\s*', regex.IGNORECASE)
 
     def ast(self, tokens, stack, builder, check_n=lambda *args: True):
         super(Function, self).ast(tokens, stack, builder)
@@ -42,7 +42,7 @@ def _check_tkn_n_args(n_args, token):
 
 
 class Array(Function):
-    _re = regex.compile('^\s*(?P<name>(?P<start>{)|(?P<end>})|(?P<sep>;))\s*')
+    _re = regex.compile(r'^\s*(?P<name>(?P<start>{)|(?P<end>})|(?P<sep>;))\s*')
 
     def ast(self, tokens, stack, builder, check_n=lambda t: t.n_args):
         if self.has_start:
