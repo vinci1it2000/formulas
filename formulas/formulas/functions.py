@@ -57,6 +57,7 @@ def iserr(val):
     b.resize(val.shape)
     return b
 
+
 def iserror(val):
     b = np.asarray([isinstance(v, XlError) for v in val.ravel().tolist()], bool)
     b.resize(val.shape)
@@ -68,6 +69,7 @@ def iferror(val, val_if_error):
 
 
 def raise_errors(*args):
+    # noinspection PyTypeChecker
     for v in flatten(args, None):
         if isinstance(v, XlError) and v is not Error.errors['#N/A']:
             raise FoundError(err=v)
@@ -75,6 +77,7 @@ def raise_errors(*args):
 
 def wrap_func(func):
     def wrapper(*args, **kwargs):
+        # noinspection PyBroadException
         try:
             raise_errors(*args)
             return func(*args, **kwargs)

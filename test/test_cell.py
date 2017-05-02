@@ -31,8 +31,8 @@ class TestCell(unittest.TestCase):
         ('A1', '=AVERAGE(((123 + 4 + AVERAGE({1,2}))))', {},
          '<Ranges>(A1)=[[128.5]]'),
         ('A1', '="a" & "b"""', {}, '<Ranges>(A1)=[[\'ab"\']]'),
-        ('A1', '=SUM(B2:B4)', {'B2:B4':('', '', '')}, '<Ranges>(A1)=[[0]]'),
-        ('A1', '=SUM(B2:B4)', {'B2:B4':('', 1, '')}, '<Ranges>(A1)=[[1]]'))
+        ('A1', '=SUM(B2:B4)', {'B2:B4': ('', '', '')}, '<Ranges>(A1)=[[0]]'),
+        ('A1', '=SUM(B2:B4)', {'B2:B4': ('', 1, '')}, '<Ranges>(A1)=[[1]]'))
     def test_output(self, case):
         reference, formula, inputs, result = case
         dsp = sh.Dispatcher()

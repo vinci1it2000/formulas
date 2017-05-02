@@ -105,14 +105,14 @@ class TestParser(unittest.TestCase):
             Parser().ast(formula)[1].compile()(*inputs)
 
     def test_ast_function(self):
-        def function(a, b):
+        def _func(a, b):
             """Doc."""
             return a + b
 
-        func = wrap_ranges_func(function)
-        self.assertEqual(func.__name__, function.__name__)
-        self.assertEqual(func.__doc__, function.__doc__)
-        self.assertEqual(inspect.signature(func), inspect.signature(function))
+        func = wrap_ranges_func(_func)
+        self.assertEqual(func.__name__, _func.__name__)
+        self.assertEqual(func.__doc__, _func.__doc__)
+        self.assertEqual(inspect.signature(func), inspect.signature(_func))
 
         rng1 = Ranges().push('A1:A1', [[1]])
         output = func(rng1, Ranges().push('B1:B1'))

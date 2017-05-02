@@ -95,14 +95,18 @@ class Cell(object):
                 for k in inputs or ():
                     if k not in dsp.nodes:
                         if isinstance(k, XlError):
-                            val = Ranges().push('A1:', np.asarray([[k]], object))
+                            val = Ranges().push(
+                                'A1:', np.asarray([[k]], object)
+                            )
                             dsp.add_data(k, val, directory=directory)
                         else:
                             f = functools.partial(format_output, k,
                                                   context=context)
                             dsp.add_data(k, filters=(f,), directory=directory)
 
-                dsp.add_function(self.__name__, self.func, inputs or None, [output])
+                dsp.add_function(
+                    self.__name__, self.func, inputs or None, [output]
+                )
             return True
 
 
