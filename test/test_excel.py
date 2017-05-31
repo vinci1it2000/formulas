@@ -10,7 +10,9 @@ import unittest
 import openpyxl
 import os.path as osp
 import schedula.utils as sh_utl
+from warnings import warn
 from formulas.excel import ExcelModel, BOOK
+from formulas.formulas.functions import is_number
 
 
 mydir = osp.join(osp.dirname(__file__), 'test_files')
@@ -43,6 +45,26 @@ class TestExcelModel(unittest.TestCase):
         }
         self.maxDiff = None
 
+    def _compare(self, books, results):
+        for wb_name, worksheets in books.items():
+            for sh_name, cells in worksheets.items():
+                for cell_name, value in cells.items():
+                    other = results[wb_name][sh_name][cell_name]
+                    msg = '[{}]{}!{}'.format(wb_name, sh_name, cell_name)
+                    if is_number(value):
+                        self.assertAlmostEqual(float(value), float(other), msg=msg)
+                    else:
+                        try:
+                            self.assertEqual(value, other, msg=msg)
+                        except AssertionError:
+                            if all((value.startswith('#'),
+                                    value.endswith('!'),
+                                    value[0] == other[0],
+                                    value[-1] == other[-1])):
+                                warn("{} does not match error: {} vs {}".format(msg, value, other))
+                            else:
+                                raise
+
     def test_excel_model(self):
         xl_model = ExcelModel()
         xl_model.loads(self.filename)
@@ -52,22 +74,12 @@ class TestExcelModel(unittest.TestCase):
         books = xl_model.books
         books = {k: _book2dict(v[BOOK])
                  for k, v in xl_model.write(books).items()}
-        for wb_name, worksheets in books.items():
-            for sh_name, cells in worksheets.items():
-                for cell_name, value in cells.items():
-                    try:
-                        self.assertAlmostEquals(value, self.results[wb_name][sh_name][cell_name])
-                    except TypeError:
-                        self.assertEquals(value, self.results[wb_name][sh_name][cell_name])
+
+        self._compare(books, self.results)
 
         books = {k: _book2dict(v[BOOK]) for k, v in xl_model.write().items()}
         res = {}
         for k, v in sh_utl.stack_nested_keys(self.results, depth=2):
             sh_utl.get_nested_dicts(res, *map(str.upper, k), default=lambda: v)
-        for wb_name, worksheets in books.items():
-            for sh_name, cells in worksheets.items():
-                for cell_name, value in cells.items():
-                    try:
-                        self.assertAlmostEquals(value, res[wb_name][sh_name][cell_name])
-                    except TypeError:
-                        self.assertEquals(value, res[wb_name][sh_name][cell_name])
+
+        self._compare(books, res)
