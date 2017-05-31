@@ -50,6 +50,7 @@ OPERATORS.update({k: wrap_func(v) for k, v in {
     '+': lambda x, y: _replace_empty(x) + _replace_empty(y),
     '-': lambda x, y: _replace_empty(x) - _replace_empty(y),
     'U-': lambda x: -_replace_empty(x),
+    'U+': lambda x: _replace_empty(x),
     '*': lambda x, y: _replace_empty(x) * _replace_empty(y),
     '/': lambda x, y: _replace_empty(x) / _replace_empty(y),
     '^': lambda x, y: _replace_empty(x) ** _replace_empty(y),

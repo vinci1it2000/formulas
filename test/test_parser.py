@@ -35,6 +35,7 @@ class TestParser(unittest.TestCase):
         ('={1,2;1,2}', 'ARRAY(ARRAY(1,2)ARRAY(1,2))'),
         ('=PI()', 'PI()'),
         ('=INT(1)%+3', 'INT(1)%+3'),
+        ('=INT(1)%-3', 'INT(1)%-3'),
         ('= 1 + 2 + 3 * 4 ^ 5 * SUM(a, 1+b)', '1+2+3*4^5*SUM(A,1+B)'),
         ('=SUM({1})', 'SUM(ARRAY(ARRAY(1)))'),
         ('= a b', 'A B'),
@@ -50,7 +51,9 @@ class TestParser(unittest.TestCase):
         ('=MYFORMULA(1)', 'MYFORMULA(1)'),
         ('=IF(G9:G12<>H10:H13,1,0)', 'IF(G9:G12<>H10:H13,1,0)'),
         ('=SUM(a,b,d,e,f,g,Sheet2!B3:B4)', 'SUM(A,B,D,E,F,G,SHEET2!B3:B4)'),
-        ('=1000/(Sheet1!B1*Sheet1!B2)', '1000/(SHEET1!B1*SHEET1!B2)')
+        ('=1000/(Sheet1!B1*Sheet1!B2)', '1000/(SHEET1!B1*SHEET1!B2)'),
+        ('=10  ^  -  2', '10^u-2'),
+        ('=10^- + -  + + +2', '10^u+2')
     )
     def test_valid_formula(self, case):
         inputs, result = case
@@ -90,7 +93,11 @@ class TestParser(unittest.TestCase):
         ({}, '=#NULL!',  (), '#NULL!'),
         ({}, '=1 + 2', (), '3'),
         ({}, '=AVERAGE(((123 + 4 + AVERAGE({1,2}))))', (), '128.5'),
-        ({}, '="a" & "b"""', (), 'ab"'))
+        ({}, '="a" & "b"""', (), 'ab"'),
+        ({}, '=-2', (), '-2'),
+        ({}, '=10*+2 + 10^--2 + 10/-2', (), '115.0'),
+        ({}, '=10>+2', (), 'True'),
+        ({}, '=10=+10', (), 'True'))
     def test_compile(self, case):
         references, formula, inputs, result = case
         func = Parser().ast(formula)[1].compile(references)
