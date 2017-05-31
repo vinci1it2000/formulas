@@ -24,6 +24,11 @@ class TestTokens(unittest.TestCase):
         output = token.name
         self.assertEqual(result, output, '%s != %s' % (result, output))
 
+    @ddt.data('1A', '.Sheet1!A1', '1Sheet1!A1', '.A1')
+    def test_invalid_range(self, inputs):
+        with self.assertRaises(TokenError):
+            Range(inputs)
+
     @ddt.data(
         (' <=', '<='), (' <>', '<>'), ('  <', '<'), ('>', '>'), ('>=', '>='),
         ('=', '='), ('++', '+'), ('---', '-'), ('++--+', '+'), (' *', '*'),
