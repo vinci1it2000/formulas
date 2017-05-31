@@ -30,7 +30,7 @@ class Operator(Token):
     _n_args.update({'u-': 1, 'u+': 1, '%': 1})
 
     _re_process = None
-    _strip = ' '
+    _replace = ' '
 
     def __repr__(self):
         return '{} <{}>'.format(self.name, Operator.__name__)
@@ -65,7 +65,8 @@ class Operator(Token):
 
     def process(self, match, context=None):
         if self._re_process:
-            match = self._re_process.match(match.groups()[0].strip(self._strip))
+            s = match.groups()[0].replace(self._replace, '')
+            match = self._re_process.match(s)
         if match:
             return super(Operator, self).process(match, context=context)
         return {}
