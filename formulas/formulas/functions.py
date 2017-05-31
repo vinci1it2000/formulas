@@ -17,6 +17,10 @@ from ..errors import FunctionError, FoundError
 from ..tokens.operand import XlError, Error
 
 
+numpy_ufuncs = {item: getattr(np, item) for item in dir(np)
+                if isinstance(getattr(np, item), np.ufunc)}
+
+
 def is_number(number):
     try:
         float(number)
@@ -75,29 +79,74 @@ def raise_errors(*args):
             raise FoundError(err=v)
 
 
-def wrap_func(func):
+def call_function(value, function, xl_error):
+    def safe_eval(f, val):
+        try:
+            return f(val)
+        except (ValueError, TypeError):
+            return np.nan
+
+    if isinstance(value, (list, tuple, np.ndarray)):
+        # Make an array for the error
+        err_arr = np.where(np.ones(value.shape), xl_error, None)
+        result = np.reshape([safe_eval(function, item) for item in np.ravel(value)],
+                            value.shape)
+        # Replace `nan` with appropriate error
+        return np.where(np.isnan(result), err_arr, result)
+    else:
+        try:
+            result = function(value)
+            return xl_error if result is np.nan else result
+        except (TypeError, ValueError):
+            return xl_error
+
+
+def wrap_func(func, xl_error='#VALUE!'):
+    if isinstance(xl_error, str):
+        xl_error = Error.errors[xl_error]
+
     def wrapper(*args, **kwargs):
         # noinspection PyBroadException
         try:
             raise_errors(*args)
+            if isinstance(func, str):
+                return functools.partial(call_function,
+                                         function=numpy_ufuncs[func],
+                                         xl_error=xl_error)(*args, **kwargs)
             return func(*args, **kwargs)
         except FoundError as ex:
             return np.asarray([[ex.err]], object)
         except:
-            return np.asarray([[Error.errors['#VALUE!']]], object)
+            return np.asarray([[xl_error]], object)
     return functools.update_wrapper(wrapper, func)
 
 
 FUNCTIONS = collections.defaultdict(lambda: not_implemented)
 FUNCTIONS.update({
-    'INT': wrap_func(int),
-    'PI': lambda: math.pi,
-    'SUM': wrap_func(xsum),
-    'AVERAGE': wrap_func(average),
-    'ARRAYROW': lambda *args: np.asarray(args, object).view(Array),
+    'ACOS': wrap_func('arccos', '#NUM!'),
+    'ACOSH': wrap_func('arccosh', '#NUM!'),
     'ARRAY': lambda *args: np.asarray(args, object).view(Array),
+    'ARRAYROW': lambda *args: np.asarray(args, object).view(Array),
+    'ASIN': wrap_func('arcsin', '#NUM!'),
+    'ASINH': wrap_func('arcsinh', '#NUM!'),
+    'ATAN': wrap_func('arctan', '#NUM!'),
+    'ATAN2': wrap_func('arctan2', '#NUM!'),
+    'ATANH': wrap_func('arctanh', '#NUM!'),
+    'AVERAGE': wrap_func(average),
+    'COS': wrap_func('cos', '#NUM!'),
+    'COSH': wrap_func('cosh', '#NUM!'),
+    'EXP': wrap_func('exp', '#NUM!'),
     'IF': wrap_func(lambda c, x=True, y=False: np.where(c, x, y)),
     'IFERROR': iferror,
+    'INT': wrap_func(int),
+    'ISERR': iserr,
     'ISERROR': iserror,
-    'ISERR': iserr
+    'LOG': wrap_func('log10', '#NUM!'),
+    'LN': wrap_func('log', '#NUM!'),
+    'PI': lambda: math.pi,
+    'SIN': wrap_func('sin', '#NUM!'),
+    'SINH': wrap_func('cosh', '#NUM!'),
+    'SUM': wrap_func(xsum),
+    'TAN': wrap_func('tan', '#NUM!'),
+    'TANH': wrap_func('tanh', '#NUM!'),
 })
