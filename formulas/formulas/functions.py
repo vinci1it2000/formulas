@@ -17,8 +17,9 @@ from ..errors import FunctionError, FoundError
 from ..tokens.operand import XlError, Error
 
 
-numpy_ufuncs = {item: getattr(np, item) for item in dir(np)
-                if isinstance(getattr(np, item), np.ufunc)}
+inf = float('inf')
+ufuncs = {item: getattr(np, item) for item in dir(np)
+          if isinstance(getattr(np, item), np.ufunc)}
 
 
 def is_number(number):
@@ -79,29 +80,32 @@ def raise_errors(*args):
             raise FoundError(err=v)
 
 
-def call_function(value, function, xl_error):
+def call_ufunc(value, ufunc, xl_error):
     def safe_eval(f, val):
         try:
-            return f(val)
+            res = f(val)
+            return res if all((res < inf, res > -inf)) else np.nan
         except (ValueError, TypeError):
             return np.nan
 
     if isinstance(value, (list, tuple, np.ndarray)):
         # Make an array for the error
         err_arr = np.where(np.ones(value.shape), xl_error, None)
-        result = np.reshape([safe_eval(function, item) for item in np.ravel(value)],
+        result = np.reshape([safe_eval(ufunc, item) for item in np.ravel(value)],
                             value.shape)
         # Replace `nan` with appropriate error
         return np.where(np.isnan(result), err_arr, result)
     else:
-        try:
-            result = function(value)
-            return xl_error if result is np.nan else result
-        except (TypeError, ValueError):
-            return xl_error
+        result = safe_eval(ufunc, value)
+        return xl_error if result is np.nan else result
 
 
 def wrap_func(func, xl_error='#VALUE!'):
+    if func in ufuncs:
+        func = functools.partial(call_ufunc,
+                                 ufunc=ufuncs[func],
+                                 xl_error=xl_error)
+
     if isinstance(xl_error, str):
         xl_error = Error.errors[xl_error]
 
@@ -109,10 +113,6 @@ def wrap_func(func, xl_error='#VALUE!'):
         # noinspection PyBroadException
         try:
             raise_errors(*args)
-            if isinstance(func, str):
-                return functools.partial(call_function,
-                                         function=numpy_ufuncs[func],
-                                         xl_error=xl_error)(*args, **kwargs)
             return func(*args, **kwargs)
         except FoundError as ex:
             return np.asarray([[ex.err]], object)
@@ -145,7 +145,7 @@ FUNCTIONS.update({
     'LN': wrap_func('log', '#NUM!'),
     'PI': lambda: math.pi,
     'SIN': wrap_func('sin', '#NUM!'),
-    'SINH': wrap_func('cosh', '#NUM!'),
+    'SINH': wrap_func('sinh', '#NUM!'),
     'SUM': wrap_func(xsum),
     'TAN': wrap_func('tan', '#NUM!'),
     'TANH': wrap_func('tanh', '#NUM!'),

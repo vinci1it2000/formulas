@@ -52,10 +52,22 @@ class TestExcelModel(unittest.TestCase):
         books = xl_model.books
         books = {k: _book2dict(v[BOOK])
                  for k, v in xl_model.write(books).items()}
-        self.assertEqual(books, self.results)
+        for wb_name, worksheets in books.items():
+            for sh_name, cells in worksheets.items():
+                for cell_name, value in cells.items():
+                    try:
+                        self.assertAlmostEquals(value, self.results[wb_name][sh_name][cell_name])
+                    except TypeError:
+                        self.assertEquals(value, self.results[wb_name][sh_name][cell_name])
 
         books = {k: _book2dict(v[BOOK]) for k, v in xl_model.write().items()}
         res = {}
         for k, v in sh_utl.stack_nested_keys(self.results, depth=2):
             sh_utl.get_nested_dicts(res, *map(str.upper, k), default=lambda: v)
-        self.assertEqual(books, res)
+        for wb_name, worksheets in books.items():
+            for sh_name, cells in worksheets.items():
+                for cell_name, value in cells.items():
+                    try:
+                        self.assertAlmostEquals(value, res[wb_name][sh_name][cell_name])
+                    except TypeError:
+                        self.assertEquals(value, res[wb_name][sh_name][cell_name])
