@@ -57,10 +57,12 @@ class TestExcelModel(unittest.TestCase):
                         try:
                             self.assertEqual(value, other, msg=msg)
                         except AssertionError:
-                            if all((value.startswith('#'),
+                            if all((isinstance(value, str),
+                                    isinstance(other, str),
+                                    value.startswith('#'),
+                                    value.startswith('#'),
                                     value.endswith('!'),
-                                    value[0] == other[0],
-                                    value[-1] == other[-1])):
+                                    value.endswith('!'))):
                                 warn("{} does not match error: {} vs {}".format(msg, value, other))
                             else:
                                 raise
