@@ -53,7 +53,9 @@ class TestParser(unittest.TestCase):
         ('=SUM(a,b,d,e,f,g,Sheet2!B3:B4)', 'SUM(A,B,D,E,F,G,SHEET2!B3:B4)'),
         ('=1000/(Sheet1!B1*Sheet1!B2)', '1000/(SHEET1!B1*SHEET1!B2)'),
         ('=10  ^  -  2', '10^u-2'),
-        ('=10^- + -  + + +2', '10^u+2')
+        ('=10^- + -  + + +2', '10^u+2'),
+        ('=ATAN2( 10 , 2)', 'ATAN2(10,2)'),
+        ('=DAYS360( 10 , 2)', 'DAYS360(10,2)'),
     )
     def test_valid_formula(self, case):
         inputs, result = case
