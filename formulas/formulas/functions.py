@@ -123,13 +123,14 @@ def call_ufunc(*args, ufunc=''):
             return result
 
 
-def wrap_func(func):
+def wrap_func(func, args_indices=None):
     if func in ufuncs:
         func = functools.partial(call_ufunc, ufunc=ufuncs[func])
 
     def wrapper(*args, **kwargs):
         # noinspection PyBroadException
         try:
+            args = args_indices and [args[i] for i in args_indices] or args
             raise_errors(*args)
             return func(*args, **kwargs)
         except FoundError as ex:
@@ -149,7 +150,7 @@ FUNCTIONS.update({
     'ASIN': wrap_func('arcsin'),
     'ASINH': wrap_func('arcsinh'),
     'ATAN': wrap_func('arctan'),
-    'ATAN2': wrap_func('arctan2'),
+    'ATAN2': wrap_func('arctan2', (1, 0)),
     'ATANH': wrap_func('arctanh'),
     'AVERAGE': wrap_func(average),
     'COS': wrap_func('cos'),
