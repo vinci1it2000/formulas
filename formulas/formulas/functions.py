@@ -21,6 +21,29 @@ ufuncs = {item: getattr(np, item) for item in dir(np)
           if isinstance(getattr(np, item), np.ufunc)}
 
 
+def xpower(number, power):
+    if number == 0:
+        if power == 0:
+            return Error.errors['#NUM!']
+        if power < 0:
+            return Error.errors['#DIV/0!']
+    return np.power(number, power)
+
+ufuncs['power'] = xpower
+
+
+def xarctan2(x, y):
+    return x == y == 0 and Error.errors['#DIV/0!'] or np.arctan2(x, y)
+
+ufuncs['arctan2'] = xarctan2
+
+
+def xmod(x, y):
+    return y == 0 and Error.errors['#DIV/0!'] or np.mod(x, y)
+
+ufuncs['mod'] = xmod
+
+
 def is_number(number):
     try:
         float(number)
