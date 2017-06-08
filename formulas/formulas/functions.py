@@ -13,12 +13,22 @@ import functools
 import collections
 import math
 import numpy as np
+import schedula as sh
 from ..errors import FunctionError, FoundError
 from ..tokens.operand import XlError, Error
 
 
 ufuncs = {item: getattr(np, item) for item in dir(np)
           if isinstance(getattr(np, item), np.ufunc)}
+
+
+def _replace_empty(x, empty=0):
+    if isinstance(x, np.ndarray):
+        y = x.ravel().tolist()
+        if sh.EMPTY in y:
+            y = [empty if v is sh.EMPTY else v for v in y]
+            return np.asarray(y, object).reshape(*x.shape)
+    return x
 
 
 def xpower(number, power):
@@ -112,7 +122,6 @@ def raise_errors(*args):
 
 def call_ufunc(ufunc, *args):
     """Helps call a numpy universal function (ufunc)."""
-    from .operators import _replace_empty
     def safe_eval(*vals):
         try:
             r = ufunc(*map(float, vals))
