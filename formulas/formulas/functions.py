@@ -70,6 +70,21 @@ def flatten(l, check=is_number):
         yield l
 
 
+def xsumproduct(*args):
+    # Check all arrays are the same length
+    # Excel returns #VAlUE! error if they don't match
+    assert len(set(arg.size for arg in args)) == 1
+    inputs = []
+    for a in args:
+        a = a.ravel()
+        x = np.zeros_like(a, float)
+        b = np.vectorize(is_number)(a)
+        x[b] = a[b]
+        inputs.append(x)
+
+    return np.sum(np.prod(inputs, axis=0))
+
+
 def xsum(*args):
     return sum(list(flatten(args)))
 
@@ -184,6 +199,7 @@ FUNCTIONS.update({
     'RADIANS': wrap_func('radians'),
     'SIN': wrap_func('sin'),
     'SINH': wrap_func('sinh'),
+    'SUMPRODUCT': wrap_func(xsumproduct),
     'SQRT': wrap_func('sqrt'),
     'SUM': wrap_func(xsum),
     'TAN': wrap_func('tan'),
