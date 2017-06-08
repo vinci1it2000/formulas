@@ -130,10 +130,6 @@ def call_ufunc(ufunc, *args):
         except (ValueError, TypeError):
             r = Error.errors['#VALUE!']
         return r
-    # Check all arrays are the same length
-    # Excel returns #VAlUE! error if they don't match
-    # e.g., SUMPRODUCT
-    assert len(set(len(arg) for arg in args)) == 1
 
     res = np.vectorize(safe_eval, otypes=[object])(*map(_replace_empty, args))
     return res.view(Array)
