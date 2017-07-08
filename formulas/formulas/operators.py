@@ -14,9 +14,8 @@ import collections
 from ..errors import RangeValueError
 import schedula.utils as sh_utl
 import functools
-import numpy as np
 from ..ranges import Ranges
-from ..formulas.functions import not_implemented, wrap_func
+from ..formulas.functions import not_implemented, wrap_func, _replace_empty
 
 
 def wrap_ranges_func(func, n_out=1):
@@ -33,15 +32,6 @@ def parse_ranges(*args, **kw):
     args = tuple(v.value if isinstance(v, Ranges) else v for v in args)
     kw = {k: v.value if isinstance(v, Ranges) else v for k, v in kw.items()}
     return args, kw
-
-
-def _replace_empty(x, empty=0):
-    if isinstance(x, np.ndarray):
-        y = x.ravel().tolist()
-        if sh_utl.EMPTY in y:
-            y = [empty if v is sh_utl.EMPTY else v for v in y]
-            return np.asarray(y, object).reshape(*x.shape)
-    return x
 
 
 OPERATORS = collections.defaultdict(lambda: not_implemented)

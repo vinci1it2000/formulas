@@ -9,8 +9,7 @@
 import unittest
 import openpyxl
 import os.path as osp
-import schedula.utils as sh_utl
-from warnings import warn
+import schedula as sh
 from formulas.excel import ExcelModel, BOOK
 from formulas.formulas.functions import is_number
 
@@ -46,26 +45,13 @@ class TestExcelModel(unittest.TestCase):
         self.maxDiff = None
 
     def _compare(self, books, results):
-        for wb_name, worksheets in books.items():
-            for sh_name, cells in worksheets.items():
-                for cell_name, value in cells.items():
-                    other = results[wb_name][sh_name][cell_name]
-                    msg = '[{}]{}!{}'.format(wb_name, sh_name, cell_name)
-                    if is_number(value):
-                        self.assertAlmostEqual(float(value), float(other), msg=msg)
-                    else:
-                        try:
-                            self.assertEqual(value, other, msg=msg)
-                        except AssertionError:
-                            if all((isinstance(value, str),
-                                    isinstance(other, str),
-                                    value.startswith('#'),
-                                    value.startswith('#'),
-                                    value.endswith('!'),
-                                    value.endswith('!'))):
-                                warn("{} does not match error: {} vs {}".format(msg, value, other))
-                            else:
-                                raise
+        for k, other in sh.stack_nested_keys(results, depth=3):
+            value = sh.get_nested_dicts(books, *k)
+            msg = '[{}]{}!{}'.format(*k)
+            if is_number(value) and is_number(other):
+                self.assertAlmostEqual(float(value), float(other), msg=msg)
+            else:
+                self.assertEqual(value, other, msg=msg)
 
     def test_excel_model(self):
         xl_model = ExcelModel()
@@ -81,7 +67,7 @@ class TestExcelModel(unittest.TestCase):
 
         books = {k: _book2dict(v[BOOK]) for k, v in xl_model.write().items()}
         res = {}
-        for k, v in sh_utl.stack_nested_keys(self.results, depth=2):
-            sh_utl.get_nested_dicts(res, *map(str.upper, k), default=lambda: v)
+        for k, v in sh.stack_nested_keys(self.results, depth=2):
+            sh.get_nested_dicts(res, *map(str.upper, k), default=lambda: v)
 
         self._compare(books, res)
