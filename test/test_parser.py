@@ -99,7 +99,8 @@ class TestParser(unittest.TestCase):
         ({}, '=-2', (), '-2'),
         ({}, '=10*+2 + 10^--2 + 10/-2', (), '115.0'),
         ({}, '=10>+2', (), 'True'),
-        ({}, '=10=+10', (), 'True'))
+        ({}, '=10=+10', (), 'True'),
+        ({}, '=ISERR(#VALUE!)', (), 'True'))
     def test_compile(self, case):
         references, formula, inputs, result = case
         func = Parser().ast(formula)[1].compile(references)

@@ -55,10 +55,11 @@ ufuncs['mod'] = xmod
 
 
 def is_number(number):
-    try:
-        float(number)
-    except (ValueError, TypeError):
-        return False
+    if not isinstance(number, Error):
+        try:
+            float(number)
+        except (ValueError, TypeError):
+            return False
     return True
 
 
@@ -112,16 +113,23 @@ class Array(np.ndarray):
 
 
 def iserr(val):
-    b = np.asarray([isinstance(v, XlError) and v is not Error.errors['#N/A']
-                    for v in val.ravel().tolist()], bool)
-    b.resize(val.shape)
-    return b
+    try:
+        b = np.asarray([isinstance(v, XlError) and v is not Error.errors['#N/A']
+                        for v in val.ravel().tolist()], bool)
+        b.resize(val.shape)
+        return b
+    except AttributeError:  # val is not an array.
+        return iserr(np.asarray([[val]], object))[0][0]
 
 
 def iserror(val):
-    b = np.asarray([isinstance(v, XlError) for v in val.ravel().tolist()], bool)
-    b.resize(val.shape)
-    return b
+    try:
+        b = np.asarray([isinstance(v, XlError)
+                        for v in val.ravel().tolist()], bool)
+        b.resize(val.shape)
+        return b
+    except AttributeError:  # val is not an array.
+        return iserror(np.asarray([[val]], object))[0][0]
 
 
 def iferror(val, val_if_error):
@@ -131,7 +139,7 @@ def iferror(val, val_if_error):
 def raise_errors(*args):
     # noinspection PyTypeChecker
     for v in flatten(args, None):
-        if isinstance(v, XlError) and v is not Error.errors['#N/A']:
+        if isinstance(v, XlError):
             raise FoundError(err=v)
 
 
