@@ -8,4 +8,5 @@ regex
 ddt
 numpy
 sphinx_rtd_theme
+setuptools>=36.0.1
 sphinxcontrib-restbuilder
