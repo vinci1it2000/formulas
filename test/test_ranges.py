@@ -161,8 +161,8 @@ class TestOperators(unittest.TestCase):
             (3, 3, 4, 4)],),
           (([(4, 4, 5),
              (4, 4, 5)],))),
-         [(1, 1, 2, 2, Error.errors['#N/A']),
-          (1, 1, 2, 2, Error.errors['#N/A']),
+         [(1, 1, 2, 2, ''),
+          (1, 1, 2, 2, ''),
           (3, 3, 4, 4, 5),
           (3, 3, 4, 4, 5)]),)
     def test_value_add_ranges(self, case):

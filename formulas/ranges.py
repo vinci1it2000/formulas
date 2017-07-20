@@ -96,7 +96,7 @@ def _get_indices_intersection(base, i):
     return r, c
 
 
-def _assemble_values(base, values, empty=Error.errors['#N/A']):
+def _assemble_values(base, values, empty=''):
     res = np.empty(_shape(**base), object)
     res[:, :] = empty
     for k, (rng, value) in sorted(values.items()):
