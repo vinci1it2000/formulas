@@ -107,6 +107,35 @@ def irr(*args):
     return np.irr(l)
 
 
+def left(from_str, num_chars):
+    return str(from_str)[:num_chars]
+
+
+def mid(from_str, start_num, num_chars):
+    return str(from_str)[(start_num-1):((start_num-1)+num_chars)]
+
+
+def right(from_str, num_chars):
+    out = str(from_str)[(0 - int(num_chars)):]
+    return str(out)
+
+
+def find(find_text, within_text, *args):
+    if len(args) > 0:
+        start_num = args[0]
+    else:
+        start_num = 0
+    return str(within_text).find(str(find_text), start_num)
+
+
+def trim(text):
+    return text.strip()
+
+
+def replace(old_text, start_num, num_chars, new_text):
+    return old_text[:start_num] + new_text + old_text[start_num+num_chars:]
+
+
 # noinspection PyUnusedLocal
 def not_implemented(*args, **kwargs):
     raise FunctionError()
@@ -217,4 +246,13 @@ FUNCTIONS.update({
     'SUM': wrap_func(xsum),
     'TAN': wrap_func('tan'),
     'TANH': wrap_func('tanh'),
+    'LEFT': wrap_func(left),
+    'MID': wrap_func(mid),
+    'RIGHT': wrap_func(right),
+    'FIND': wrap_func(find),
+    'TRIM': wrap_func(trim),
+    'LEN': lambda x: len(str(x)),
+    'REPLACE': wrap_func(replace),
+    'UPPER': lambda x: str(x).upper(),
+    'LOWER': lambda x: str(x).lower()
 })
