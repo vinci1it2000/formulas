@@ -118,7 +118,7 @@ def right(from_str, num_chars):
 
 def find(find_text, within_text, *args):
     if len(args) > 0:
-        start_num = args[0]
+        start_num = (args[0] - 1)
     else:
         start_num = 0
     return str(within_text).find(str(find_text), start_num)
@@ -129,7 +129,7 @@ def trim(text):
 
 
 def replace(old_text, start_num, num_chars, new_text):
-    return old_text[:start_num] + new_text + old_text[start_num+num_chars:]
+    return old_text[:(start_num - 1)] + new_text + old_text[(start_num - 1)+num_chars:]
 
 
 # noinspection PyUnusedLocal
