@@ -102,6 +102,10 @@ def average(*args):
     l = list(flatten(args))
     return sum(l) / len(l)
 
+def irr(*args):
+    l = list(flatten(args))
+    return np.irr(l)
+
 
 # noinspection PyUnusedLocal
 def not_implemented(*args, **kwargs):
@@ -195,6 +199,7 @@ FUNCTIONS.update({
     'IF': wrap_func(lambda c, x=True, y=False: np.where(c, x, y)),
     'IFERROR': iferror,
     'INT': wrap_func(int),
+    'IRR': wrap_func(irr),
     'ISERR': iserr,
     'ISERROR': iserror,
     'LOG': wrap_func('log10'),
