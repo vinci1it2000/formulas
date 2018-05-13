@@ -23,7 +23,8 @@ Sub-Modules:
 import functools
 import numpy as np
 import schedula as sh
-from ..errors import RangeValueError, FunctionError
+from ..errors import RangeValueError, FunctionError, FoundError
+from ..tokens.operand import Error
 
 
 class Array(np.ndarray):
@@ -42,6 +43,19 @@ def replace_empty(x, empty=0):
             y = [empty if v is sh.EMPTY else v for v in y]
             return np.asarray(y, object).reshape(*x.shape)
     return x
+
+
+def wrap_func(func):
+    def wrapper(*args, **kwargs):
+        # noinspection PyBroadException
+        try:
+            return func(*args, **kwargs)
+        except FoundError as ex:
+            return np.asarray([[ex.err]], object)
+        except:
+            return np.asarray([[Error.errors['#VALUE!']]], object)
+
+    return functools.update_wrapper(wrapper, func)
 
 
 def wrap_ranges_func(func, n_out=1):

@@ -13,7 +13,7 @@ import functools
 import collections
 import math
 import numpy as np
-from . import replace_empty, not_implemented, Array
+from . import replace_empty, not_implemented, Array, wrap_func
 from ..errors import FoundError
 from ..tokens.operand import XlError, Error
 
@@ -34,7 +34,7 @@ ufuncs['power'] = xpower
 
 
 def xarctan2(x, y):
-    return x == y == 0 and Error.errors['#DIV/0!'] or np.arctan2(x, y)
+    return x == y == 0 and Error.errors['#DIV/0!'] or np.arctan2(y, x)
 
 
 ufuncs['arctan2'] = xarctan2
@@ -67,6 +67,7 @@ def flatten(l, check=is_number):
 def xsumproduct(*args):
     # Check all arrays are the same length
     # Excel returns #VAlUE! error if they don't match
+    raise_errors(args)
     assert len(set(arg.size for arg in args)) == 1
     inputs = []
     for a in args:
@@ -80,14 +81,17 @@ def xsumproduct(*args):
 
 
 def xsum(*args):
+    raise_errors(args)
     return sum(list(flatten(args)))
 
 
 def xmax(*args):
+    raise_errors(args)
     return max([arg for arg in flatten(args) if is_number(arg)])
 
 
 def xmin(*args):
+    raise_errors(args)
     return min([arg for arg in flatten(args) if is_number(arg)])
 
 
@@ -176,62 +180,51 @@ def call_ufunc(ufunc, *args):
     return res.view(Array)
 
 
-def wrap_func(func, args_indices=None):
+def get_func(func):
     if func in ufuncs:
         func = functools.partial(call_ufunc, ufuncs[func])
 
-    def wrapper(*args, **kwargs):
-        # noinspection PyBroadException
-        try:
-            args = args_indices and [args[i] for i in args_indices] or args
-            raise_errors(*args)
-            return func(*args, **kwargs)
-        except FoundError as ex:
-            return np.asarray([[ex.err]], object)
-        except:
-            return np.asarray([[Error.errors['#VALUE!']]], object)
-
-    return functools.update_wrapper(wrapper, func)
+    return func
 
 
 FUNCTIONS = collections.defaultdict(lambda: not_implemented)
 FUNCTIONS.update({
-    'ABS': wrap_func('abs'),
-    'ACOS': wrap_func('arccos'),
-    'ACOSH': wrap_func('arccosh'),
+    'ABS': wrap_func(get_func('abs')),
+    'ACOS': wrap_func(get_func('arccos')),
+    'ACOSH': wrap_func(get_func('arccosh')),
     'ARRAY': lambda *args: np.asarray(args, object).view(Array),
     'ARRAYROW': lambda *args: np.asarray(args, object).view(Array),
-    'ASIN': wrap_func('arcsin'),
-    'ASINH': wrap_func('arcsinh'),
-    'ATAN': wrap_func('arctan'),
-    'ATAN2': wrap_func('arctan2', (1, 0)),
-    'ATANH': wrap_func('arctanh'),
+    'ASIN': wrap_func(get_func('arcsin')),
+    'ASINH': wrap_func(get_func('arcsinh')),
+    'ATAN': wrap_func(get_func('arctan')),
+    'ATAN2': wrap_func(get_func('arctan2')),
+    'ATANH': wrap_func(get_func('arctanh')),
     'AVERAGE': wrap_func(average),
-    'COS': wrap_func('cos'),
-    'COSH': wrap_func('cosh'),
-    'DEGREES': wrap_func('degrees'),
-    'EXP': wrap_func('exp'),
+    'COS': wrap_func(get_func('cos')),
+    'COSH': wrap_func(get_func('cosh')),
+    'DEGREES': wrap_func(get_func('degrees')),
+    'EXP': wrap_func(get_func('exp')),
     'IF': wrap_func(lambda c, x=True, y=False: np.where(c, x, y)),
     'IFERROR': iferror,
     'INT': wrap_func(int),
     'IRR': wrap_func(irr),
     'ISERR': iserr,
     'ISERROR': iserror,
-    'LOG': wrap_func('log10'),
-    'LN': wrap_func('log'),
+    'LOG': wrap_func(get_func('log10')),
+    'LN': wrap_func(get_func('log')),
     'MAX': wrap_func(xmax),
     'MIN': wrap_func(xmin),
-    'MOD': wrap_func('mod'),
+    'MOD': wrap_func(get_func('mod')),
     'PI': lambda: math.pi,
-    'POWER': wrap_func('power'),
-    'RADIANS': wrap_func('radians'),
-    'SIN': wrap_func('sin'),
-    'SINH': wrap_func('sinh'),
+    'POWER': wrap_func(get_func('power')),
+    'RADIANS': wrap_func(get_func('radians')),
+    'SIN': wrap_func(get_func('sin')),
+    'SINH': wrap_func(get_func('sinh')),
     'SUMPRODUCT': wrap_func(xsumproduct),
-    'SQRT': wrap_func('sqrt'),
+    'SQRT': wrap_func(get_func('sqrt')),
     'SUM': wrap_func(xsum),
-    'TAN': wrap_func('tan'),
-    'TANH': wrap_func('tanh'),
+    'TAN': wrap_func(get_func('tan')),
+    'TANH': wrap_func(get_func('tanh')),
     'LEFT': wrap_func(left),
     'MID': wrap_func(mid),
     'RIGHT': wrap_func(right),
