@@ -27,10 +27,10 @@ class Function(Token):
         t.attr['check_n'] = check_n
         t.ast(tokens, stack, builder)
 
-    def compile(self, n_out=1):
+    def compile(self):
         from ..formulas.functions import FUNCTIONS
         from ..formulas.operators import wrap_ranges_func
-        return wrap_ranges_func(FUNCTIONS[self.name.upper()], n_out=n_out)
+        return wrap_ranges_func(FUNCTIONS[self.name.upper()])
 
     def set_expr(self, *tokens):
         args = ', '.join(t.get_expr for t in tokens)
