@@ -37,7 +37,7 @@ class Cell(object):
         self.range = Ranges().push(reference, context=context)
         self.value = sh_utl.EMPTY
         self.tokens, self.builder = (), None
-        if isinstance(value, str) and self.parser.formula_check.match(value):
+        if isinstance(value, str) and self.parser.is_formula(value):
             self.tokens, self.builder = self.parser.ast(value, context=context)
         elif value is not None:
             self.value = value

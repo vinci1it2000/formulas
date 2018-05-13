@@ -23,9 +23,9 @@ from .builder import AstBuilder
 class Parser(object):
     formula_check = regex.compile(
         r"""
-        (?P<array>^\s*{\s*=\s*(?P<formula>\S.*)\s*}\s*$)
+        (?P<array>^\s*{\s*=\s*(?P<name>\S.*)\s*}\s*$)
         |
-        (?P<value>^\s*=\s*(?P<formula>\S.*))
+        (?P<value>^\s*=\s*(?P<name>\S.*))
         """, regex.IGNORECASE | regex.X | regex.DOTALL
     )
     ast_builder = AstBuilder
@@ -34,10 +34,13 @@ class Parser(object):
         Parenthesis, Intersect
     ]
 
+    def is_formula(self, value):
+        return self.formula_check.match(value) or Error._re.match(value)
+
     def ast(self, expression, context=None):
         try:
-            match = self.formula_check.match(expression).groupdict()
-            expr = match['formula']
+            match = self.is_formula(expression).groupdict()
+            expr = match['name']
         except (AttributeError, KeyError):
             raise FormulaError(expression)
         builder = self.ast_builder(match=match)
