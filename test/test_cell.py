@@ -26,7 +26,7 @@ class TestCell(unittest.TestCase):
         ('A1', '=INT(1)%+3', {}, '<Ranges>(A1)=[[3.01]]'),
         ('A1', '=SUM({1, 3; 4, 2})', {}, '<Ranges>(A1)=[[10]]'),
         ('A1', '=" "" a"', {}, '<Ranges>(A1)=[[\' " a\']]'),
-        ('A1', '=#NULL!',  {}, "<Ranges>(A1)=[[#NULL!]]"),
+        ('A1', '=#NULL!', {}, "<Ranges>(A1)=[[#NULL!]]"),
         ('A1', '=1 + 2', {}, '<Ranges>(A1)=[[3]]'),
         ('A1', '=AVERAGE(((123 + 4 + AVERAGE({1,2}))))', {},
          '<Ranges>(A1)=[[128.5]]'),
@@ -39,4 +39,7 @@ class TestCell(unittest.TestCase):
         cell = Cell(reference, formula).compile()
         assert cell.add(dsp)
         output = str(dsp(inputs)[cell.output])
-        self.assertEqual(result, output, '{} != {}'.format(result, output))
+        self.assertEqual(
+            result, output,
+            'Folmula({}): {} != {}'.format(formula, result, output)
+        )
