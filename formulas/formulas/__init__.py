@@ -26,6 +26,10 @@ import schedula as sh
 from ..errors import RangeValueError, FunctionError
 
 
+class Array(np.ndarray):
+    pass
+
+
 # noinspection PyUnusedLocal
 def not_implemented(*args, **kwargs):
     raise FunctionError()

@@ -13,7 +13,7 @@ import functools
 import collections
 import math
 import numpy as np
-from . import replace_empty, not_implemented
+from . import replace_empty, not_implemented, Array
 from ..errors import FoundError
 from ..tokens.operand import XlError, Error
 
@@ -127,10 +127,6 @@ def trim(text):
 
 def replace(old_text, start_num, num_chars, new_text):
     return old_text[:(start_num - 1)] + new_text + old_text[(start_num - 1)+num_chars:]
-
-
-class Array(np.ndarray):
-    pass
 
 
 def iserr(val):
