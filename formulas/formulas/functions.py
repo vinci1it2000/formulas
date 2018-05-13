@@ -17,34 +17,14 @@ from . import replace_empty, not_implemented, Array, wrap_func
 from ..errors import FoundError
 from ..tokens.operand import XlError, Error
 
-ufuncs = {item: getattr(np, item) for item in dir(np)
-          if isinstance(getattr(np, item), np.ufunc)}
+FUNCTIONS = collections.defaultdict(lambda: not_implemented)
 
 
-def xpower(number, power):
-    if number == 0:
-        if power == 0:
-            return Error.errors['#NUM!']
-        if power < 0:
-            return Error.errors['#DIV/0!']
-    return np.power(number, power)
-
-
-ufuncs['power'] = xpower
-
-
-def xarctan2(x, y):
-    return x == y == 0 and Error.errors['#DIV/0!'] or np.arctan2(y, x)
-
-
-ufuncs['arctan2'] = xarctan2
-
-
-def xmod(x, y):
-    return y == 0 and Error.errors['#DIV/0!'] or np.mod(x, y)
-
-
-ufuncs['mod'] = xmod
+def raise_errors(*args):
+    # noinspection PyTypeChecker
+    for v in flatten(args, None):
+        if isinstance(v, XlError):
+            raise FoundError(err=v)
 
 
 def is_number(number):
@@ -64,35 +44,41 @@ def flatten(l, check=is_number):
         yield l
 
 
-def xsumproduct(*args):
-    # Check all arrays are the same length
-    # Excel returns #VAlUE! error if they don't match
-    raise_errors(args)
-    assert len(set(arg.size for arg in args)) == 1
-    inputs = []
-    for a in args:
-        a = a.ravel()
-        x = np.zeros_like(a, float)
-        b = np.vectorize(is_number)(a)
-        x[b] = a[b]
-        inputs.append(x)
+def wrap_ufunc(func):
+    """Helps call a numpy universal function (ufunc)."""
 
-    return np.sum(np.prod(inputs, axis=0))
+    def safe_eval(*vals):
+        try:
+            r = func(*map(float, vals))
+            if not isinstance(r, XlError) and (np.isnan(r) or np.isinf(r)):
+                r = Error.errors['#NUM!']
+        except (ValueError, TypeError):
+            r = Error.errors['#VALUE!']
+        return r
 
+    def wrapper(*args, **kwargs):
+        args = map(replace_empty, args)
+        return np.vectorize(safe_eval, otypes=[object])(*args).view(Array)
 
-def xsum(*args):
-    raise_errors(args)
-    return sum(list(flatten(args)))
+    return wrap_func(functools.update_wrapper(wrapper, func))
 
 
-def xmax(*args):
-    raise_errors(args)
-    return max([arg for arg in flatten(args) if is_number(arg)])
+FUNCTIONS['ABS'] = wrap_ufunc(np.abs)
+FUNCTIONS['ACOS'] = wrap_ufunc(np.arccos)
+FUNCTIONS['ACOSH'] = wrap_ufunc(np.arccosh)
+FUNCTIONS['ARRAY'] = lambda *args: np.asarray(args, object).view(Array)
+FUNCTIONS['ARRAYROW'] = lambda *args: np.asarray(args, object).view(Array)
+FUNCTIONS['ASIN'] = wrap_ufunc(np.arcsin)
+FUNCTIONS['ASINH'] = wrap_ufunc(np.arcsinh)
+FUNCTIONS['ATAN'] = wrap_ufunc(np.arctan)
 
 
-def xmin(*args):
-    raise_errors(args)
-    return min([arg for arg in flatten(args) if is_number(arg)])
+def xarctan2(x, y):
+    return x == y == 0 and Error.errors['#DIV/0!'] or np.arctan2(y, x)
+
+
+FUNCTIONS['ATAN2'] = wrap_ufunc(xarctan2)
+FUNCTIONS['ATANH'] = wrap_ufunc(np.arctanh)
 
 
 def average(*args):
@@ -102,7 +88,6 @@ def average(*args):
 def irr(*args):
     l = list(flatten(args))
     return np.irr(l)
-
 
 def left(from_str, num_chars):
     return str(from_str)[:num_chars]
@@ -133,6 +118,22 @@ def replace(old_text, start_num, num_chars, new_text):
     return old_text[:(start_num - 1)] + new_text + old_text[(start_num - 1)+num_chars:]
 
 
+FUNCTIONS['AVERAGE'] = wrap_func(average)
+FUNCTIONS['COS'] = wrap_ufunc(np.cos)
+FUNCTIONS['COSH'] = wrap_ufunc(np.cosh)
+FUNCTIONS['DEGREES'] = wrap_ufunc(np.degrees)
+FUNCTIONS['EXP'] = wrap_ufunc(np.exp)
+FUNCTIONS['IF'] = wrap_func(lambda c, x=True, y=False: np.where(c, x, y))
+
+
+def iferror(val, val_if_error):
+    return np.where(iserror(val), val_if_error, val)
+
+
+FUNCTIONS['IFERROR'] = iferror
+FUNCTIONS['INT'] = wrap_func(int)
+
+
 def iserr(val):
     try:
         b = np.asarray([isinstance(v, XlError) and v is not Error.errors['#N/A']
@@ -141,6 +142,9 @@ def iserr(val):
         return b
     except AttributeError:  # val is not an array.
         return iserr(np.asarray([[val]], object))[0][0]
+
+
+FUNCTIONS['ISERR'] = iserr
 
 
 def iserror(val):
@@ -153,78 +157,79 @@ def iserror(val):
         return iserror(np.asarray([[val]], object))[0][0]
 
 
-def iferror(val, val_if_error):
-    return np.where(iserror(val), val_if_error, val)
+FUNCTIONS['ISERROR'] = iserror
+FUNCTIONS['LOG'] = wrap_ufunc(np.log10)
+FUNCTIONS['LN'] = wrap_ufunc(np.log)
 
 
-def raise_errors(*args):
-    # noinspection PyTypeChecker
-    for v in flatten(args, None):
-        if isinstance(v, XlError):
-            raise FoundError(err=v)
+def xmax(*args):
+    raise_errors(args)
+    return max(flatten(args))
 
 
-def call_ufunc(ufunc, *args):
-    """Helps call a numpy universal function (ufunc)."""
-
-    def safe_eval(*vals):
-        try:
-            r = ufunc(*map(float, vals))
-            if not isinstance(r, XlError) and (np.isnan(r) or np.isinf(r)):
-                r = Error.errors['#NUM!']
-        except (ValueError, TypeError):
-            r = Error.errors['#VALUE!']
-        return r
-
-    res = np.vectorize(safe_eval, otypes=[object])(*map(replace_empty, args))
-    return res.view(Array)
+FUNCTIONS['MAX'] = wrap_func(xmax)
 
 
-def get_func(func):
-    if func in ufuncs:
-        func = functools.partial(call_ufunc, ufuncs[func])
-
-    return func
+def xmin(*args):
+    raise_errors(args)
+    return min(flatten(args))
 
 
-FUNCTIONS = collections.defaultdict(lambda: not_implemented)
+FUNCTIONS['MIN'] = wrap_func(xmin)
+
+
+def xmod(x, y):
+    return y == 0 and Error.errors['#DIV/0!'] or np.mod(x, y)
+
+
+FUNCTIONS['MOD'] = wrap_ufunc(xmod)
+FUNCTIONS['PI'] = lambda: math.pi
+
+
+def xpower(number, power):
+    if number == 0:
+        if power == 0:
+            return Error.errors['#NUM!']
+        if power < 0:
+            return Error.errors['#DIV/0!']
+    return np.power(number, power)
+
+
+FUNCTIONS['POWER'] = wrap_ufunc(xpower)
+FUNCTIONS['RADIANS'] = wrap_ufunc(np.radians)
+FUNCTIONS['SIN'] = wrap_ufunc(np.sin)
+FUNCTIONS['SINH'] = wrap_ufunc(np.sinh)
+
+
+def xsumproduct(*args):
+    # Check all arrays are the same length
+    # Excel returns #VAlUE! error if they don't match
+    raise_errors(args)
+    assert len(set(arg.size for arg in args)) == 1
+    inputs = []
+    for a in args:
+        a = a.ravel()
+        x = np.zeros_like(a, float)
+        b = np.vectorize(is_number)(a)
+        x[b] = a[b]
+        inputs.append(x)
+
+    return np.sum(np.prod(inputs, axis=0))
+
+
+FUNCTIONS['SUMPRODUCT'] = wrap_func(xsumproduct)
+FUNCTIONS['SQRT'] = wrap_ufunc(np.sqrt)
+
+
+def xsum(*args):
+    raise_errors(args)
+    return sum(list(flatten(args)))
+
+
+FUNCTIONS['SUM'] = wrap_func(xsum)
+FUNCTIONS['TAN'] = wrap_ufunc(np.tan)
+FUNCTIONS['TANH'] = wrap_ufunc(np.tanh)
 FUNCTIONS.update({
-    'ABS': wrap_func(get_func('abs')),
-    'ACOS': wrap_func(get_func('arccos')),
-    'ACOSH': wrap_func(get_func('arccosh')),
-    'ARRAY': lambda *args: np.asarray(args, object).view(Array),
-    'ARRAYROW': lambda *args: np.asarray(args, object).view(Array),
-    'ASIN': wrap_func(get_func('arcsin')),
-    'ASINH': wrap_func(get_func('arcsinh')),
-    'ATAN': wrap_func(get_func('arctan')),
-    'ATAN2': wrap_func(get_func('arctan2')),
-    'ATANH': wrap_func(get_func('arctanh')),
-    'AVERAGE': wrap_func(average),
-    'COS': wrap_func(get_func('cos')),
-    'COSH': wrap_func(get_func('cosh')),
-    'DEGREES': wrap_func(get_func('degrees')),
-    'EXP': wrap_func(get_func('exp')),
-    'IF': wrap_func(lambda c, x=True, y=False: np.where(c, x, y)),
-    'IFERROR': iferror,
-    'INT': wrap_func(int),
-    'IRR': wrap_func(irr),
-    'ISERR': iserr,
-    'ISERROR': iserror,
-    'LOG': wrap_func(get_func('log10')),
-    'LN': wrap_func(get_func('log')),
-    'MAX': wrap_func(xmax),
-    'MIN': wrap_func(xmin),
-    'MOD': wrap_func(get_func('mod')),
-    'PI': lambda: math.pi,
-    'POWER': wrap_func(get_func('power')),
-    'RADIANS': wrap_func(get_func('radians')),
-    'SIN': wrap_func(get_func('sin')),
-    'SINH': wrap_func(get_func('sinh')),
-    'SUMPRODUCT': wrap_func(xsumproduct),
-    'SQRT': wrap_func(get_func('sqrt')),
-    'SUM': wrap_func(xsum),
-    'TAN': wrap_func(get_func('tan')),
-    'TANH': wrap_func(get_func('tanh')),
     'LEFT': wrap_func(left),
     'MID': wrap_func(mid),
     'RIGHT': wrap_func(right),
