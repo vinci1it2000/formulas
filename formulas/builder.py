@@ -17,7 +17,7 @@ from .errors import FormulaError
 from .tokens.operator import Operator
 from .tokens.function import Function
 from .tokens.operand import Operand
-from .formulas.operators import wrap_ranges_func
+from .formulas import wrap_ranges_func
 from .ranges import Ranges
 from schedula.utils.alg import get_unused_node_id
 

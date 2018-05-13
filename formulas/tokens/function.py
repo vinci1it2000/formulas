@@ -29,7 +29,7 @@ class Function(Token):
 
     def compile(self):
         from ..formulas.functions import FUNCTIONS
-        from ..formulas.operators import wrap_ranges_func
+        from ..formulas import wrap_ranges_func
         return wrap_ranges_func(FUNCTIONS[self.name.upper()])
 
     def set_expr(self, *tokens):

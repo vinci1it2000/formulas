@@ -96,7 +96,8 @@ class Operator(Token):
         stack.append(self)
 
     def compile(self):
-        from ..formulas.operators import OPERATORS, wrap_ranges_func
+        from ..formulas import wrap_ranges_func
+        from ..formulas.operators import OPERATORS
         name = self.name.upper()
         func = OPERATORS[name]
         if name not in ' ,:':

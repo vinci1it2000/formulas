@@ -248,12 +248,12 @@ class Range(Operand):
 
     def __repr__(self):
         if self.attr.get('is_ranges', False):
-            from ..formulas.operators import Ranges
+            from ..ranges import Ranges
             return '{} <{}>'.format(self.name, Ranges.__name__)
         return super(Range, self).__repr__()
 
     def compile(self):
         if self.attr.get('is_ranges', False):
-            from ..formulas.operators import Ranges
+            from ..ranges import Ranges
             return Ranges().push(self.attr['name'])
         return sh_utl.EMPTY
