@@ -11,26 +11,27 @@ Python equivalents of excel operators.
 """
 
 import collections
-from ..formulas.functions import not_implemented, wrap_func, _replace_empty
+from . import replace_empty
+from .functions import not_implemented, wrap_func
 
 OPERATORS = collections.defaultdict(lambda: not_implemented)
 # noinspection PyTypeChecker
 OPERATORS.update({k: wrap_func(v) for k, v in {
-    '+': lambda x, y: _replace_empty(x) + _replace_empty(y),
-    '-': lambda x, y: _replace_empty(x) - _replace_empty(y),
-    'U-': lambda x: -_replace_empty(x),
-    'U+': lambda x: _replace_empty(x),
-    '*': lambda x, y: _replace_empty(x) * _replace_empty(y),
-    '/': lambda x, y: _replace_empty(x) / _replace_empty(y),
-    '^': lambda x, y: _replace_empty(x) ** _replace_empty(y),
+    '+': lambda x, y: replace_empty(x) + replace_empty(y),
+    '-': lambda x, y: replace_empty(x) - replace_empty(y),
+    'U-': lambda x: -replace_empty(x),
+    'U+': lambda x: replace_empty(x),
+    '*': lambda x, y: replace_empty(x) * replace_empty(y),
+    '/': lambda x, y: replace_empty(x) / replace_empty(y),
+    '^': lambda x, y: replace_empty(x) ** replace_empty(y),
     '<': lambda x, y: x < y,
     '<=': lambda x, y: x <= y,
     '>': lambda x, y: x > y,
     '>=': lambda x, y: x >= y,
     '=': lambda x, y: x == y,
     '<>': lambda x, y: x != y,
-    '&': lambda x, y: _replace_empty(x, '') + _replace_empty(y, ''),
-    '%': lambda x: _replace_empty(x) / 100.0,
+    '&': lambda x, y: replace_empty(x, '') + replace_empty(y, ''),
+    '%': lambda x: replace_empty(x) / 100.0,
     ',': lambda x, y: x | y,
     ' ': lambda x, y: x & y,
     ':': lambda x, y: x + y

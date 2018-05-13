@@ -20,9 +20,19 @@ Sub-Modules:
     ~functions
     ~operators
 """
-from ..errors import RangeValueError
-import schedula.utils as sh_utl
 import functools
+import numpy as np
+import schedula as sh
+from ..errors import RangeValueError
+
+
+def replace_empty(x, empty=0):
+    if isinstance(x, np.ndarray):
+        y = x.ravel().tolist()
+        if sh.EMPTY in y:
+            y = [empty if v is sh.EMPTY else v for v in y]
+            return np.asarray(y, object).reshape(*x.shape)
+    return x
 
 
 def wrap_ranges_func(func, n_out=1):
@@ -31,7 +41,7 @@ def wrap_ranges_func(func, n_out=1):
             args, kwargs = parse_ranges(*args, **kwargs)
             return func(*args, **kwargs)
         except RangeValueError:
-            return sh_utl.bypass(*((sh_utl.NONE,) * n_out))
+            return sh.bypass(*((sh.NONE,) * n_out))
 
     return functools.update_wrapper(wrapper, func)
 

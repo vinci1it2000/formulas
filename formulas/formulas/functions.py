@@ -13,22 +13,12 @@ import functools
 import collections
 import math
 import numpy as np
-import schedula as sh
+from . import replace_empty
 from ..errors import FunctionError, FoundError
 from ..tokens.operand import XlError, Error
 
-
 ufuncs = {item: getattr(np, item) for item in dir(np)
           if isinstance(getattr(np, item), np.ufunc)}
-
-
-def _replace_empty(x, empty=0):
-    if isinstance(x, np.ndarray):
-        y = x.ravel().tolist()
-        if sh.EMPTY in y:
-            y = [empty if v is sh.EMPTY else v for v in y]
-            return np.asarray(y, object).reshape(*x.shape)
-    return x
 
 
 def xpower(number, power):
@@ -39,17 +29,20 @@ def xpower(number, power):
             return Error.errors['#DIV/0!']
     return np.power(number, power)
 
+
 ufuncs['power'] = xpower
 
 
 def xarctan2(x, y):
     return x == y == 0 and Error.errors['#DIV/0!'] or np.arctan2(x, y)
 
+
 ufuncs['arctan2'] = xarctan2
 
 
 def xmod(x, y):
     return y == 0 and Error.errors['#DIV/0!'] or np.mod(x, y)
+
 
 ufuncs['mod'] = xmod
 
@@ -178,6 +171,7 @@ def raise_errors(*args):
 
 def call_ufunc(ufunc, *args):
     """Helps call a numpy universal function (ufunc)."""
+
     def safe_eval(*vals):
         try:
             r = ufunc(*map(float, vals))
@@ -187,7 +181,7 @@ def call_ufunc(ufunc, *args):
             r = Error.errors['#VALUE!']
         return r
 
-    res = np.vectorize(safe_eval, otypes=[object])(*map(_replace_empty, args))
+    res = np.vectorize(safe_eval, otypes=[object])(*map(replace_empty, args))
     return res.view(Array)
 
 
@@ -205,6 +199,7 @@ def wrap_func(func, args_indices=None):
             return np.asarray([[ex.err]], object)
         except:
             return np.asarray([[Error.errors['#VALUE!']]], object)
+
     return functools.update_wrapper(wrapper, func)
 
 
