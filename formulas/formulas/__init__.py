@@ -23,7 +23,12 @@ Sub-Modules:
 import functools
 import numpy as np
 import schedula as sh
-from ..errors import RangeValueError
+from ..errors import RangeValueError, FunctionError
+
+
+# noinspection PyUnusedLocal
+def not_implemented(*args, **kwargs):
+    raise FunctionError()
 
 
 def replace_empty(x, empty=0):

@@ -13,8 +13,8 @@ import functools
 import collections
 import math
 import numpy as np
-from . import replace_empty
-from ..errors import FunctionError, FoundError
+from . import replace_empty, not_implemented
+from ..errors import FoundError
 from ..tokens.operand import XlError, Error
 
 ufuncs = {item: getattr(np, item) for item in dir(np)
@@ -127,11 +127,6 @@ def trim(text):
 
 def replace(old_text, start_num, num_chars, new_text):
     return old_text[:(start_num - 1)] + new_text + old_text[(start_num - 1)+num_chars:]
-
-
-# noinspection PyUnusedLocal
-def not_implemented(*args, **kwargs):
-    raise FunctionError()
 
 
 class Array(np.ndarray):

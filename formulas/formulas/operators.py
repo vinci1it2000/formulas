@@ -11,8 +11,8 @@ Python equivalents of excel operators.
 """
 
 import collections
-from . import replace_empty
-from .functions import not_implemented, wrap_func
+from . import replace_empty, not_implemented
+from .functions import wrap_func
 
 OPERATORS = collections.defaultdict(lambda: not_implemented)
 # noinspection PyTypeChecker
