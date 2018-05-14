@@ -149,6 +149,7 @@ FUNCTIONS['CSCH'] = FUNCTIONS['_XLFN.CSCH'] = wrap_ufunc(
     functools.partial(xcot, func=np.sinh)
 )
 
+
 def xceiling(num, sig, ceil=math.ceil, dfl=0):
     if sig == 0:
         return dfl
@@ -222,7 +223,10 @@ def iserror(val):
 
 
 FUNCTIONS['ISERROR'] = iserror
-FUNCTIONS['LOG'] = wrap_ufunc(np.log10)
+FUNCTIONS['LOG10'] = wrap_ufunc(np.log10)
+FUNCTIONS['LOG'] = wrap_ufunc(
+    lambda x, base=10: np.log(x) / np.log(base) if base else np.nan
+)
 FUNCTIONS['LN'] = wrap_ufunc(np.log)
 
 
