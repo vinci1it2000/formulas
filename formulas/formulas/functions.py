@@ -49,7 +49,11 @@ def wrap_ufunc(func):
 
     def safe_eval(*vals):
         try:
-            r = func(*map(float, vals))
+            for v in flatten(vals, None):
+                if isinstance(v, XlError):
+                    return v
+            with np.errstate(divide='ignore', invalid='ignore'):
+                r = func(*map(float, vals))
             if not isinstance(r, XlError) and (np.isnan(r) or np.isinf(r)):
                 r = Error.errors['#NUM!']
         except (ValueError, TypeError):
@@ -66,6 +70,12 @@ def wrap_ufunc(func):
 FUNCTIONS['ABS'] = wrap_ufunc(np.abs)
 FUNCTIONS['ACOS'] = wrap_ufunc(np.arccos)
 FUNCTIONS['ACOSH'] = wrap_ufunc(np.arccosh)
+FUNCTIONS['_XLFN.ACOT'] = FUNCTIONS['ACOT'] = wrap_ufunc(
+    lambda x: (np.arctan(np.divide(1, x)) + np.pi) % np.pi
+)
+FUNCTIONS['ACOTH'] = wrap_ufunc(lambda x: np.arctanh(np.divide(1, x)))
+FUNCTIONS['_XLFN.ACOTH'] = FUNCTIONS['ACOTH']
+
 FUNCTIONS['ARRAY'] = lambda *args: np.asarray(args, object).view(Array)
 FUNCTIONS['ARRAYROW'] = lambda *args: np.asarray(args, object).view(Array)
 FUNCTIONS['ASIN'] = wrap_ufunc(np.arcsin)
@@ -121,6 +131,36 @@ def replace(old_text, start_num, num_chars, new_text):
 FUNCTIONS['AVERAGE'] = wrap_func(average)
 FUNCTIONS['COS'] = wrap_ufunc(np.cos)
 FUNCTIONS['COSH'] = wrap_ufunc(np.cosh)
+
+
+def xceiling(num, sig):
+    if sig == 0:
+        return 0
+    elif sig < 0 < num:
+        return np.nan
+    return math.ceil(num / sig) * sig
+
+
+FUNCTIONS['CEILING'] = wrap_ufunc(xceiling)
+
+
+def xceiling_math(num, sig=None, mode=0):
+    if sig == 0:
+        return 0
+    elif sig is None:
+        x, sig = abs(num), 1
+    else:
+        sig = abs(sig)
+        x = num / sig
+    if mode and num < 0:
+        return -math.ceil(abs(x)) * sig
+    return math.ceil(x) * sig
+
+
+FUNCTIONS['CEILING.MATH'] = wrap_ufunc(xceiling_math)
+FUNCTIONS['_XLFN.CEILING.MATH'] = FUNCTIONS['CEILING.MATH']
+FUNCTIONS['CEILING.PRECISE'] = FUNCTIONS['CEILING.MATH']
+FUNCTIONS['_XLFN.CEILING.PRECISE'] = FUNCTIONS['CEILING.PRECISE']
 FUNCTIONS['DEGREES'] = wrap_ufunc(np.degrees)
 FUNCTIONS['EXP'] = wrap_ufunc(np.exp)
 FUNCTIONS['IF'] = wrap_func(lambda c, x=True, y=False: np.where(c, x, y))
@@ -131,7 +171,7 @@ def iferror(val, val_if_error):
 
 
 FUNCTIONS['IFERROR'] = iferror
-FUNCTIONS['INT'] = wrap_func(int)
+FUNCTIONS['INT'] = wrap_ufunc(int)
 
 
 def iserr(val):
@@ -164,7 +204,7 @@ FUNCTIONS['LN'] = wrap_ufunc(np.log)
 
 def xmax(*args):
     raise_errors(args)
-    return max(flatten(args))
+    return max(list(flatten(args)) or [0])
 
 
 FUNCTIONS['MAX'] = wrap_func(xmax)
@@ -172,7 +212,7 @@ FUNCTIONS['MAX'] = wrap_func(xmax)
 
 def xmin(*args):
     raise_errors(args)
-    return min(flatten(args))
+    return min(list(flatten(args)) or [0])
 
 
 FUNCTIONS['MIN'] = wrap_func(xmin)
