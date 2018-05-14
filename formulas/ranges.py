@@ -119,6 +119,8 @@ def _reshape_array_as_excel(value, base_shape):
     try:
         return np.reshape(value, base_shape)
     except ValueError:
+        if not value.shape:
+            value = np.array([[value.tolist()]])
         res, (r, c) = np.empty(base_shape, object), value.shape
         res[:, :] = Error.errors['#N/A']
         r = None if r == 1 else r
