@@ -133,18 +133,18 @@ FUNCTIONS['COS'] = wrap_ufunc(np.cos)
 FUNCTIONS['COSH'] = wrap_ufunc(np.cosh)
 
 
-def xceiling(num, sig):
+def xceiling(num, sig, ceil=math.ceil, dfl=0):
     if sig == 0:
-        return 0
+        return dfl
     elif sig < 0 < num:
-        return np.nan
-    return math.ceil(num / sig) * sig
+        return Error.errors['#NUM!']
+    return ceil(num / sig) * sig
 
 
 FUNCTIONS['CEILING'] = wrap_ufunc(xceiling)
 
 
-def xceiling_math(num, sig=None, mode=0):
+def xceiling_math(num, sig=None, mode=0, ceil=math.ceil):
     if sig == 0:
         return 0
     elif sig is None:
@@ -153,8 +153,8 @@ def xceiling_math(num, sig=None, mode=0):
         sig = abs(sig)
         x = num / sig
     if mode and num < 0:
-        return -math.ceil(abs(x)) * sig
-    return math.ceil(x) * sig
+        return -ceil(abs(x)) * sig
+    return ceil(x) * sig
 
 
 FUNCTIONS['CEILING.MATH'] = wrap_ufunc(xceiling_math)
@@ -163,6 +163,14 @@ FUNCTIONS['CEILING.PRECISE'] = FUNCTIONS['CEILING.MATH']
 FUNCTIONS['_XLFN.CEILING.PRECISE'] = FUNCTIONS['CEILING.PRECISE']
 FUNCTIONS['DEGREES'] = wrap_ufunc(np.degrees)
 FUNCTIONS['EXP'] = wrap_ufunc(np.exp)
+FUNCTIONS['FLOOR'] = wrap_ufunc(
+    functools.partial(xceiling, ceil=math.floor, dfl=Error.errors['#DIV/0!'])
+)
+FUNCTIONS['_XLFN.FLOOR.MATH'] = FUNCTIONS['FLOOR.MATH'] = wrap_ufunc(
+    functools.partial(xceiling_math, ceil=math.floor)
+)
+FUNCTIONS['FLOOR.PRECISE'] = FUNCTIONS['FLOOR.MATH']
+FUNCTIONS['_XLFN.FLOOR.PRECISE'] = FUNCTIONS['FLOOR.MATH']
 FUNCTIONS['IF'] = wrap_func(lambda c, x=True, y=False: np.where(c, x, y))
 
 
