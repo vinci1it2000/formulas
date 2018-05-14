@@ -142,7 +142,12 @@ FUNCTIONS['COT'] = FUNCTIONS['_XLFN.COT'] = wrap_ufunc(xcot)
 FUNCTIONS['COTH'] = FUNCTIONS['_XLFN.COTH'] = wrap_ufunc(
     functools.partial(xcot, func=np.tanh)
 )
-
+FUNCTIONS['CSC'] = FUNCTIONS['_XLFN.CSC'] = wrap_ufunc(
+    functools.partial(xcot, func=np.sin)
+)
+FUNCTIONS['CSCH'] = FUNCTIONS['_XLFN.CSCH'] = wrap_ufunc(
+    functools.partial(xcot, func=np.sinh)
+)
 
 def xceiling(num, sig, ceil=math.ceil, dfl=0):
     if sig == 0:
