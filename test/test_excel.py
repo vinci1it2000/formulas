@@ -45,7 +45,7 @@ class TestExcelModel(unittest.TestCase):
         self.maxDiff = None
 
     def _compare(self, books, results):
-        for k, other in sh.stack_nested_keys(results, depth=3):
+        for k, other in sorted(sh.stack_nested_keys(results, depth=3)):
             value = sh.get_nested_dicts(books, *k)
             msg = '[{}]{}!{}'.format(*k)
             if is_number(value) and is_number(other):
