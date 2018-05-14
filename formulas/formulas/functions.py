@@ -133,6 +133,17 @@ FUNCTIONS['COS'] = wrap_ufunc(np.cos)
 FUNCTIONS['COSH'] = wrap_ufunc(np.cosh)
 
 
+def xcot(x, func=np.tan):
+    x = func(x)
+    return (1 / x) if x else Error.errors['#DIV/0!']
+
+
+FUNCTIONS['COT'] = FUNCTIONS['_XLFN.COT'] = wrap_ufunc(xcot)
+FUNCTIONS['COTH'] = FUNCTIONS['_XLFN.COTH'] = wrap_ufunc(
+    functools.partial(xcot, func=np.tanh)
+)
+
+
 def xceiling(num, sig, ceil=math.ceil, dfl=0):
     if sig == 0:
         return dfl
