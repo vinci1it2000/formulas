@@ -30,7 +30,7 @@ class Parser(object):
     )
     ast_builder = AstBuilder
     filters = [
-        String, Error, Range, Number, OperatorToken, Separator, Function, Array,
+        Error, String, Number, Range, OperatorToken, Separator, Function, Array,
         Parenthesis, Intersect
     ]
 
