@@ -27,7 +27,7 @@ import importlib
 import collections
 import numpy as np
 from .. import replace_empty, not_implemented, Array, wrap_func
-from ...errors import FoundError
+from ...errors import FoundError, BroadcastError
 from ...tokens.operand import XlError, Error
 
 SUBMODULES = ['.info', '.logic', '.math', '.stat']
@@ -70,7 +70,7 @@ def flatten(l, check=is_number):
 
 def wrap_ufunc(
         func, input_parser=lambda *a: map(float, a), check_error=get_error,
-        args_parser=lambda *a: map(replace_empty, a)):
+        args_parser=lambda *a: map(replace_empty, a), otype=lambda *a: Array):
     """Helps call a numpy universal function (ufunc)."""
 
     def safe_eval(*vals):
@@ -85,9 +85,16 @@ def wrap_ufunc(
 
     # noinspection PyUnusedLocal
     def wrapper(*args, **kwargs):
-        args = args_parser(*args)
-        return np.vectorize(safe_eval, otypes=[object])(*args).view(Array)
-
+        try:
+            args = tuple(args_parser(*args))
+            func = np.vectorize(safe_eval, otypes=[object])
+            return func(*args).view(otype(*args))
+        except ValueError as ex:
+            try:
+                np.broadcast(*args)
+            except ValueError:
+                raise BroadcastError()
+            raise ex
     return wrap_func(functools.update_wrapper(wrapper, func))
 
 

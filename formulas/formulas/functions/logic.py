@@ -9,16 +9,47 @@
 """
 Python equivalents of logical excel functions.
 """
-import numpy as np
-from . import wrap_func
+from . import wrap_ufunc, Array, Error, flatten, get_error
 
 FUNCTIONS = {}
-FUNCTIONS['IF'] = wrap_func(lambda c, x=True, y=False: np.where(c, x, y))
 
 
-def iferror(val, val_if_error):
+class IfArray(Array):
+    def collapse(self, shape):
+        if tuple(shape) == (1, 1) != self.shape:
+            return Error.errors['#VALUE!']
+        return super(IfArray, self).collapse(shape)
+
+
+def xif(condition, x=True, y=False):
+    return x if condition else y
+
+
+FUNCTIONS['IF'] = wrap_ufunc(xif, otype=lambda *a: IfArray)
+
+
+class IfErrorArray(Array):
+    _value = Error.errors['#VALUE!']
+
+    def collapse(self, shape):
+        if tuple(shape) == (1, 1) != self.shape:
+            return self._value
+        return super(IfErrorArray, self).collapse(shape)
+
+
+def xiferror(val, val_if_error):
     from .info import iserror
-    return np.where(iserror(val), val_if_error, val)
+    return val_if_error if iserror(val) else val
 
 
-FUNCTIONS['IFERROR'] = iferror
+def xiferror_otype(val, val_if_error):
+    class _IfErrorArray(IfErrorArray):
+        _value = list(flatten(val_if_error, None))[0]
+
+    return _IfErrorArray
+
+
+FUNCTIONS['IFERROR'] = wrap_ufunc(
+    xiferror, input_parser=lambda *a: a,
+    check_error=lambda *a: False, otype=xiferror_otype
+)

@@ -41,3 +41,7 @@ class FunctionError(FormulaError):
 
 class RangeValueError(BaseError):
     msg = 'Range %s has not value!'
+
+
+class BroadcastError(BaseError):
+    msg = 'Broadcast is not implemented!'

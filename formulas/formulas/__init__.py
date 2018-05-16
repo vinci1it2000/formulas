@@ -23,7 +23,7 @@ Sub-Modules:
 import functools
 import numpy as np
 import schedula as sh
-from ..errors import RangeValueError, FunctionError, FoundError
+from ..errors import RangeValueError, FunctionError, FoundError, BaseError
 from ..tokens.operand import Error
 
 
@@ -69,6 +69,8 @@ def wrap_func(func):
             return func(*args, **kwargs)
         except FoundError as ex:
             return np.asarray([[ex.err]], object)
+        except BaseError as ex:
+            raise ex
         except:
             return np.asarray([[Error.errors['#VALUE!']]], object)
 
