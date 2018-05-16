@@ -32,7 +32,14 @@ class TestCell(unittest.TestCase):
          '<Ranges>(A1)=[[128.5]]'),
         ('A1', '="a" & "b"""', {}, '<Ranges>(A1)=[[\'ab"\']]'),
         ('A1', '=SUM(B2:B4)', {'B2:B4': ('', '', '')}, '<Ranges>(A1)=[[0]]'),
-        ('A1', '=SUM(B2:B4)', {'B2:B4': ('', 1, '')}, '<Ranges>(A1)=[[1]]'))
+        ('A1', '=SUM(B2:B4)', {'B2:B4': ('', 1, '')}, '<Ranges>(A1)=[[1]]'),
+        ('A1:D1', '=IF({0,-0.2,0},2,{1})', {},
+         '<Ranges>(A1:D1)=[[1.0 2.0 1.0 #N/A]]'),
+        # ('A1:D1', '=IF({0,-0.2,0},{2,3},{1})', {},
+        #  '<Ranges>(A1:D1)=[[1 2 1 #N/A]]'),
+        # ('A1:D1', '=IF({0,-2,0},{2,3},{1,4})', {},
+        #  '<Ranges>(A1:D1)=[[1 2 #N/A #N/A]]')
+    )
     def test_output(self, case):
         reference, formula, inputs, result = case
         dsp = sh.Dispatcher()
@@ -43,3 +50,15 @@ class TestCell(unittest.TestCase):
             result, output,
             'Folmula({}): {} != {}'.format(formula, result, output)
         )
+
+    @ddt.data(
+        ('A1:D1', '=IF({0,-0.2,0},{2,3},{1})', {}),  # BroadcastError
+        ('A1:D1', '=IF({0,-2,0},{2,3},{1,4})', {}),  # BroadcastError
+    )
+    def test_invalid(self, case):
+        reference, formula, inputs = case
+        with self.assertRaises(sh.DispatcherError):
+            dsp = sh.Dispatcher()
+            cell = Cell(reference, formula).compile()
+            assert cell.add(dsp)
+            dsp(inputs)
