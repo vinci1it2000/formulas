@@ -52,24 +52,24 @@ def flatten(l, check=is_number):
         yield l
 
 
-def wrap_ufunc(func):
+def wrap_ufunc(
+        func, input_parser=lambda *a: map(float, a), check_error=get_error,
+        args_parser=lambda *a: map(replace_empty, a)):
     """Helps call a numpy universal function (ufunc)."""
 
     def safe_eval(*vals):
         try:
-            for v in flatten(vals, None):
-                if isinstance(v, XlError):
-                    return v
             with np.errstate(divide='ignore', invalid='ignore'):
-                r = func(*map(float, vals))
-            if not isinstance(r, XlError) and (np.isnan(r) or np.isinf(r)):
-                r = Error.errors['#NUM!']
+                r = check_error(*vals) or func(*input_parser(*vals))
+            if not isinstance(r, (XlError, str)):
+                r = (np.isnan(r) or np.isinf(r)) and Error.errors['#NUM!'] or r
         except (ValueError, TypeError):
             r = Error.errors['#VALUE!']
         return r
 
+    # noinspection PyUnusedLocal
     def wrapper(*args, **kwargs):
-        args = map(replace_empty, args)
+        args = args_parser(*args)
         return np.vectorize(safe_eval, otypes=[object])(*args).view(Array)
 
     return wrap_func(functools.update_wrapper(wrapper, func))
