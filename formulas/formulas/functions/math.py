@@ -170,15 +170,14 @@ FUNCTIONS['EXP'] = wrap_ufunc(np.exp)
 
 
 def xfact(number, fact=math.factorial, limit=0):
-    if not fact:
-        from scipy.special import factorial2
-        fact = factorial2
-    if number < limit:
-        return np.nan
-    return float(fact(int(number or 0)))
+    return np.nan if number < limit else int(fact(int(number or 0)))
 
 
 FUNCTIONS['FACT'] = wrap_ufunc(xfact)
+
+
+def _factdouble(x):
+    return np.multiply.reduce(np.arange(max(x, 1), 0, -2))
 
 
 def xfactdouble(number):
@@ -187,7 +186,7 @@ def xfactdouble(number):
     if isinstance(x, bool):
         return Error.errors['#VALUE!']
     with np.errstate(divide='ignore', invalid='ignore'):
-        x = xfact(x, 0, -1)
+        x = xfact(x, _factdouble, -1)
     return (np.isnan(x) or np.isinf(x)) and Error.errors['#NUM!'] or x
 
 
