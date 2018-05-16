@@ -120,9 +120,13 @@ FUNCTIONS['ATAN2'] = wrap_ufunc(xarctan2)
 FUNCTIONS['ATANH'] = wrap_ufunc(np.arctanh)
 
 
-def average(*args):
+def xaverage(*args):
+    raise_errors(args)
     l = list(flatten(args))
-    return sum(l) / len(l)
+    if l:
+        return sum(l) / len(l)
+    else:
+        return Error.errors['#DIV/0!']
 
 def irr(*args):
     l = list(flatten(args))
@@ -157,7 +161,7 @@ def replace(old_text, start_num, num_chars, new_text):
     return old_text[:(start_num - 1)] + new_text + old_text[(start_num - 1)+num_chars:]
 
 
-FUNCTIONS['AVERAGE'] = wrap_func(average)
+FUNCTIONS['AVERAGE'] = wrap_func(xaverage)
 FUNCTIONS['COS'] = wrap_ufunc(np.cos)
 FUNCTIONS['COSH'] = wrap_ufunc(np.cosh)
 
