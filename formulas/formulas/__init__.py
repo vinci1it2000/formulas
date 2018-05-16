@@ -28,7 +28,8 @@ from ..tokens.operand import Error
 
 
 class Array(np.ndarray):
-    pass
+    _default = Error.errors['#N/A']
+    _value = Error.errors['#VALUE!']
 
 
 # noinspection PyUnusedLocal

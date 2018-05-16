@@ -122,7 +122,7 @@ def _reshape_array_as_excel(value, base_shape):
         if not value.shape:
             value = np.array([[value.tolist()]])
         res, (r, c) = np.empty(base_shape, object), value.shape
-        res[:, :] = Error.errors['#N/A']
+        res[:, :] = getattr(value, '_default', Error.errors['#N/A'])
         r = None if r == 1 else r
         c = None if c == 1 else c
         try:
@@ -131,7 +131,7 @@ def _reshape_array_as_excel(value, base_shape):
             if isinstance(value, Array):
                 res = np.resize(value, base_shape)
             else:
-                res[:, :] = Error.errors['#VALUE!']
+                res[:, :] = getattr(value, '_value', Error.errors['#VALUE!'])
     return res
 
 
