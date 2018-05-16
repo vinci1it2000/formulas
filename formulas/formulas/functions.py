@@ -183,7 +183,7 @@ def xceiling(num, sig, ceil=math.ceil, dfl=0):
     if sig == 0:
         return dfl
     elif sig < 0 < num:
-        return Error.errors['#NUM!']
+        return np.nan
     return ceil(num / sig) * sig
 
 
