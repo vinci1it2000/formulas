@@ -209,6 +209,31 @@ FUNCTIONS['CEILING.PRECISE'] = FUNCTIONS['CEILING.MATH']
 FUNCTIONS['_XLFN.CEILING.PRECISE'] = FUNCTIONS['CEILING.PRECISE']
 FUNCTIONS['DEGREES'] = wrap_ufunc(np.degrees)
 FUNCTIONS['EXP'] = wrap_ufunc(np.exp)
+
+
+def xfact(number, fact=math.factorial, limit=0):
+    if not fact:
+        from scipy.special import factorial2
+        fact = factorial2
+    if number < limit:
+        return np.nan
+    return float(fact(int(number or 0)))
+
+
+FUNCTIONS['FACT'] = wrap_ufunc(xfact)
+
+
+def xfactdouble(number):
+    raise_errors(number)
+    x = list(flatten(replace_empty(number), None))[0]
+    if isinstance(x, bool):
+        return Error.errors['#VALUE!']
+    with np.errstate(divide='ignore', invalid='ignore'):
+        x = xfact(x, 0, -1)
+    return (np.isnan(x) or np.isinf(x)) and Error.errors['#NUM!'] or x
+
+
+FUNCTIONS['FACTDOUBLE'] = wrap_func(xfactdouble)
 FUNCTIONS['FLOOR'] = wrap_ufunc(
     functools.partial(xceiling, ceil=math.floor, dfl=Error.errors['#DIV/0!'])
 )
