@@ -208,6 +208,27 @@ FUNCTIONS['_XLFN.CEILING.MATH'] = FUNCTIONS['CEILING.MATH']
 FUNCTIONS['CEILING.PRECISE'] = FUNCTIONS['CEILING.MATH']
 FUNCTIONS['_XLFN.CEILING.PRECISE'] = FUNCTIONS['CEILING.PRECISE']
 FUNCTIONS['DEGREES'] = wrap_ufunc(np.degrees)
+
+
+def xdecimal(text, radix):
+    text, radix = str(text), int(radix)
+    try:
+        return int(text, radix)
+    except ValueError:
+        return Error.errors['#NUM!']
+
+
+FUNCTIONS['_XLFN.DECIMAL'] = FUNCTIONS['DECIMAL'] = wrap_ufunc(
+    xdecimal, input_parser=lambda *a: a
+)
+
+
+def xeven(x):
+    v = math.ceil(abs(x) / 2.) * 2
+    return -v if x < 0 else v
+
+
+FUNCTIONS['EVEN'] = wrap_ufunc(xeven)
 FUNCTIONS['EXP'] = wrap_ufunc(np.exp)
 
 
@@ -313,6 +334,27 @@ def xmod(x, y):
 
 
 FUNCTIONS['MOD'] = wrap_ufunc(xmod)
+
+
+def xmround(*args):
+    raise_errors(args)
+    num, sig = list(flatten(map(replace_empty, args), None))
+    if isinstance(num, bool) or isinstance(sig, bool):
+        return Error.errors['#VALUE!']
+    with np.errstate(divide='ignore', invalid='ignore'):
+        x = num < 0 < sig and np.nan or xceiling(num, sig, ceil=np.round)
+    return (np.isnan(x) or np.isinf(x)) and Error.errors['#NUM!'] or x
+
+
+FUNCTIONS['MROUND'] = wrap_func(xmround)
+
+
+def xodd(x):
+    v = math.ceil(abs(x)) // 2 * 2 + 1
+    return -v if x < 0 else v
+
+
+FUNCTIONS['ODD'] = wrap_ufunc(xodd)
 FUNCTIONS['PI'] = lambda: math.pi
 
 
@@ -327,6 +369,23 @@ def xpower(number, power):
 
 FUNCTIONS['POWER'] = wrap_ufunc(xpower)
 FUNCTIONS['RADIANS'] = wrap_ufunc(np.radians)
+FUNCTIONS['RAND'] = wrap_func(np.random.rand)
+
+
+def xrandbetween(bottom, top):
+    if isinstance(bottom, bool) or isinstance(top, bool):
+        return Error.errors['#VALUE!']
+    dx = top - bottom
+    if dx < 0:
+        return Error.errors['#NUM!']
+
+    return bottom + dx * np.random.rand()
+
+
+FUNCTIONS['RANDBETWEEN'] = wrap_ufunc(
+    xrandbetween, input_parser=lambda *a: a,
+    check_error=lambda *a: get_error(*a[::-1])
+)
 
 
 def _xroman(form):
