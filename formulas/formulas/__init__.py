@@ -29,7 +29,23 @@ from ..tokens.operand import Error
 
 class Array(np.ndarray):
     _default = Error.errors['#N/A']
-    _value = Error.errors['#VALUE!']
+
+    def reshape(self, shape, *shapes, order='C'):
+        try:
+            return super(Array, self).reshape(shape, *shapes, order=order)
+        except ValueError:
+            res, (r, c) = np.empty(shape, object), self.shape
+            res[:, :] = self._default
+            r = None if r == 1 else r
+            c = None if c == 1 else c
+            try:
+                res[:r, :c] = self
+            except ValueError:
+                res[:, :] = self.collapse(shape)
+            return res
+
+    def collapse(self, shape):
+        return np.resize(self, shape)
 
 
 # noinspection PyUnusedLocal

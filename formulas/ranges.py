@@ -128,10 +128,7 @@ def _reshape_array_as_excel(value, base_shape):
         try:
             res[:r, :c] = value
         except ValueError:
-            if isinstance(value, Array):
-                res = np.resize(value, base_shape)
-            else:
-                res[:, :] = getattr(value, '_value', Error.errors['#VALUE!'])
+            res[:, :] = Error.errors['#VALUE!']
     return res
 
 
