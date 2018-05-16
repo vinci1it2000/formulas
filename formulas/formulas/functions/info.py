@@ -18,6 +18,11 @@ FUNCTIONS = {}
 class IsErrArray(Array):
     _default = False
 
+    def collapse(self, shape):
+        if tuple(shape) == (1, 1) != self.shape:
+            return True
+        return super(IsErrArray, self).collapse(shape)
+
 
 def iserr(val):
     try:
@@ -32,7 +37,7 @@ def iserr(val):
 FUNCTIONS['ISERR'] = iserr
 
 
-class IsErrorArray(Array):
+class IsErrorArray(IsErrArray):
     _default = True
 
 
