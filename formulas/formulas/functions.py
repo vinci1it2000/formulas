@@ -253,17 +253,25 @@ FUNCTIONS['IFERROR'] = iferror
 FUNCTIONS['INT'] = wrap_ufunc(int)
 
 
+class IsErrArray(Array):
+    _default = False
+
+
 def iserr(val):
     try:
         b = np.asarray([isinstance(v, XlError) and v is not Error.errors['#N/A']
                         for v in val.ravel().tolist()], bool)
         b.resize(val.shape)
-        return b
+        return b.view(IsErrArray)
     except AttributeError:  # val is not an array.
-        return iserr(np.asarray([[val]], object))[0][0]
+        return iserr(np.asarray([[val]], object))[0][0].view(IsErrArray)
 
 
 FUNCTIONS['ISERR'] = iserr
+
+
+class IsErrorArray(Array):
+    _default = True
 
 
 def iserror(val):
@@ -271,9 +279,9 @@ def iserror(val):
         b = np.asarray([isinstance(v, XlError)
                         for v in val.ravel().tolist()], bool)
         b.resize(val.shape)
-        return b
+        return b.view(IsErrorArray)
     except AttributeError:  # val is not an array.
-        return iserror(np.asarray([[val]], object))[0][0]
+        return iserror(np.asarray([[val]], object))[0][0].view(IsErrorArray)
 
 
 FUNCTIONS['ISERROR'] = iserror
