@@ -28,9 +28,9 @@ class Function(Token):
         t.ast(tokens, stack, builder)
 
     def compile(self):
-        from ..formulas.functions import FUNCTIONS
+        from ..formulas.functions import get_functions
         from ..formulas import wrap_ranges_func
-        return wrap_ranges_func(FUNCTIONS[self.name.upper()])
+        return wrap_ranges_func(get_functions()[self.name.upper()])
 
     def set_expr(self, *tokens):
         args = ', '.join(t.get_expr for t in tokens)

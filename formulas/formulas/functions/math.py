@@ -7,74 +7,17 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-Python equivalents of various excel functions.
+Python equivalents of math and trigonometry excel functions.
 """
 import math
 import functools
-import collections
 import numpy as np
-from . import replace_empty, not_implemented, Array, wrap_func
-from ..errors import FoundError
-from ..tokens.operand import XlError, Error
+from . import (
+    get_error, raise_errors, is_number, flatten, wrap_ufunc, wrap_func,
+    replace_empty, Error
+)
 
-FUNCTIONS = collections.defaultdict(lambda: not_implemented)
-
-
-def get_error(*vals):
-    for v in flatten(vals, None):
-        if isinstance(v, XlError):
-            return v
-
-
-def raise_errors(*args):
-    # noinspection PyTypeChecker
-    v = get_error(*args)
-    if v:
-        raise FoundError(err=v)
-
-
-def is_number(number):
-    if isinstance(number, bool):
-        return False
-    elif not isinstance(number, Error):
-        try:
-            float(number)
-        except (ValueError, TypeError):
-            return False
-    return True
-
-
-def flatten(l, check=is_number):
-    if isinstance(l, collections.Iterable) and not isinstance(l, str):
-        for el in l:
-            yield from flatten(el, check)
-    elif not check or check(l):
-        yield l
-
-
-def wrap_ufunc(
-        func, input_parser=lambda *a: map(float, a), check_error=get_error,
-        args_parser=lambda *a: map(replace_empty, a)):
-    """Helps call a numpy universal function (ufunc)."""
-
-    def safe_eval(*vals):
-        try:
-            with np.errstate(divide='ignore', invalid='ignore'):
-                r = check_error(*vals) or func(*input_parser(*vals))
-            if not isinstance(r, (XlError, str)):
-                r = (np.isnan(r) or np.isinf(r)) and Error.errors['#NUM!'] or r
-        except (ValueError, TypeError):
-            r = Error.errors['#VALUE!']
-        return r
-
-    # noinspection PyUnusedLocal
-    def wrapper(*args, **kwargs):
-        args = args_parser(*args)
-        return np.vectorize(safe_eval, otypes=[object])(*args).view(Array)
-
-    return wrap_func(functools.update_wrapper(wrapper, func))
-
-
+FUNCTIONS = {}
 FUNCTIONS['ABS'] = wrap_ufunc(np.abs)
 FUNCTIONS['ACOS'] = wrap_ufunc(np.arccos)
 FUNCTIONS['ACOSH'] = wrap_ufunc(np.arccosh)
@@ -105,8 +48,6 @@ FUNCTIONS['_XLFN.ARABIC'] = FUNCTIONS['ARABIC'] = wrap_ufunc(
     args_parser=lambda *a: (replace_empty(x, '') for x in a)
 )
 
-FUNCTIONS['ARRAY'] = lambda *args: np.asarray(args, object).view(Array)
-FUNCTIONS['ARRAYROW'] = lambda *args: np.asarray(args, object).view(Array)
 FUNCTIONS['ASIN'] = wrap_ufunc(np.arcsin)
 FUNCTIONS['ASINH'] = wrap_ufunc(np.arcsinh)
 FUNCTIONS['ATAN'] = wrap_ufunc(np.arctan)
@@ -119,14 +60,6 @@ def xarctan2(x, y):
 FUNCTIONS['ATAN2'] = wrap_ufunc(xarctan2)
 FUNCTIONS['ATANH'] = wrap_ufunc(np.arctanh)
 
-
-def xaverage(*args):
-    raise_errors(args)
-    l = list(flatten(args))
-    if l:
-        return sum(l) / len(l)
-    else:
-        return Error.errors['#DIV/0!']
 
 def irr(*args):
     l = list(flatten(args))
@@ -161,7 +94,7 @@ def replace(old_text, start_num, num_chars, new_text):
     return old_text[:(start_num - 1)] + new_text + old_text[(start_num - 1)+num_chars:]
 
 
-FUNCTIONS['AVERAGE'] = wrap_func(xaverage)
+FUNCTIONS['IRR'] = wrap_func(irr)
 FUNCTIONS['COS'] = wrap_ufunc(np.cos)
 FUNCTIONS['COSH'] = wrap_ufunc(np.cosh)
 
@@ -267,71 +200,13 @@ FUNCTIONS['_XLFN.FLOOR.MATH'] = FUNCTIONS['FLOOR.MATH'] = wrap_ufunc(
 )
 FUNCTIONS['FLOOR.PRECISE'] = FUNCTIONS['FLOOR.MATH']
 FUNCTIONS['_XLFN.FLOOR.PRECISE'] = FUNCTIONS['FLOOR.MATH']
-FUNCTIONS['IF'] = wrap_func(lambda c, x=True, y=False: np.where(c, x, y))
-
-
-def iferror(val, val_if_error):
-    return np.where(iserror(val), val_if_error, val)
-
-
-FUNCTIONS['IFERROR'] = iferror
 FUNCTIONS['INT'] = wrap_ufunc(int)
-
-
-class IsErrArray(Array):
-    _default = False
-
-
-def iserr(val):
-    try:
-        b = np.asarray([isinstance(v, XlError) and v is not Error.errors['#N/A']
-                        for v in val.ravel().tolist()], bool)
-        b.resize(val.shape)
-        return b.view(IsErrArray)
-    except AttributeError:  # val is not an array.
-        return iserr(np.asarray([[val]], object))[0][0].view(IsErrArray)
-
-
-FUNCTIONS['ISERR'] = iserr
-
-
-class IsErrorArray(Array):
-    _default = True
-
-
-def iserror(val):
-    try:
-        b = np.asarray([isinstance(v, XlError)
-                        for v in val.ravel().tolist()], bool)
-        b.resize(val.shape)
-        return b.view(IsErrorArray)
-    except AttributeError:  # val is not an array.
-        return iserror(np.asarray([[val]], object))[0][0].view(IsErrorArray)
-
-
-FUNCTIONS['ISERROR'] = iserror
 FUNCTIONS['ISO.CEILING'] = FUNCTIONS['CEILING.PRECISE']
 FUNCTIONS['LOG10'] = wrap_ufunc(np.log10)
 FUNCTIONS['LOG'] = wrap_ufunc(
     lambda x, base=10: np.log(x) / np.log(base) if base else np.nan
 )
 FUNCTIONS['LN'] = wrap_ufunc(np.log)
-
-
-def xmax(*args):
-    raise_errors(args)
-    return max(list(flatten(args)) or [0])
-
-
-FUNCTIONS['MAX'] = wrap_func(xmax)
-
-
-def xmin(*args):
-    raise_errors(args)
-    return min(list(flatten(args)) or [0])
-
-
-FUNCTIONS['MIN'] = wrap_func(xmin)
 
 
 def xmod(x, y):
