@@ -9,9 +9,9 @@
 """
 Python equivalents of various excel functions.
 """
+import math
 import functools
 import collections
-import math
 import numpy as np
 from . import replace_empty, not_implemented, Array, wrap_func
 from ..errors import FoundError
@@ -20,11 +20,17 @@ from ..tokens.operand import XlError, Error
 FUNCTIONS = collections.defaultdict(lambda: not_implemented)
 
 
+def get_error(*vals):
+    for v in flatten(vals, None):
+        if isinstance(v, XlError):
+            return v
+
+
 def raise_errors(*args):
     # noinspection PyTypeChecker
-    for v in flatten(args, None):
-        if isinstance(v, XlError):
-            raise FoundError(err=v)
+    v = get_error(*args)
+    if v:
+        raise FoundError(err=v)
 
 
 def is_number(number):
