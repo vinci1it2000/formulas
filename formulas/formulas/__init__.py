@@ -64,14 +64,13 @@ def replace_empty(x, empty=0):
 
 def wrap_func(func):
     def wrapper(*args, **kwargs):
-        # noinspection PyBroadException
         try:
             return func(*args, **kwargs)
         except FoundError as ex:
             return np.asarray([[ex.err]], object)
         except BaseError as ex:
             raise ex
-        except:
+        except (ValueError, TypeError):
             return np.asarray([[Error.errors['#VALUE!']]], object)
 
     return functools.update_wrapper(wrapper, func)
