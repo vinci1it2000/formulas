@@ -84,6 +84,27 @@ FUNCTIONS['_XLFN.ACOT'] = FUNCTIONS['ACOT'] = wrap_ufunc(
 FUNCTIONS['ACOTH'] = wrap_ufunc(lambda x: np.arctanh(np.divide(1, x)))
 FUNCTIONS['_XLFN.ACOTH'] = FUNCTIONS['ACOTH']
 
+
+def xarabic(text):
+    num = (1000, 500, 100, 50, 10, 5, 1)
+    it = map(num.__getitem__, map('MDCLXVI'.index, str(text).upper()[::-1]))
+    res, add, p = 0, True, -1
+    for v in it:
+        if p != v:
+            add = p < v
+        p = v
+        if add:
+            res += v
+        else:
+            res -= v
+    return res
+
+
+FUNCTIONS['_XLFN.ARABIC'] = FUNCTIONS['ARABIC'] = wrap_ufunc(
+    xarabic, input_parser=lambda *a: a,
+    args_parser=lambda *a: (replace_empty(x, '') for x in a)
+)
+
 FUNCTIONS['ARRAY'] = lambda *args: np.asarray(args, object).view(Array)
 FUNCTIONS['ARRAYROW'] = lambda *args: np.asarray(args, object).view(Array)
 FUNCTIONS['ASIN'] = wrap_ufunc(np.arcsin)
@@ -273,6 +294,39 @@ def xpower(number, power):
 
 FUNCTIONS['POWER'] = wrap_ufunc(xpower)
 FUNCTIONS['RADIANS'] = wrap_ufunc(np.radians)
+
+
+def _xroman(form):
+    form = int(form + 1)
+    num, let = (1000, 500, 100, 50, 10, 5, 1), 'MDCLXVI'
+    for i, (n, l) in enumerate(zip(num, let), 1):
+        yield n, l
+        y = []
+        for v, k in zip(num[i:], let[i:]):
+            v = n - v
+            if v not in num:
+                y.append((v, k + l))
+                if len(y) == form:
+                    break
+        yield from y[::-1]
+
+
+def xroman(num, form=0):
+    num, form = int(num), not isinstance(form, bool) and int(form or 0) or 0
+    if not (0 <= num < 4000 and 0 <= form <= 4):
+        raise ValueError()
+
+    result = ""
+    for i, n in _xroman(form):
+        if not num:
+            break
+        count = int(num / i)
+        result += n * count
+        num -= i * count
+    return result
+
+
+FUNCTIONS['ROMAN'] = wrap_ufunc(xroman, input_parser=lambda *a: a)
 FUNCTIONS['SIN'] = wrap_ufunc(np.sin)
 FUNCTIONS['SINH'] = wrap_ufunc(np.sinh)
 
