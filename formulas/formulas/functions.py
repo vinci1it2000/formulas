@@ -419,6 +419,24 @@ def xroman(num, form=0):
 
 
 FUNCTIONS['ROMAN'] = wrap_ufunc(xroman, input_parser=lambda *a: a)
+
+
+def xround(x, d, func=round):
+    d = 10 ** int(d)
+    v = func(abs(x * d)) / d
+    return -v if x < 0 else v
+
+
+FUNCTIONS['ROUND'] = wrap_ufunc(xround)
+FUNCTIONS['ROUNDDOWN'] = wrap_ufunc(functools.partial(xround, func=math.floor))
+FUNCTIONS['ROUNDUP'] = wrap_ufunc(functools.partial(xround, func=math.ceil))
+FUNCTIONS['SEC'] = FUNCTIONS['_XLFN.SEC'] = wrap_ufunc(
+    functools.partial(xcot, func=np.cos)
+)
+FUNCTIONS['SECH'] = FUNCTIONS['_XLFN.SECH'] = wrap_ufunc(
+    functools.partial(xcot, func=np.cosh)
+)
+FUNCTIONS['SIGN'] = wrap_ufunc(np.sign)
 FUNCTIONS['SIN'] = wrap_ufunc(np.sin)
 FUNCTIONS['SINH'] = wrap_ufunc(np.sinh)
 
