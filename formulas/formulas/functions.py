@@ -34,7 +34,9 @@ def raise_errors(*args):
 
 
 def is_number(number):
-    if not isinstance(number, Error):
+    if isinstance(number, bool):
+        return False
+    elif not isinstance(number, Error):
         try:
             float(number)
         except (ValueError, TypeError):
