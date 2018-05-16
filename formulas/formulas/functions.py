@@ -306,6 +306,7 @@ def iserror(val):
 
 
 FUNCTIONS['ISERROR'] = iserror
+FUNCTIONS['ISO.CEILING'] = FUNCTIONS['CEILING.PRECISE']
 FUNCTIONS['LOG10'] = wrap_ufunc(np.log10)
 FUNCTIONS['LOG'] = wrap_ufunc(
     lambda x, base=10: np.log(x) / np.log(base) if base else np.nan
@@ -461,6 +462,19 @@ FUNCTIONS['SUMPRODUCT'] = wrap_func(xsumproduct)
 FUNCTIONS['SQRT'] = wrap_ufunc(np.sqrt)
 
 
+def xsrqtpi(number):
+    raise_errors(number)
+    x = list(flatten(replace_empty(number), None))[0]
+    if isinstance(x, bool):
+        return Error.errors['#VALUE!']
+    with np.errstate(divide='ignore', invalid='ignore'):
+        x = np.sqrt(float(x) * np.pi)
+    return (np.isnan(x) or np.isinf(x)) and Error.errors['#NUM!'] or x
+
+
+FUNCTIONS['SQRTPI'] = wrap_func(xsrqtpi)
+
+
 def xsum(*args):
     raise_errors(args)
     return sum(list(flatten(args)))
@@ -469,6 +483,7 @@ def xsum(*args):
 FUNCTIONS['SUM'] = wrap_func(xsum)
 FUNCTIONS['TAN'] = wrap_ufunc(np.tan)
 FUNCTIONS['TANH'] = wrap_ufunc(np.tanh)
+FUNCTIONS['TRUNC'] = wrap_ufunc(functools.partial(xround, func=math.trunc))
 FUNCTIONS.update({
     'LEFT': wrap_func(left),
     'MID': wrap_func(mid),
