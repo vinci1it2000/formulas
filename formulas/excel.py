@@ -13,15 +13,14 @@ It provides formula parser class.
 import openpyxl
 import os.path as osp
 import schedula as sh
-import schedula.utils as sh_utl
 from .ranges import Ranges
 from .cell import Cell, RangesAssembler
 from .tokens.operand import _range2parts
 from .formulas.functions import flatten
 
 
-BOOK = sh_utl.Token('Book')
-SHEETS = sh_utl.Token('Sheets')
+BOOK = sh.Token('Book')
+SHEETS = sh.Token('Sheets')
 
 
 def _get_name(name, names):
@@ -72,7 +71,7 @@ class ExcelModel(object):
     def push(self, worksheet, context):
         worksheet, context = self.add_sheet(worksheet, context)
 
-        get_in = sh_utl.get_nested_dicts
+        get_in = sh.get_nested_dicts
         references = get_in(self.books, context['excel'], 'references')
         d = get_in(self.books, context['excel'], SHEETS, context['sheet'])
         formula_references = d['formula_references']
@@ -89,8 +88,8 @@ class ExcelModel(object):
 
     def add_book(self, book, context=None, data_only=False):
         context = context or {}
-        are_in = sh_utl.are_in_nested_dicts
-        get_in = sh_utl.get_nested_dicts
+        are_in = sh.are_in_nested_dicts
+        get_in = sh.get_nested_dicts
 
         if 'excel' in context:
             context = context.copy()
@@ -125,12 +124,12 @@ class ExcelModel(object):
         return book, context
 
     def add_sheet(self, worksheet, context):
-        get_in = sh_utl.get_nested_dicts
+        get_in = sh.get_nested_dicts
         if isinstance(worksheet, str):
             book = get_in(self.books, context['excel'], BOOK)
             worksheet = book[_get_name(worksheet, book.sheetnames)]
 
-        context = sh_utl.combine_dicts(
+        context = sh.combine_dicts(
             context, base={'sheet': worksheet.title.upper()}
         )
 
@@ -152,7 +151,7 @@ class ExcelModel(object):
 
     def add_cell(self, cell, context, references=None, formula_references=None,
                  formula_ranges=None, external_links=None):
-        get_in = sh_utl.get_nested_dicts
+        get_in = sh.get_nested_dicts
         if formula_references is None:
             formula_references = get_in(
                 self.books, context['excel'], SHEETS, context['sheet'],
@@ -172,7 +171,7 @@ class ExcelModel(object):
             external_links = get_in(
                 self.books, context['excel'], 'external_links'
             )
-        context = sh_utl.combine_dicts(
+        context = sh.combine_dicts(
             context, base={'external_links': external_links}
         )
         crd = cell.coordinate
@@ -180,7 +179,7 @@ class ExcelModel(object):
         cell = Cell(crd, cell.value, context=context).compile()
         if cell.output in self.cells:
             return
-        if cell.value is not sh_utl.EMPTY:
+        if cell.value is not sh.EMPTY:
             if any(not (cell.range - rng).ranges for rng in formula_ranges):
                 return
         cell.update_inputs(references=references)
@@ -194,7 +193,7 @@ class ExcelModel(object):
         stack = list(sorted(set(self.dsp.data_nodes) - set(self.cells)))
         while stack:
             n_id = stack.pop()
-            if isinstance(n_id, sh_utl.Token):
+            if isinstance(n_id, sh.Token):
                 continue
 
             rng = Ranges().push(n_id).ranges[0]
@@ -213,7 +212,7 @@ class ExcelModel(object):
         if complete:
             self.complete()
         for n_id in sorted(set(self.dsp.data_nodes) - set(self.cells)):
-            if isinstance(n_id, sh_utl.Token):
+            if isinstance(n_id, sh.Token):
                 continue
             ra = RangesAssembler(n_id)
             for k, c in sorted(self.cells.items()):
@@ -228,10 +227,10 @@ class ExcelModel(object):
     def write(self, books=None, solution=None):
         books = {} if books is None else books
         solution = self.dsp.solution if solution is None else solution
-        are_in = sh_utl.are_in_nested_dicts
-        get_in = sh_utl.get_nested_dicts
+        are_in = sh.are_in_nested_dicts
+        get_in = sh.get_nested_dicts
         for k, r in solution.items():
-            if isinstance(k, sh_utl.Token):
+            if isinstance(k, sh.Token):
                 continue
             rng = r.ranges[0]
             filename, sheet_name = _get_name(rng['excel'], books), rng['sheet']
@@ -251,7 +250,7 @@ class ExcelModel(object):
 
             ref = '{c1}{r1}:{c2}{r2}'.format(**rng)
             for c, v in zip(flatten(sheet[ref], None), flatten(r.value, None)):
-                if v is sh_utl.EMPTY:
+                if v is sh.EMPTY:
                     v = None
                 c.value = v
 

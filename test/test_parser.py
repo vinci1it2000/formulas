@@ -10,7 +10,7 @@ import unittest
 import ddt
 import inspect
 import numpy as np
-import schedula.utils as sh_utl
+import schedula as sh
 from formulas.parser import Parser
 from formulas.errors import FormulaError
 from formulas.ranges import Ranges
@@ -112,7 +112,7 @@ class TestParser(unittest.TestCase):
     )
     def test_invalid_compile(self, case):
         formula, inputs = case
-        with self.assertRaises(sh_utl.DispatcherError):
+        with self.assertRaises(sh.DispatcherError):
             Parser().ast(formula)[1].compile()(*inputs)
 
     def test_ast_function(self):
@@ -127,7 +127,7 @@ class TestParser(unittest.TestCase):
 
         rng1 = Ranges().push('A1:A1', [[1]])
         output = func(rng1, Ranges().push('B1:B1'))
-        self.assertEqual(output, sh_utl.NONE)
+        self.assertEqual(output, sh.NONE)
 
         output = func(rng1, Ranges().push('B1:B1', [[2]]))
         np.testing.assert_array_equal([[3]], output)

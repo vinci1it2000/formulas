@@ -14,7 +14,6 @@ from . import Token
 # noinspection PyCompatibility
 import regex
 import sys
-import schedula.utils as sh_utl
 import functools
 import schedula as sh
 from ..errors import TokenError
@@ -22,7 +21,7 @@ from .parenthesis import _update_n_args
 maxsize = sys.maxsize
 
 
-class XlError(sh_utl.Token):
+class XlError(sh.Token):
     pass
 
 
@@ -199,11 +198,11 @@ def _range2parts():
     dsp.add_function(function=_index2col, inputs=['n2'], outputs=['c2'])
     dsp.add_function(function=_col2index, inputs=['c1'], outputs=['n1'])
     dsp.add_function(function=_col2index, inputs=['c2'], outputs=['n2'])
-    dsp.add_function(function=sh_utl.bypass, inputs=['c1'], outputs=['c2'])
-    dsp.add_function(function=sh_utl.bypass, inputs=['r1'], outputs=['r2'])
+    dsp.add_function(function=sh.bypass, inputs=['c1'], outputs=['c2'])
+    dsp.add_function(function=sh.bypass, inputs=['r1'], outputs=['r2'])
     dsp.add_function(function=lambda x, y: x[y],
                      inputs=['external_links', 'excel_id'], outputs=['excel'])
-    dsp.add_function(function=sh_utl.bypass, weight=1,
+    dsp.add_function(function=sh.bypass, weight=1,
                      inputs=['excel_id'], outputs=['excel'])
     dsp.add_data(data_id='excel', filters=(str.upper,))
     dsp.add_data(data_id='sheet', default_value='', filters=(str.upper,))
@@ -227,7 +226,7 @@ def _range2parts():
             return func(inputs, *args, **kwargs)
         return functools.update_wrapper(wrapper, func)
     dsp.dispatch = wrap_dispatch(dsp.dispatch)
-    return sh_utl.SubDispatch(dsp)
+    return sh.SubDispatch(dsp)
 
 
 class Range(Operand):
@@ -256,4 +255,4 @@ class Range(Operand):
         if self.attr.get('is_ranges', False):
             from ..ranges import Ranges
             return Ranges().push(self.attr['name'])
-        return sh_utl.EMPTY
+        return sh.EMPTY

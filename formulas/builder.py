@@ -11,8 +11,7 @@ It provides AstBuilder class.
 """
 
 import collections
-import schedula
-import schedula.utils as sh_utl
+import schedula as sh
 from .errors import FormulaError
 from .tokens.operator import Operator
 from .tokens.function import Function
@@ -26,7 +25,7 @@ class AstBuilder(collections.deque):
     def __init__(self, *args, dsp=None, nodes=None, match=None, **kwargs):
         super(AstBuilder, self).__init__(*args, **kwargs)
         self.match = match
-        self.dsp = dsp or schedula.Dispatcher(raises=True)
+        self.dsp = dsp or sh.Dispatcher(raises=True)
         self.nodes = nodes or {}
         self.missing_operands = set()
 
@@ -49,7 +48,7 @@ class AstBuilder(collections.deque):
                 )
             else:
                 self.nodes[token] = n_id = get_id(dmap, out, 'c%d>{}')
-                self.dsp.add_function(None, sh_utl.bypass, [out], [n_id])
+                self.dsp.add_function(None, sh.bypass, [out], [n_id])
         elif isinstance(token, Operand):
             self.missing_operands.add(token)
 
@@ -101,5 +100,5 @@ class AstBuilder(collections.deque):
                     except ValueError:
                         i[k] = None
 
-        dsp.nodes[o]['filters'] = wrap_ranges_func(sh_utl.bypass),
-        return sh_utl.SubDispatchPipe(dsp, '=%s' % o, i, [o], wildcard=False)
+        dsp.nodes[o]['filters'] = wrap_ranges_func(sh.bypass),
+        return sh.SubDispatchPipe(dsp, '=%s' % o, i, [o], wildcard=False)

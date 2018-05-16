@@ -12,7 +12,7 @@ It provides Cell class.
 import collections
 import functools
 import numpy as np
-import schedula.utils as sh_utl
+import schedula as sh
 from .parser import Parser
 from .ranges import Ranges, _assemble_values
 from .tokens.operand import Error, XlError
@@ -35,7 +35,7 @@ class Cell(object):
         self.func = None
         self.inputs = None
         self.range = Ranges().push(reference, context=context)
-        self.value = sh_utl.EMPTY
+        self.value = sh.EMPTY
         self.tokens, self.builder = (), None
         if isinstance(value, str) and self.parser.is_formula(value):
             self.tokens, self.builder = self.parser.ast(value, context=context)
@@ -67,12 +67,12 @@ class Cell(object):
             try:
                 rng = rng or Ranges().push((references or {})[k])
             except KeyError:
-                sh_utl.get_nested_dicts(
+                sh.get_nested_dicts(
                     inp, Error.errors['#REF!'], default=list
                 ).append(k)
                 continue
             for r in rng.ranges:
-                sh_utl.get_nested_dicts(inp, r['name'], default=list).append(k)
+                sh.get_nested_dicts(inp, r['name'], default=list).append(k)
 
     def _args(self, *args):
         assert len(args) == len(self.inputs)
@@ -80,10 +80,10 @@ class Cell(object):
         for links, v in zip(self.inputs.values(), args):
             for k in links:
                 i[k] = (v + i[k]) if k in i else v
-        return sh_utl.selector(self.func.inputs, i, output_type='list')
+        return sh.selector(self.func.inputs, i, output_type='list')
 
     def add(self, dsp, context=None):
-        if self.func or self.value is not sh_utl.EMPTY:
+        if self.func or self.value is not sh.EMPTY:
             directory = context and context.get('directory') or '.'
             output = self.output
             f = functools.partial(format_output, output, context=context)
@@ -130,5 +130,5 @@ class RangesAssembler(object):
 
     def __call__(self, *cells):
         base = self.range.ranges[0]
-        values = sh_utl.combine_dicts(*(c.values for c in cells))
-        return _assemble_values(base, values, sh_utl.EMPTY)
+        values = sh.combine_dicts(*(c.values for c in cells))
+        return _assemble_values(base, values, sh.EMPTY)

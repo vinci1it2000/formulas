@@ -14,7 +14,7 @@ import numpy as np
 from .tokens.operand import _re_range, _range2parts, _index2col, maxsize, Error
 from .errors import RangeValueError
 from .formulas import Array
-import schedula.utils as sh_utl
+import schedula as sh
 import functools
 
 
@@ -54,13 +54,13 @@ def _split(base, rng, intersect=None, format_range=_range2parts().dsp):
         intersect.update(z)
 
     ranges = []
-    rng = sh_utl.selector(('excel', 'sheet', 'n1', 'n2', 'r1', 'r2'), rng)
+    rng = sh.selector(('excel', 'sheet', 'n1', 'n2', 'r1', 'r2'), rng)
     rng['r1'], rng['r2'] = int(rng['r1']), int(rng['r2'])
     for i in ('n1', 'n2', 'r1', 'r2'):
         if z[i] != rng[i]:
             n = 1 - 2 * (int(i[1]) // 2)
             j = '%s%d' % (i[0], 2 - int(i[1]) // 2)
-            r = sh_utl.combine_dicts(rng, {j: z[i] - n})
+            r = sh.combine_dicts(rng, {j: z[i] - n})
             r['r1'], r['r2'] = str(r['r1']), str(r['r2'])
             r = dict(format_range(r, ['name', 'n1', 'n2']))
             ranges.append(r)
@@ -143,21 +143,21 @@ class Ranges(object):
         self.all_values = all_values or not ranges
 
     def pushes(self, refs, values=(), context=None):
-        for r, v in itertools.zip_longest(refs, values, fillvalue=sh_utl.EMPTY):
+        for r, v in itertools.zip_longest(refs, values, fillvalue=sh.EMPTY):
             self.push(r, value=v, context=context)
         self.is_set = self.is_set or len(self.ranges) > 1
         return self
 
-    def push(self, ref, value=sh_utl.EMPTY, context=None):
+    def push(self, ref, value=sh.EMPTY, context=None):
         context = context or {}
         m = _re_range.match(ref).groupdict().items()
         m = {k: v for k, v in m if v is not None}
         if 'ref' in m:
             raise ValueError
-        i = sh_utl.combine_dicts(context, m)
+        i = sh.combine_dicts(context, m)
         rng = dict(self.format_range(i, ['name', 'n1', 'n2']))
         self.ranges += rng,
-        if value is not sh_utl.EMPTY:
+        if value is not sh.EMPTY:
             if not isinstance(value, Array):
                 value = np.asarray(value, object)
             shape = _shape(**rng)
@@ -169,7 +169,7 @@ class Ranges(object):
 
     def __add__(self, other):  # Expand.
         ranges = self.ranges[1:] + other.ranges
-        rng = sh_utl.selector(self.input_fields, self.ranges[0])
+        rng = sh.selector(self.input_fields, self.ranges[0])
         for k in ('r1', 'r2', 'n1', 'n2'):
             rng[k] = int(rng[k])
 
@@ -185,7 +185,7 @@ class Ranges(object):
         rng = dict(self.format_range(rng, ['name', 'n1', 'n2']))
         all_values, values = self.all_values and other.all_values, None
         if all_values:
-            values = sh_utl.combine_dicts(self.values, other.values)
+            values = sh.combine_dicts(self.values, other.values)
             value = _assemble_values(rng, values)
             return Ranges().push(rng['name'], value)
         return Ranges((rng,), all_values=False)
@@ -200,7 +200,7 @@ class Ranges(object):
                 for r in s:
                     stack.extend(_split(b, r, format_range=self.format_range))
             base += tuple(stack)
-        values = sh_utl.combine_dicts(self.values, other.values)
+        values = sh.combine_dicts(self.values, other.values)
         return Ranges(base, values, True, self.all_values and other.all_values)
 
     def __and__(self, other):  # Intersection.
@@ -209,7 +209,7 @@ class Ranges(object):
             r.extend(_intersect(
                 rng, self.ranges, format_range=self.format_range
             ))
-        values = sh_utl.combine_dicts(self.values, other.values)
+        values = sh.combine_dicts(self.values, other.values)
         is_set = self.is_set or other.is_set
         return Ranges(r, values, is_set, self.all_values and other.all_values)
 
@@ -247,7 +247,7 @@ class Ranges(object):
                     if rng:
                         rng.append(rng.pop())
                     if select:
-                        r = sh_utl.selector(self.input_fields, r)
+                        r = sh.selector(self.input_fields, r)
                     rng.append(r)
         rng = [dict(self.format_range(r, ['name'])) for r in rng]
         return Ranges(tuple(rng), self.values, self.is_set, self.all_values)
