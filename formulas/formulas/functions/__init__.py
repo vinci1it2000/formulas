@@ -17,10 +17,12 @@ Sub-Modules:
     :nosignatures:
     :toctree: functions/
 
+    ~financial
     ~info
     ~logic
     ~math
     ~stat
+    ~text
 """
 import functools
 import importlib
@@ -30,7 +32,7 @@ from .. import replace_empty, not_implemented, Array, wrap_func
 from ...errors import FoundError, BroadcastError
 from ...tokens.operand import XlError, Error
 
-SUBMODULES = ['.info', '.logic', '.math', '.stat', '.financial']
+SUBMODULES = ['.info', '.logic', '.math', '.stat', '.financial', '.text']
 FUNCTIONS = {}
 FUNCTIONS['ARRAY'] = lambda *args: np.asarray(args, object).view(Array)
 FUNCTIONS['ARRAYROW'] = lambda *args: np.asarray(args, object).view(Array)
