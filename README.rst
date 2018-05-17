@@ -4,7 +4,7 @@
 formulas: An Excel formulas interpreter in Python.
 ##################################################
 |pypi_ver| |travis_status| |appveyor_status| |cover_status| |docs_status|
-|dependencies| |downloads_count| |github_issues| |python_ver| |proj_license|
+|dependencies| |github_issues| |python_ver| |proj_license|
 
 :release:       0.0.7
 :date:          2017-07-20 16:00:00
@@ -75,10 +75,6 @@ Things yet to do implement the missing excel formulas.
 .. |python_ver| image:: https://img.shields.io/pypi/pyversions/formulas.svg?
     :target: https://pypi.python.org/pypi/formulas/
     :alt: Supported Python versions
-
-.. |downloads_count| image:: https://img.shields.io/pypi/dm/formulas.svg?period=month
-    :target: https://pypi.python.org/pypi/formulas/
-    :alt: Downloads
 
 .. |github_issues| image:: https://img.shields.io/github/issues/vinci1it2000/formulas.svg?
     :target: https://github.com/vinci1it2000/formulas/issues
