@@ -255,3 +255,29 @@ class ExcelModel(object):
                 c.value = v
 
         return books
+
+    def compile(self, inputs, outputs):
+        dsp = self.dsp.shrink_dsp(outputs=outputs)
+
+        dsp.default_values = sh.selector(
+            set(dsp.default_values) - set(inputs), dsp.default_values
+        )
+
+        res = dsp()
+
+        dsp = dsp.get_sub_dsp_from_workflow(
+            outputs, graph=dsp.dmap, reverse=True, blockers=res,
+            wildcard=False
+        )
+
+        for k, v in sh.selector(dsp.data_nodes, res, allow_miss=True).items():
+            dsp.set_default_value(k, v.value)
+
+        func = sh.SubDispatchPipe(
+            dsp=dsp,
+            function_id=self.dsp.name,
+            inputs=inputs,
+            outputs=outputs
+        )
+
+        return func
