@@ -32,7 +32,9 @@ from .. import replace_empty, not_implemented, Array, wrap_func
 from ...errors import FoundError, BroadcastError
 from ...tokens.operand import XlError, Error
 
-SUBMODULES = ['.info', '.logic', '.math', '.stat', '.financial', '.text']
+SUBMODULES = [
+    '.info', '.logic', '.math', '.stat', '.financial', '.text', '.look'
+]
 FUNCTIONS = {}
 FUNCTIONS['ARRAY'] = lambda *args: np.asarray(args, object).view(Array)
 FUNCTIONS['ARRAYROW'] = lambda *args: np.asarray(args, object).view(Array)
