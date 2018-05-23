@@ -62,7 +62,7 @@ def replace_empty(x, empty=0):
     return x
 
 
-def wrap_func(func):
+def wrap_func(func, ranges=False, **kw):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -72,7 +72,8 @@ def wrap_func(func):
             raise ex
         except (ValueError, TypeError):
             return np.asarray([[Error.errors['#VALUE!']]], object)
-
+    if not ranges:
+        return wrap_ranges_func(functools.update_wrapper(wrapper, func))
     return functools.update_wrapper(wrapper, func)
 
 

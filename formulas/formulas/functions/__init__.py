@@ -20,6 +20,7 @@ Sub-Modules:
     ~financial
     ~info
     ~logic
+    ~look
     ~math
     ~stat
     ~text
@@ -104,7 +105,8 @@ def wrap_ufunc(
             except ValueError:
                 raise BroadcastError()
             raise ex
-    return wrap_func(functools.update_wrapper(wrapper, func))
+
+    return wrap_func(functools.update_wrapper(wrapper, func), **kw)
 
 
 @functools.lru_cache()

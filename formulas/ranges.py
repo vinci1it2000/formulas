@@ -19,8 +19,10 @@ import functools
 
 
 def _has_same_sheet(x, y):
-    return x and y and x['excel'] == y['excel'] and x['sheet'] == y['sheet']
-
+    try:
+        return x['excel'] == y['excel'] and x['sheet'] == y['sheet']
+    except KeyError:
+        return False
 
 def _have_intersect(x, y):
     if _has_same_sheet(x, y):

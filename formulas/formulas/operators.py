@@ -15,7 +15,7 @@ from . import replace_empty, not_implemented, wrap_func
 
 OPERATORS = collections.defaultdict(lambda: not_implemented)
 # noinspection PyTypeChecker
-OPERATORS.update({k: wrap_func(v) for k, v in {
+OPERATORS.update({k: wrap_func(v, ranges=k in ' ,:') for k, v in {
     '+': lambda x, y: replace_empty(x) + replace_empty(y),
     '-': lambda x, y: replace_empty(x) - replace_empty(y),
     'U-': lambda x: -replace_empty(x),
