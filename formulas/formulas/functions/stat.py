@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2016-2017 European Commission (JRC);
+# Copyright 2016-2018 European Commission (JRC);
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
@@ -16,11 +16,10 @@ FUNCTIONS = {}
 
 def xaverage(*args):
     raise_errors(args)
-    l = list(flatten(args))
-    if l:
-        return sum(l) / len(l)
-    else:
-        return Error.errors['#DIV/0!']
+    v = list(flatten(args))
+    if v:
+        return sum(v) / len(v)
+    return Error.errors['#DIV/0!']
 
 
 FUNCTIONS['AVERAGE'] = wrap_func(xaverage)

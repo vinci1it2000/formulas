@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2016-2017 European Commission (JRC);
+# Copyright 2016-2018 European Commission (JRC);
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
@@ -62,6 +62,7 @@ def replace_empty(x, empty=0):
     return x
 
 
+# noinspection PyUnusedLocal
 def wrap_func(func, ranges=False, **kw):
     def wrapper(*args, **kwargs):
         try:
@@ -72,6 +73,7 @@ def wrap_func(func, ranges=False, **kw):
             raise ex
         except (ValueError, TypeError):
             return np.asarray([[Error.errors['#VALUE!']]], object)
+
     if not ranges:
         return wrap_ranges_func(functools.update_wrapper(wrapper, func))
     return functools.update_wrapper(wrapper, func)

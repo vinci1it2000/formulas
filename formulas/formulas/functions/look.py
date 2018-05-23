@@ -1,13 +1,13 @@
 # !/usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2016-2017 European Commission (JRC);
+# Copyright 2016-2018 European Commission (JRC);
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-Python equivalents of logical excel functions.
+Python equivalents of lookup and reference excel functions.
 """
 import regex
 import functools
@@ -36,24 +36,24 @@ def xmatch(lookup_value, lookup_array, match_type=1):
     res = [Error.errors['#N/A']]
     t_id = _get_type_id(lookup_value)
     if match_type > 0:
-        def check(i, x, val, res):
+        def check(j, x, val, r):
             if x <= val:
-                res[0] = i
-                return x == val and i > 1
-            return i > 1
+                r[0] = j
+                return x == val and j > 1
+            return j > 1
 
     elif match_type < 0:
-        def check(i, x, val, res):
+        def check(j, x, val, r):
             if x < val:
                 return True
-            res[0] = i
+            r[0] = j
             return v == val
 
     else:
         t_id = _get_type_id(lookup_value)
         if t_id == 1:
-            def sub(match):
-                return {'\\': '', '?': '.', '*': '.*'}[match.groups()[0]]
+            def sub(m):
+                return {'\\': '', '?': '.', '*': '.*'}[m.groups()[0]]
 
             match = regex.compile(r'^%s$' % regex.sub(
                 r'(?<!\\\~)\\(?P<sub>[\*\?])|(?P<sub>\\)\~(?=\\[\*\?])', sub,
@@ -62,9 +62,10 @@ def xmatch(lookup_value, lookup_array, match_type=1):
         else:
             match = lambda x: x == lookup_value
 
-        def check(i, x, val, res):
+        # noinspection PyUnusedLocal
+        def check(j, x, val, r):
             if match(x):
-                res[0] = i
+                r[0] = j
 
     convert = lambda x: x
     if t_id == 1:
@@ -87,24 +88,6 @@ FUNCTIONS['MATCH'] = wrap_ufunc(
 
 
 def xlookup(lookup_val, lookup_vec, result_vec=None, match_type=1):
-    """
-    The vector form of LOOKUP looks in a one-row or one-column range (known as a
-    vector) for a value and returns a value from the same position in a second
-    one-row or one-column range.
-
-    :param lookup_val:
-        A value that LOOKUP searches for in the first vector.
-    :type lookup_val: a number, text, a logical value, or a name or reference that refers to a value.
-
-    :param lookup_vec: A range that contains only one row or one column.
-    :param result_vec: A range that contains only one row or column.
-
-
-    :type lookup_vec: an array containing text, numbers, or logical values.
-    :type result_vec: must be the same size as lookup_vector.
-
-    :return:
-    """
     result_vec = lookup_vec if result_vec is None else result_vec
     r = xmatch(lookup_val, lookup_vec, match_type)
     if not isinstance(r, XlError):

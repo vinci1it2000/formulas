@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2016-2017 European Commission (JRC);
+# Copyright 2016-2018 European Commission (JRC);
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
@@ -36,12 +36,14 @@ from ...tokens.operand import XlError, Error
 SUBMODULES = [
     '.info', '.logic', '.math', '.stat', '.financial', '.text', '.look'
 ]
+# noinspection PyDictCreation
 FUNCTIONS = {}
 FUNCTIONS['ARRAY'] = lambda *args: np.asarray(args, object).view(Array)
 FUNCTIONS['ARRAYROW'] = lambda *args: np.asarray(args, object).view(Array)
 
 
 def get_error(*vals):
+    # noinspection PyTypeChecker
     for v in flatten(vals, None):
         if isinstance(v, XlError):
             return v

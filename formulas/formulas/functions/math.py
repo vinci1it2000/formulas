@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2016-2017 European Commission (JRC);
+# Copyright 2016-2018 European Commission (JRC);
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
@@ -17,6 +17,7 @@ from . import (
     replace_empty, Error
 )
 
+# noinspection PyDictCreation
 FUNCTIONS = {}
 FUNCTIONS['ABS'] = wrap_ufunc(np.abs)
 FUNCTIONS['ACOS'] = wrap_ufunc(np.arccos)
@@ -150,6 +151,7 @@ def xfactdouble(number):
     if isinstance(x, bool):
         return Error.errors['#VALUE!']
     with np.errstate(divide='ignore', invalid='ignore'):
+        # noinspection PyTypeChecker
         x = xfact(x, _factdouble, -1)
     return (np.isnan(x) or np.isinf(x)) and Error.errors['#NUM!'] or x
 

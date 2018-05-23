@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2016-2017 European Commission (JRC);
+# Copyright 2016-2018 European Commission (JRC);
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
@@ -19,6 +19,7 @@ class BaseError(Exception):
 
 
 class FoundError(BaseError):
+    # noinspection PyUnusedLocal
     def __init__(self, *args, err=None, **kwargs):
         self.err = err
 

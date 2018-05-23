@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2016-2017 European Commission (JRC);
+# Copyright 2016-2018 European Commission (JRC);
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
@@ -9,7 +9,7 @@
 """
 Python equivalents of logical excel functions.
 """
-from . import wrap_ufunc, Array, Error, flatten, get_error
+from . import wrap_ufunc, Array, Error, flatten
 
 FUNCTIONS = {}
 
@@ -42,6 +42,7 @@ def xiferror(val, val_if_error):
     return val_if_error if iserror(val) else val
 
 
+# noinspection PyUnusedLocal
 def xiferror_otype(val, val_if_error):
     class _IfErrorArray(IfErrorArray):
         _value = list(flatten(val_if_error, None))[0]
