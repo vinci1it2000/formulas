@@ -100,7 +100,7 @@ def wrap_ufunc(
             try:
                 return res.view(otype(*args))
             except AttributeError:
-                return np.asarray(res).view(otype(*args))
+                return np.asarray([[res]]).view(otype(*args))
         except ValueError as ex:
             try:
                 np.broadcast(*args)

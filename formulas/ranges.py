@@ -122,8 +122,6 @@ def _reshape_array_as_excel(value, base_shape):
     try:
         return np.reshape(value, base_shape)
     except ValueError:
-        if not value.shape:
-            value = np.array([[value.tolist()]])
         res, (r, c) = np.empty(base_shape, object), value.shape
         res[:, :] = getattr(value, '_default', Error.errors['#N/A'])
         r = None if r == 1 else r
@@ -162,6 +160,8 @@ class Ranges(object):
         self.ranges += rng,
         if value is not sh.EMPTY:
             if not isinstance(value, Array):
+                if not np.ndim(value):
+                    value = [[value]]
                 value = np.asarray(value, object)
             shape = _shape(**rng)
             value = _reshape_array_as_excel(value, shape)
