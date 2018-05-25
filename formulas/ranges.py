@@ -11,7 +11,7 @@ It provides Ranges class.
 """
 import itertools
 import numpy as np
-from .tokens.operand import _re_range, _range2parts, _index2col, maxsize, Error
+from .tokens.operand import _re_range, range2parts, _index2col, maxsize, Error
 from .errors import RangeValueError
 from .formulas import Array
 import schedula as sh
@@ -44,11 +44,11 @@ def _single_intersect(format_range, x, y):
     z = _have_intersect(x, y)
     if z:
         z['r1'], z['r2'] = str(z['r1']), str(z['r2'])
-        return dict(format_range(z, ['name', 'n1', 'n2']))
+        return dict(format_range(['name', 'n1', 'n2'], **z))
     return {}
 
 
-def _split(base, rng, intersect=None, format_range=_range2parts().dsp):
+def _split(base, rng, intersect=None, format_range=range2parts):
     z = _have_intersect(base, rng)
     if not z:
         return rng,
@@ -65,14 +65,14 @@ def _split(base, rng, intersect=None, format_range=_range2parts().dsp):
             j = '%s%d' % (i[0], 2 - int(i[1]) // 2)
             r = sh.combine_dicts(rng, {j: z[i] - n})
             r['r1'], r['r2'] = str(r['r1']), str(r['r2'])
-            r = dict(format_range(r, ['name', 'n1', 'n2']))
+            r = dict(format_range(['name', 'n1', 'n2'], **r))
             ranges.append(r)
             rng[i] = z[i]
 
     return tuple(ranges)
 
 
-def _intersect(rng, ranges, format_range=_range2parts().dsp):
+def _intersect(rng, ranges, format_range=range2parts):
     it = map(functools.partial(_single_intersect, format_range, rng), ranges)
     return tuple(r for r in it if r)
 
@@ -134,7 +134,7 @@ def _reshape_array_as_excel(value, base_shape):
 
 
 class Ranges(object):
-    format_range = _range2parts().dsp
+    format_range = lambda self, *args, **kwargs: range2parts(*args, **kwargs)
     input_fields = ('excel', 'sheet', 'n1', 'n2', 'r1', 'r2')
 
     def __init__(self, ranges=(), values=None, is_set=False, all_values=True):
@@ -156,7 +156,7 @@ class Ranges(object):
         if 'ref' in m:
             raise ValueError
         i = sh.combine_dicts(context, m)
-        rng = dict(self.format_range(i, ['name', 'n1', 'n2']))
+        rng = dict(self.format_range(['name', 'n1', 'n2'], **i))
         self.ranges += rng,
         if value is not sh.EMPTY:
             if not isinstance(value, Array):
@@ -185,7 +185,7 @@ class Ranges(object):
                 rng['r2'] = max(rng['r2'], int(r['r2']))
                 rng['n2'] = max(rng['n2'], int(r['n2']))
 
-        rng = dict(self.format_range(rng, ['name', 'n1', 'n2']))
+        rng = dict(self.format_range(['name', 'n1', 'n2'], **rng))
         all_values, values = self.all_values and other.all_values, None
         if all_values:
             values = sh.combine_dicts(self.values, other.values)
@@ -252,7 +252,7 @@ class Ranges(object):
                     if select:
                         r = sh.selector(self.input_fields, r)
                     rng.append(r)
-        rng = [dict(self.format_range(r, ['name'])) for r in rng]
+        rng = [dict(self.format_range(['name'], **r)) for r in rng]
         return Ranges(tuple(rng), self.values, self.is_set, self.all_values)
 
     def __repr__(self):

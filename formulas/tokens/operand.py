@@ -18,6 +18,7 @@ import functools
 import schedula as sh
 from ..errors import TokenError
 from .parenthesis import _update_n_args
+
 maxsize = sys.maxsize
 
 
@@ -171,11 +172,11 @@ def _build_ref(c1, r1, c2, r2):
         raise ValueError()
     return '%s:%s' % (v1, v2)
 
-
+_re_build_id = regex.compile(r'^[0-9]+$')
 def _build_id(ref, sheet='', excel=''):
     if excel:
         sheet = "[%s]%s" % (excel, sheet.replace("''", "'"))
-        if not regex.match(r'^[0-9]+$', excel):
+        if not _re_build_id.match(excel):
             sheet = "'%s'" % sheet
 
     return '!'.join(s for s in (sheet, ref) if s)
@@ -186,7 +187,7 @@ def _sum(*args):
 
 
 @functools.lru_cache(None)
-def _range2parts():
+def _range2parts(inputs, outputs):
     dsp = sh.Dispatcher()
     dsp.add_data(data_id='cr', default_value='1')
     dsp.add_data(data_id='cc', default_value='1')
@@ -214,19 +215,66 @@ def _range2parts():
     dsp.add_data(data_id='r2', default_value='%s' % maxsize, initial_dist=100)
     dsp.add_function(None, _build_ref, ['c1', 'r1', 'c2', 'r2'], ['ref'])
     dsp.add_function(None, _build_id, ['ref', 'sheet', 'excel'], ['name'])
+    func = sh.SubDispatchPipe(dsp, '', inputs, outputs)
+    func.output_type = 'all'
+    return func
 
-    def wrap_dispatch(func):
-        def wrapper(inputs, *args, **kwargs):
-            if 'excel_id' in inputs:
-                inputs = inputs.copy()
-                inputs.pop('excel', None)
-            elif 'excel' not in inputs:
-                inputs = inputs.copy()
-                inputs['excel'] = ''
-            return func(inputs, *args, **kwargs)
-        return functools.update_wrapper(wrapper, func)
-    dsp.dispatch = wrap_dispatch(dsp.dispatch)
-    return sh.SubDispatch(dsp)
+
+_keys = {'r1', 'r2', 'excel', 'c1', 'c2', 'n1', 'n2', 'sheet', 'ref', 'name'}
+
+
+def fast_range2parts(**kw):
+    inputs = sh.selector(_keys, kw, allow_miss=True)
+
+    for func in (fast_range2parts_v1, fast_range2parts_v2, fast_range2parts_v3):
+        try:
+            return sh.combine_dicts(kw, base=func(**inputs))
+        except TypeError:
+            pass
+    else:
+        raise ValueError
+
+
+def fast_range2parts_v1(r1, c1, excel, sheet=''):
+    n1, sheet = _col2index(c1), sheet.upper()
+    ref, excel = '{}{}'.format(*_build_cel(c1, r1)).upper(), excel.upper()
+    return {
+        'r1': r1, 'r2': r1, 'c1': c1, 'c2': c1, 'n1': n1, 'n2': n1, 'ref': ref,
+        'sheet': sheet, 'name': _build_id(ref, sheet, excel), 'excel': excel
+    }
+
+
+def fast_range2parts_v2(r1, c1, r2, c2, excel, sheet=''):
+    sheet = sheet.upper()
+    ref, excel = _build_ref(c1, r1, c2, r2).upper(), excel.upper()
+    return {
+        'r1': r1, 'r2': r2, 'c1': c1, 'c2': c2, 'n1': _col2index(c1),
+        'n2': _col2index(c2), 'ref': ref, 'sheet': sheet,
+        'name': _build_id(ref, sheet, excel), 'excel': excel
+    }
+
+
+def fast_range2parts_v3(r1, n1, r2, n2, excel, sheet=''):
+    sheet = sheet.upper()
+    c1, c2 = _index2col(n1), _index2col(n2)
+    ref, excel = _build_ref(c1, r1, c2, r2).upper(), excel.upper()
+    return {
+        'r1': r1, 'r2': r2, 'c1': c1, 'c2': c2, 'n1': n1, 'n2': n2, 'ref': ref,
+        'sheet': sheet, 'name': _build_id(ref, sheet, excel), 'excel': excel
+    }
+
+
+def range2parts(outputs, **inputs):
+    if 'excel_id' in inputs:
+        inputs.pop('excel', None)
+    elif 'excel' not in inputs:
+        inputs['excel'] = ''
+    try:
+        return fast_range2parts(**inputs)
+    except ValueError:
+        keys = tuple(sorted(inputs))
+        outputs = outputs and tuple(outputs) or outputs
+        return dict(_range2parts(keys, outputs)(*(inputs[k] for k in keys)))
 
 
 class Range(Operand):
@@ -243,7 +291,7 @@ class Range(Operand):
                 pass
         if 'ref' in d:
             self.attr['is_reference'] = True
-        return _range2parts()(context or {}, d)
+        return range2parts(None, **sh.combine_dicts(context or {}, d))
 
     def __repr__(self):
         if self.attr.get('is_ranges', False):

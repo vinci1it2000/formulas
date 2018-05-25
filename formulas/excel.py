@@ -15,7 +15,7 @@ import os.path as osp
 import schedula as sh
 from .ranges import Ranges
 from .cell import Cell, RangesAssembler
-from .tokens.operand import _range2parts
+from .tokens.operand import range2parts
 from .formulas.functions import flatten
 
 
@@ -50,7 +50,9 @@ class ExcelModel(object):
             if i is not None:
                 sheet_names = sheet_names[i:i + 1]
             for sn in sheet_names:
-                name = _range2parts()(context, {'sheet': sn, 'ref': ref})
+                name = range2parts(
+                    None, **sh.combine_dicts(context, {'sheet': sn, 'ref': ref})
+                )
                 yield name['name'], rng
 
     def loads(self, *file_names):

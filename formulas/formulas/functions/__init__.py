@@ -68,7 +68,7 @@ def is_number(number):
 
 
 def flatten(l, check=is_number):
-    if isinstance(l, collections.Iterable) and not isinstance(l, str):
+    if not isinstance(l, str) and isinstance(l, collections.Iterable):
         for el in l:
             yield from flatten(el, check)
     elif not check or check(l):
