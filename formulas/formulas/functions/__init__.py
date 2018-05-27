@@ -83,8 +83,7 @@ def wrap_ufunc(
 
     def safe_eval(*vals):
         try:
-            with np.errstate(divide='ignore', invalid='ignore'):
-                r = check_error(*vals) or func(*input_parser(*vals))
+            r = check_error(*vals) or func(*input_parser(*vals))
             if not isinstance(r, (XlError, str)):
                 r = (np.isnan(r) or np.isinf(r)) and Error.errors['#NUM!'] or r
         except (ValueError, TypeError):
@@ -96,7 +95,8 @@ def wrap_ufunc(
         try:
             args = tuple(args_parser(*args))
             kw['otypes'] = kw.get('otypes', [object])
-            res = np.vectorize(safe_eval, **kw)(*args)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                res = np.vectorize(safe_eval, **kw)(*args)
             try:
                 return res.view(otype(*args))
             except AttributeError:
