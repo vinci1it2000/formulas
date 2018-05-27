@@ -101,4 +101,4 @@ class AstBuilder(collections.deque):
                         i[k] = None
 
         dsp.nodes[o]['filters'] = wrap_ranges_func(sh.bypass),
-        return sh.SubDispatchPipe(dsp, '=%s' % o, i, [o], wildcard=False)
+        return sh.DispatchPipe(dsp, '=%s' % o, i, [o], wildcard=False)

@@ -215,7 +215,7 @@ def _range2parts(inputs, outputs):
     dsp.add_data(data_id='r2', default_value='%s' % maxsize, initial_dist=100)
     dsp.add_function(None, _build_ref, ['c1', 'r1', 'c2', 'r2'], ['ref'])
     dsp.add_function(None, _build_id, ['ref', 'sheet', 'excel'], ['name'])
-    func = sh.SubDispatchPipe(dsp, '', inputs, outputs)
+    func = sh.DispatchPipe(dsp, '', inputs, outputs)
     func.output_type = 'all'
     return func
 
