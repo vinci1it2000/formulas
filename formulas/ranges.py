@@ -134,7 +134,6 @@ def _reshape_array_as_excel(value, base_shape):
 
 
 class Ranges(object):
-    format_range = lambda self, *args, **kwargs: range2parts(*args, **kwargs)
     input_fields = ('excel', 'sheet', 'n1', 'n2', 'r1', 'r2')
 
     def __init__(self, ranges=(), values=None, is_set=False, all_values=True):
@@ -142,6 +141,7 @@ class Ranges(object):
         self.values = values or {}
         self.is_set = is_set
         self.all_values = all_values or not ranges
+        self._value = sh.NONE
 
     def pushes(self, refs, values=(), context=None):
         for r, v in itertools.zip_longest(refs, values, fillvalue=sh.EMPTY):
@@ -149,14 +149,12 @@ class Ranges(object):
         self.is_set = self.is_set or len(self.ranges) > 1
         return self
 
-    def push(self, ref, value=sh.EMPTY, context=None):
-        context = context or {}
-        m = _re_range.match(ref).groupdict().items()
-        m = {k: v for k, v in m if v is not None}
-        if 'ref' in m:
-            raise ValueError
-        i = sh.combine_dicts(context, m)
-        rng = dict(self.format_range(['name', 'n1', 'n2'], **i))
+    @staticmethod
+    def format_range(*args, **kwargs):
+        return range2parts(*args, **kwargs)
+
+    def set_value(self, rng, value=sh.EMPTY):
+        self._value = sh.NONE
         self.ranges += rng,
         if value is not sh.EMPTY:
             if not isinstance(value, Array):
@@ -169,6 +167,20 @@ class Ranges(object):
         else:
             self.all_values = False
         return self
+
+    @staticmethod
+    def get_range(format_range, ref, context=None):
+        context = context or {}
+        m = _re_range.match(ref).groupdict().items()
+        m = {k: v for k, v in m if v is not None}
+        if 'ref' in m:
+            raise ValueError
+        i = sh.combine_dicts(context, m)
+        return dict(format_range(('name', 'n1', 'n2'), **i))
+
+    def push(self, ref, value=sh.EMPTY, context=None):
+        rng = self.get_range(self.format_range, ref, context)
+        return self.set_value(rng, value)
 
     def __add__(self, other):  # Expand.
         ranges = self.ranges[1:] + other.ranges
@@ -262,6 +274,8 @@ class Ranges(object):
 
     @property
     def value(self):
+        if self._value is not sh.NONE:
+            return self._value
         if not self.all_values:
             raise RangeValueError(str(self))
         stack, values = list(self.ranges), []
@@ -285,7 +299,9 @@ class Ranges(object):
                     break
 
         if self.is_set:
-            return np.concatenate([v.ravel() for v in values])
-        if values:
-            return values[0]
-        return np.asarray([[Error.errors['#NULL!']]], object)
+            self._value = np.concatenate([v.ravel() for v in values])
+        elif values:
+            self._value = values[0]
+        else:
+            self._value = np.asarray([[Error.errors['#NULL!']]], object)
+        return self._value

@@ -24,8 +24,8 @@ def wrap_cell_func(func, parse_args=lambda *a: a, parse_kwargs=lambda **kw: kw):
     return functools.update_wrapper(wrapper, func)
 
 
-def format_output(*args, **kwargs):
-    return Ranges().push(*args, **kwargs)
+def format_output(rng, value):
+    return Ranges().set_value(rng, value)
 
 
 class Cell(object):
@@ -86,7 +86,8 @@ class Cell(object):
         if self.func or self.value is not sh.EMPTY:
             directory = context and context.get('directory') or '.'
             output = self.output
-            f = functools.partial(format_output, output, context=context)
+            rng = Ranges.get_range(Ranges.format_range, output, context)
+            f = functools.partial(format_output, rng)
             dsp.add_data(output, filters=(f,), default_value=self.value,
                          directory=directory)
 
@@ -100,8 +101,10 @@ class Cell(object):
                             )
                             dsp.add_data(k, val, directory=directory)
                         else:
-                            f = functools.partial(format_output, k,
-                                                  context=context)
+                            rng = Ranges.get_range(
+                                Ranges.format_range, k, context
+                            )
+                            f = functools.partial(format_output, rng)
                             dsp.add_data(k, filters=(f,), directory=directory)
 
                 dsp.add_function(
