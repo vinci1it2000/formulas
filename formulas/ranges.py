@@ -27,24 +27,22 @@ def _has_same_sheet(x, y):
 
 def _have_intersect(x, y):
     if _has_same_sheet(x, y):
-        z = {
-            'excel': x['excel'], 'sheet': x['sheet'],
-            'n1': max(y['n1'], x['n1']),
-            'r1': max(int(y['r1']), int(x['r1'])),
-            'n2': min(y['n2'], x['n2']),
-            'r2': min(int(y['r2']), int(x['r2']))
-        }
-
-        if z['r1'] <= z['r2'] and z['n1'] <= z['n2']:
-            return z
+        n1, n2 = max(y['n1'], x['n1']), min(y['n2'], x['n2'])
+        if n1 <= n2:
+            r1 = max(int(y['r1']), int(x['r1']))
+            r2 = min(int(y['r2']), int(x['r2']))
+            if r1 <= r2:
+                return {
+                    'excel': x['excel'], 'sheet': x['sheet'], 'n1': n1,
+                    'r1': str(r1), 'n2': n2, 'r2': str(r2)
+                }
     return {}
 
 
 def _single_intersect(format_range, x, y):
     z = _have_intersect(x, y)
     if z:
-        z['r1'], z['r2'] = str(z['r1']), str(z['r2'])
-        return dict(format_range(['name', 'n1', 'n2'], **z))
+        return dict(format_range(('name', 'n1', 'n2'), **z))
     return {}
 
 
@@ -58,14 +56,14 @@ def _split(base, rng, intersect=None, format_range=range2parts):
 
     ranges = []
     rng = sh.selector(('excel', 'sheet', 'n1', 'n2', 'r1', 'r2'), rng)
-    rng['r1'], rng['r2'] = int(rng['r1']), int(rng['r2'])
-    for i in ('n1', 'n2', 'r1', 'r2'):
+    it = ('n1', 'n2', 1), ('n2', 'n1', -1), ('r1', 'r2', 1), ('r2', 'r1', -1)
+    for i, j, n in it:
         if z[i] != rng[i]:
-            n = 1 - 2 * (int(i[1]) // 2)
-            j = '%s%d' % (i[0], 2 - int(i[1]) // 2)
-            r = sh.combine_dicts(rng, {j: z[i] - n})
-            r['r1'], r['r2'] = str(r['r1']), str(r['r2'])
-            r = dict(format_range(['name', 'n1', 'n2'], **r))
+            if j[0] == 'r':
+                r = sh.combine_dicts(rng, {j: str(int(z[i]) - n)})
+            else:
+                r = sh.combine_dicts(rng, {j: z[i] - n})
+            r = dict(format_range(('name', 'n1', 'n2'), **r))
             ranges.append(r)
             rng[i] = z[i]
 
@@ -93,9 +91,9 @@ def _merge_col_update(base, rng):
 
 
 def _get_indices_intersection(base, i):
-    r, c = int(base['r1']), int(base['n1'])
+    r, c = int(base['r1']), base['n1']
     r = slice(int(i['r1']) - r, int(i['r2']) - r + 1)
-    c = slice(int(i['n1']) - c, int(i['n2']) - c + 1)
+    c = slice(i['n1'] - c, i['n2'] - c + 1)
     return r, c
 
 
@@ -113,8 +111,9 @@ def _assemble_values(base, values, empty=''):
 
 # noinspection PyUnusedLocal
 def _shape(n1, n2, r1, r2, **kw):
-    c = -1 if int(n1) == 0 or int(n2) == maxsize else (int(n2) - int(n1) + 1)
-    r = -1 if int(r1) == 0 or int(r2) == maxsize else (int(r2) - int(r1) + 1)
+    r1, r2 = int(r1), int(r2)
+    r = -1 if r1 == 0 or r2 == maxsize else (r2 - r1 + 1)
+    c = -1 if n1 == 0 or n2 == maxsize else (n2 - n1 + 1)
     return r, c
 
 
@@ -185,7 +184,7 @@ class Ranges(object):
     def __add__(self, other):  # Expand.
         ranges = self.ranges[1:] + other.ranges
         rng = sh.selector(self.input_fields, self.ranges[0])
-        for k in ('r1', 'r2', 'n1', 'n2'):
+        for k in ('r1', 'r2'):
             rng[k] = int(rng[k])
 
         for r in ranges:
@@ -193,11 +192,11 @@ class Ranges(object):
                 raise RangeValueError('{}:{}'.format(self, other))
             else:
                 rng['r1'] = min(rng['r1'], int(r['r1']))
-                rng['n1'] = min(rng['n1'], int(r['n1']))
+                rng['n1'] = min(rng['n1'], r['n1'])
                 rng['r2'] = max(rng['r2'], int(r['r2']))
-                rng['n2'] = max(rng['n2'], int(r['n2']))
+                rng['n2'] = max(rng['n2'], r['n2'])
 
-        rng = dict(self.format_range(['name', 'n1', 'n2'], **rng))
+        rng = dict(self.format_range(('name', 'n1', 'n2'), **rng))
         all_values, values = self.all_values and other.all_values, None
         if all_values:
             values = sh.combine_dicts(self.values, other.values)
