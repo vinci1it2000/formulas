@@ -11,7 +11,7 @@ import openpyxl
 import os.path as osp
 import schedula as sh
 from formulas.excel import ExcelModel, BOOK
-from formulas.formulas.functions import is_number
+from formulas.functions.functions import is_number
 
 
 mydir = osp.join(osp.dirname(__file__), 'test_files')

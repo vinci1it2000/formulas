@@ -96,7 +96,7 @@ class Operator(Token):
         stack.append(self)
 
     def compile(self):
-        from ..formulas.operators import OPERATORS
+        from ..functions.operators import OPERATORS
         return OPERATORS[self.name.upper()]
 
 

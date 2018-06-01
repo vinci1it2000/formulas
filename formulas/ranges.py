@@ -13,7 +13,7 @@ import itertools
 import numpy as np
 from .tokens.operand import _re_range, range2parts, _index2col, maxsize, Error
 from .errors import RangeValueError
-from .formulas import Array
+from .functions import Array
 import schedula as sh
 import functools
 

@@ -14,7 +14,7 @@ import schedula as sh
 from formulas.parser import Parser
 from formulas.errors import FormulaError
 from formulas.ranges import Ranges
-from formulas.formulas import wrap_ranges_func
+from formulas.functions import wrap_ranges_func
 
 
 @ddt.ddt

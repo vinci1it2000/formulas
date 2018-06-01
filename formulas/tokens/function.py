@@ -28,7 +28,7 @@ class Function(Token):
         t.ast(tokens, stack, builder)
 
     def compile(self):
-        from ..formulas.functions import get_functions
+        from ..functions.functions import get_functions
         return get_functions()[self.name.upper()]
 
     def set_expr(self, *tokens):
