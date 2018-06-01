@@ -73,7 +73,7 @@ def replace_empty(x, empty=0):
 
 
 # noinspection PyUnusedLocal
-def wrap_func(func, ranges=False, **kw):
+def wrap_func(func, ranges=False):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -143,8 +143,11 @@ def is_number(number):
 
 def flatten(l, check=is_number):
     if not isinstance(l, str) and isinstance(l, collections.Iterable):
-        for el in l:
-            yield from flatten(el, check)
+        try:
+            for el in l:
+                yield from flatten(el, check)
+        except TypeError:
+            yield from flatten(l.tolist(), check)
     elif not check or check(l):
         yield l
 
@@ -152,7 +155,7 @@ def flatten(l, check=is_number):
 def wrap_ufunc(
         func, input_parser=lambda *a: map(float, a), check_error=get_error,
         args_parser=lambda *a: map(replace_empty, a), otype=lambda *a: Array,
-        **kw):
+        ranges=False, **kw):
     """Helps call a numpy universal function (ufunc)."""
 
     def safe_eval(*vals):
@@ -164,17 +167,19 @@ def wrap_ufunc(
             r = Error.errors['#VALUE!']
         return r
 
+    kw['otypes'] = kw.get('otypes', [object])
+
     # noinspection PyUnusedLocal
     def wrapper(*args, **kwargs):
         try:
             args = tuple(args_parser(*args))
-            kw['otypes'] = kw.get('otypes', [object])
             with np.errstate(divide='ignore', invalid='ignore'):
                 res = np.vectorize(safe_eval, **kw)(*args)
+            ot = otype(*args)
             try:
-                return res.view(otype(*args))
+                return res.view(ot)
             except AttributeError:
-                return np.asarray([[res]]).view(otype(*args))
+                return np.asarray([[res]], object).view(ot)
         except ValueError as ex:
             try:
                 np.broadcast(*args)
@@ -182,7 +187,7 @@ def wrap_ufunc(
                 raise BroadcastError()
             raise ex
 
-    return wrap_func(functools.update_wrapper(wrapper, func), **kw)
+    return wrap_func(functools.update_wrapper(wrapper, func), ranges=ranges)
 
 
 @functools.lru_cache()
