@@ -16,7 +16,7 @@ import schedula as sh
 from .ranges import Ranges
 from .cell import Cell, RangesAssembler
 from .tokens.operand import range2parts
-from .functions.functions import flatten
+from .functions import flatten
 
 
 BOOK = sh.Token('Book')

@@ -10,8 +10,7 @@
 Python equivalents of information excel functions.
 """
 import numpy as np
-from .. import wrap_ranges_func
-from . import Error, Array, XlError
+from . import wrap_ranges_func, Error, Array, XlError
 
 FUNCTIONS = {}
 
