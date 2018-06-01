@@ -16,8 +16,9 @@ from formulas.cell import Cell
 class TestCell(unittest.TestCase):
     @ddt.data(
         ('A1', '=REF', {}, "<Ranges>(A1)=[[#REF!]]"),
-        ('A1', '=(-INT(2))', {}, '<Ranges>(A1)=[[-2]]'),
-        ('A1', '=(1+1)+(1+1)', {}, '<Ranges>(A1)=[[4]]'),
+        ('A1', '=(-INT(2))', {}, '<Ranges>(A1)=[[-2.0]]'),
+        ('A1', '=(1+1)+(1+1)', {}, '<Ranges>(A1)=[[4.0]]'),
+        ('A1', '=IFERROR(INDIRECT("aa") * 100,"")', {}, "<Ranges>(A1)=[['']]"),
         ('A1', '=( 1 + 2 + 3)*(4 + 5)^(1/5)', {},
          '<Ranges>(A1)=[[9.311073443492159]]'),
         ('A1', '={1,2;1,2}', {}, '<Ranges>(A1)=[[1]]'),
@@ -27,7 +28,7 @@ class TestCell(unittest.TestCase):
         ('A1', '=SUM({1, 3; 4, 2})', {}, '<Ranges>(A1)=[[10]]'),
         ('A1', '=" "" a"', {}, '<Ranges>(A1)=[[\' " a\']]'),
         ('A1', '=#NULL!', {}, "<Ranges>(A1)=[[#NULL!]]"),
-        ('A1', '=1 + 2', {}, '<Ranges>(A1)=[[3]]'),
+        ('A1', '=1 + 2', {}, '<Ranges>(A1)=[[3.0]]'),
         ('A1', '=AVERAGE(((123 + 4 + AVERAGE({1,2}))))', {},
          '<Ranges>(A1)=[[128.5]]'),
         ('A1', '="a" & "b"""', {}, '<Ranges>(A1)=[[\'ab"\']]'),
