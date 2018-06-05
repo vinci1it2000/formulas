@@ -20,11 +20,9 @@ FUNCTIONS = {}
 def _get_type_id(obj):
     if isinstance(obj, bool):
         return 2
-    elif isinstance(obj, (int, float)):
-        return 0
-    elif not isinstance(obj, XlError) and isinstance(obj, str):
+    elif isinstance(obj, str) and not isinstance(obj, XlError):
         return 1
-
+    return 0
 
 def _yield_vals(type_id, array):
     for i, v in enumerate(array, 1):
