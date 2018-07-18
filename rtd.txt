@@ -1,4 +1,1 @@
-schedula
-sphinx==1.4.8
-regex
-decorator>=4.1.0
+schedula[sphinx] >= 0.2.0

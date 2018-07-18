@@ -1,0 +1,10 @@
+-r base.pip
+
+flask
+regex
+graphviz
+Pygments
+lxml
+bs4
+jinja2
+docutils

@@ -5,14 +5,14 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
+import os
 import unittest
-import openpyxl
 import os.path as osp
 import schedula as sh
 from formulas.excel import ExcelModel, BOOK
 from formulas.functions import is_number
 
+EXTRAS = os.environ.get('EXTRAS', 'all')
 
 mydir = osp.join(osp.dirname(__file__), 'test_files')
 _filename = 'test.xlsx'
@@ -30,8 +30,10 @@ def _book2dict(book):
     return res
 
 
+@unittest.skipIf(EXTRAS not in ('all', 'excel'), 'Not for extra %s.' % EXTRAS)
 class TestExcelModel(unittest.TestCase):
     def setUp(self):
+        import openpyxl
         self.filename = osp.join(mydir, _filename)
         self.link_filename = osp.join(mydir, _link_filename)
         self.results = {

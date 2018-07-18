@@ -6,7 +6,6 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
-from setuptools import setup, find_packages
 import io
 import os
 import os.path as osp
@@ -32,22 +31,22 @@ def get_long_description(cleanup=True):
     from sphinx.util.osutil import abspath
     import tempfile
     import shutil
-    from sphinxcontrib.writers.rst import RstTranslator
+    from doc.conf import extensions
 
     outdir = tempfile.mkdtemp(prefix='setup-', dir='.')
     exclude_patterns = os.listdir(mydir or '.')
     exclude_patterns.remove('pypi.rst')
 
-    app = Sphinx(abspath(mydir), './doc/', outdir, outdir + '/.doctree', 'text',
+    app = Sphinx(abspath(mydir), './doc/', outdir, outdir + '/.doctree', 'rst',
                  confoverrides={
                      'exclude_patterns': exclude_patterns,
                      'master_doc': 'pypi',
-                     'dispatchers_out_dir': abspath(outdir + '/_dispatchers')
+                     'dispatchers_out_dir': abspath(outdir + '/_dispatchers'),
+                     'extensions': extensions + ['sphinxcontrib.restbuilder']
                  }, status=None, warning=None)
 
-    app.builder.translator_class = RstTranslator
     app.build(filenames=[osp.join(app.srcdir, 'pypi.rst')])
-    res = open(outdir + '/pypi.txt').read()
+    res = open(outdir + '/pypi.rst').read()
     if cleanup:
         shutil.rmtree(outdir)
     return res
@@ -58,11 +57,21 @@ url = 'https://github.com/vinci1it2000/%s' % name
 download_url = '%s/tarball/v%s' % (url, proj_ver)
 
 if __name__ == '__main__':
+    import functools
+    from setuptools import setup, find_packages
+
     # noinspection PyBroadException
     try:
         long_description = get_long_description()
     except:
         long_description = ''
+
+    extras = {
+        'excel': ['openpyxl'],
+        'plot': ['graphviz', 'regex', 'flask', 'Pygments', 'lxml', 'bs4',
+                 'jinja2', 'docutils']  # ['schedula[plot]>=0.2.0']
+    }
+    extras['all'] = sorted(functools.reduce(set.union, extras.values(), set()))
 
     setup(
         name=name,
@@ -108,11 +117,10 @@ if __name__ == '__main__':
         ],
         install_requires=[
             'regex',
-            'sphinx',
-            'schedula>=0.1.18',
-            'numpy',
-            'openpyxl'
+            'schedula>=0.2.0',
+            'numpy'
         ],
+        extras_require=extras,
         tests_require=['nose>=1.0', 'ddt'],
         test_suite='nose.collector',
         setup_requires=['nose>=1.0'],

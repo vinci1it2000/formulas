@@ -1,12 +1,8 @@
-schedula>=0.1.18
-openpyxl
-nose
+-r all.pip
+-r test.pip
+
 wheel
-coveralls
 sphinx
-regex
-ddt
-numpy
 sphinx_rtd_theme
 setuptools>=36.0.1
 sphinxcontrib-restbuilder

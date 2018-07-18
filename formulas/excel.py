@@ -10,7 +10,6 @@
 It provides excel model class.
 """
 
-import openpyxl
 import os.path as osp
 import schedula as sh
 from .ranges import Ranges
@@ -104,7 +103,8 @@ class ExcelModel(object):
                 context.update({'excel': osp.basename(book).upper(),
                                 'directory': osp.dirname(osp.abspath(book))})
                 if not are_in(self.books, context['excel'], BOOK):
-                    book = openpyxl.load_workbook(book, data_only=data_only)
+                    from openpyxl import load_workbook
+                    book = load_workbook(book, data_only=data_only)
             book = get_in(
                 self.books, context['excel'], BOOK, default=lambda: book
             )
@@ -238,7 +238,8 @@ class ExcelModel(object):
             filename, sheet_name = _get_name(rng['excel'], books), rng['sheet']
 
             if not are_in(books, filename, BOOK):
-                book = get_in(books, filename, BOOK, default=openpyxl.Workbook)
+                from openpyxl import Workbook
+                book = get_in(books, filename, BOOK, default=Workbook)
                 for ws in book.worksheets:
                     book.remove(ws)
             else:
