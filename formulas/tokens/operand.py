@@ -123,8 +123,8 @@ _re_range = r"""
             C\[(?P<rc1>[\+-]?[1-9]\d*)\]:C\[(?P<rc2>[\+-]?[1-9]\d*)\]
         )
     )
-    (?!\()
-    """
+    (?![\(\w])
+"""
 _re_range = regex.compile(
     r'^(?>(?P<indirect>INDIRECT\("{0}?"\))|{0})'.format(_re_range),
     regex.IGNORECASE | regex.X | regex.DOTALL
