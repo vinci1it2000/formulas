@@ -16,6 +16,7 @@ EXTRAS = os.environ.get('EXTRAS', 'all')
 
 mydir = osp.join(osp.dirname(__file__), 'test_files')
 _filename = 'test.xlsx'
+_filename_compile = 'excel.xlsx'
 _link_filename = 'test_link.xlsx'
 
 
@@ -35,6 +36,8 @@ class TestExcelModel(unittest.TestCase):
     def setUp(self):
         import openpyxl
         self.filename = osp.join(mydir, _filename)
+        self.filename_compile = osp.join(mydir, _filename_compile)
+
         self.link_filename = osp.join(mydir, _link_filename)
         self.results = {
             _filename.upper(): _book2dict(
@@ -44,6 +47,10 @@ class TestExcelModel(unittest.TestCase):
                 openpyxl.load_workbook(self.link_filename, data_only=True)
             ),
         }
+        self.results_compile = _book2dict(
+            openpyxl.load_workbook(self.filename_compile, data_only=True)
+        )['DATA']
+
         self.maxDiff = None
 
     def _compare(self, books, results):
@@ -76,3 +83,17 @@ class TestExcelModel(unittest.TestCase):
 
         n_test += self._compare(books, res)
         print('[info] test_excel_model: Ran %d tests.' % n_test)
+
+    def test_excel_model_compile(self):
+        xl_model = ExcelModel()
+        xl_model.loads(self.filename_compile)
+        xl_model.finish()
+        inputs = ["A%d" % i for i in range(2, 5)]
+        outputs = ["C%d" % i for i in range(2, 5)]
+        func = xl_model.compile(
+            ["'[EXCEL.XLSX]DATA'!%s" % i for i in inputs],
+            ["'[EXCEL.XLSX]DATA'!%s" % i for i in outputs]
+        )
+        i = sh.selector(inputs, self.results_compile, output_type='list')
+        res = sh.selector(outputs, self.results_compile, output_type='list')
+        self.assertEqual([x.value[0, 0] for x in func(*i)], res)
