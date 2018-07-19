@@ -47,13 +47,15 @@ class TestExcelModel(unittest.TestCase):
         self.maxDiff = None
 
     def _compare(self, books, results):
-        for k, res in sorted(sh.stack_nested_keys(results, depth=3)):
+        it = sorted(sh.stack_nested_keys(results, depth=3))
+        for k, res in it:
             value = sh.get_nested_dicts(books, *k)
             msg = '[{}]{}!{}'.format(*k)
             if is_number(value) and is_number(res):
                 self.assertAlmostEqual(float(res), float(value), msg=msg)
             else:
                 self.assertEqual(res, value, msg=msg)
+        return len(it)
 
     def test_excel_model(self):
         xl_model = ExcelModel()
@@ -65,11 +67,12 @@ class TestExcelModel(unittest.TestCase):
         books = {k: _book2dict(v[BOOK])
                  for k, v in xl_model.write(books).items()}
 
-        self._compare(books, self.results)
+        n_test = self._compare(books, self.results)
 
         books = {k: _book2dict(v[BOOK]) for k, v in xl_model.write().items()}
         res = {}
         for k, v in sh.stack_nested_keys(self.results, depth=2):
             sh.get_nested_dicts(res, *map(str.upper, k), default=lambda: v)
 
-        self._compare(books, res)
+        n_test += self._compare(books, res)
+        print('[info] test_excel_model: Ran %d tests.' % n_test)
