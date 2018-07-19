@@ -2,6 +2,32 @@ Changelog
 =========
 
 
+v0.1.0 (2018-07-20)
+-------------------
+
+Feat
+~~~~
+- (readme) :gh:`6`, :gh:`7`: Add examples.
+
+- (doc): Add changelog.
+
+- (test): Add info of executed test of `test_excel_model`.
+
+- (functions) :gh:`11`: Add `HEX2OCT`, `HEX2BIN`, `HEX2DEC`, `OCT2HEX`,
+  `OCT2BIN`, `OCT2DEC`, `BIN2HEX`, `BIN2OCT`, `BIN2DEC`, `DEC2HEX`,
+  `DEC2OCT`, and `DEC2BIN` functions.
+
+- (setup) :gh:`13`: Add extras_require to setup file.
+
+
+Fix
+~~~
+- (excel): Use DispatchPipe to compile a sub model of excel workbook.
+
+- (range) :gh:`11`: Correct range regex to avoid parsing of function
+  like ranges (e.g., HEX2DEC).
+
+
 v0.0.10 (2018-06-05)
 --------------------
 
