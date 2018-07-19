@@ -20,7 +20,7 @@ Modules:
     ~builder
     ~errors
     ~tokens
-    ~formulas
+    ~functions
     ~ranges
     ~cell
     ~excel

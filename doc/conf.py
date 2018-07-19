@@ -43,9 +43,14 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
+    'sphinx.ext.extlinks',
     'schedula.ext.autosummary',
     'schedula.ext.dispatcher',
 ]
+
+extlinks = {
+    'gh': ('https://github.com/vinci1it2000/formulas/issues/%s', '#'),
+}
 
 autosummary_generate = True
 

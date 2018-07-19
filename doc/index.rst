@@ -19,6 +19,7 @@
 
     doc
     api
+    change
 
 Indices and tables
 ==================

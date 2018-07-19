@@ -11,7 +11,7 @@ It provides functions implementations to compile the excel functions.
 
 Sub-Modules:
 
-.. currentmodule:: formulas.formulas.functions
+.. currentmodule:: formulas.functions
 
 .. autosummary::
     :nosignatures:
