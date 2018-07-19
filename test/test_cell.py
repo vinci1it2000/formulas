@@ -72,6 +72,21 @@ class TestCell(unittest.TestCase):
          '<Ranges>(A1)=[[\'R\']]'),
         ('A1:D1', '=IF({0,-0.2,0},2,{1})', {},
          '<Ranges>(A1:D1)=[[1.0 2.0 1.0 #N/A]]'),
+        ('A1', '=HEX2DEC(9999999999)', {}, '<Ranges>(A1)=[[-439804651111]]'),
+        ('A1', '=HEX2BIN(9999999999)', {}, '<Ranges>(A1)=[[#NUM!]]'),
+        ('A1', '=HEX2BIN("FFFFFFFE00")', {}, '<Ranges>(A1)=[[\'1000000000\']]'),
+        ('A1', '=HEX2BIN("1ff")', {}, '<Ranges>(A1)=[[\'111111111\']]'),
+        ('A1', '=HEX2OCT("FF0000000")', {}, '<Ranges>(A1)=[[#NUM!]]'),
+        ('A1', '=HEX2OCT("FFE0000000")', {}, '<Ranges>(A1)=[[\'4000000000\']]'),
+        ('A1', '=HEX2OCT("1FFFFFFF")', {}, '<Ranges>(A1)=[[\'3777777777\']]'),
+        ('A1', '=DEC2HEX(-439804651111)', {},
+         '<Ranges>(A1)=[[\'9999999999\']]'),
+        ('A1', '=DEC2BIN(TRUE)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=DEC2BIN(#DIV/0!)', {}, '<Ranges>(A1)=[[#DIV/0!]]'),
+        ('A1', '=DEC2BIN("a")', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=DEC2BIN(4,6)', {}, '<Ranges>(A1)=[[\'000100\']]'),
+        ('A1', '=DEC2BIN(4,-2)', {}, '<Ranges>(A1)=[[#NUM!]]'),
+        ('A1', '=DEC2BIN(4,"a")', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         # ('A1:D1', '=IF({0,-0.2,0},{2,3},{1})', {},
         #  '<Ranges>(A1:D1)=[[1 2 1 #N/A]]'),
         # ('A1:D1', '=IF({0,-2,0},{2,3},{1,4})', {},
@@ -85,7 +100,7 @@ class TestCell(unittest.TestCase):
         output = str(dsp(inputs)[cell.output])
         self.assertEqual(
             result, output,
-            'Folmula({}): {} != {}'.format(formula, result, output)
+            'Formula({}): {} != {}'.format(formula, result, output)
         )
 
     @ddt.data(
