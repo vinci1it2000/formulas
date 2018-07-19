@@ -32,6 +32,8 @@ def _get_name(name, names):
 
 
 class ExcelModel(object):
+    compile_class = sh.DispatchPipe
+
     def __init__(self):
         self.dsp = sh.Dispatcher()
         self.calculate = self.dsp.dispatch
@@ -276,7 +278,7 @@ class ExcelModel(object):
         for k, v in sh.selector(dsp.data_nodes, res, allow_miss=True).items():
             dsp.set_default_value(k, v.value)
 
-        func = sh.SubDispatchPipe(
+        func = self.compile_class(
             dsp=dsp,
             function_id=self.dsp.name,
             inputs=inputs,
