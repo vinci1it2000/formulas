@@ -25,6 +25,9 @@ What is formulas?
 Formulas implements an interpreter for excel formulas, which parses and compile
 excel formulas expressions.
 
+Moreover, it compiles excel workbooks to python and executes without using the
+Excel COM server. Hence,  **Excel is not needed**.
+
 
 Installation
 ============
@@ -40,7 +43,82 @@ Or download the last git version and use (with root privileges):
 
     $ python setup.py install
 
+
+Install extras
+--------------
+Some additional functionality is enabled installing the following extras:
+
+- excel: enables to compile excel workbooks to python and execute using:
+  :class:`~formulas.excel.ExcelModel`.
+- plot: enables to plot the formula ast and the excel model.
+
+To install formulas and all extras, do:
+
+.. code-block:: console
+
+    $ pip install formulas[all]
+
 .. _end-quick:
+
+Basic Examples
+==============
+
+Parsing
+-------
+An example how to parse and execute an excel formula is the following:
+
+    >>> import formulas
+    >>> func = formulas.Parser().ast('=(1 + 1) + B3 / A2')[1].compile()
+
+To visualize formula model and get the input order you can do the following:
+
+.. dispatcher:: func
+   :opt: graph_attr={'ratio': '1'}
+   :code:
+
+    >>> list(func.inputs)
+    ['A2', 'B3']
+    >>> func.plot(view=False)  # Set view=True to plot in the default browser.
+    SiteMap([(=((1 + 1) + (B3 / A2)), SiteMap())])
+
+Finally to execute the formula and plot the workflow:
+
+.. dispatcher:: func
+   :opt: workflow=True, graph_attr={'ratio': '1'}
+   :code:
+
+    >>> func(1, 5)
+    OperatorArray(7.0, dtype=object)
+    >>> func.plot(workflow=True, view=False)  # Set view=True to plot in the default browser.
+    SiteMap([(=((1 + 1) + (B3 / A2)), SiteMap())])
+
+Excel
+-----
+An example how to load, calculate, and write an excel workbook is the following:
+
+    >>> import formulas
+    >>> fpath = 'test/test_files/excel.xlsx'
+    >>> xl_model = formulas.ExcelModel().loads(fpath).finish()
+    >>> xl_model.calculate()
+    Solution(...)
+    >>> xl_model.write()
+    {'EXCEL.XLSX': {Book: <openpyxl.workbook.workbook.Workbook ...>}}
+
+
+To compile and execute a sub model from a workbook you can do the following:
+
+    >>> inputs = ["'[EXCEL.XLSX]DATA'!A2"]  # input cells
+    >>> outputs = ["'[EXCEL.XLSX]DATA'!C2"]  # output cells
+    >>> func = xl_model.compile(inputs, outputs)
+    >>> func(2).value[0,0]
+    4.0
+
+.. dispatcher:: func
+   :code:
+
+    >>> func.plot(view=False)  # Set view=True to plot in the default browser.
+    SiteMap([(Dispatcher ..., SiteMap())])
+
 .. _end-pypi:
 
 Next moves
@@ -51,12 +129,10 @@ Things yet to do implement the missing excel formulas.
 .. _start-badges:
 .. |travis_status| image:: https://travis-ci.org/vinci1it2000/formulas.svg?branch=master
     :alt: Travis build status
-    :scale: 100%
     :target: https://travis-ci.org/vinci1it2000/formulas
 
 .. |appveyor_status| image:: https://ci.appveyor.com/api/projects/status/i3bmqdc92u1bskg5?svg=true
-    :alt: Apveyor build status
-    :scale: 100%
+    :alt: Appveyor build status
     :target: https://ci.appveyor.com/project/vinci1it2000/formulas
 
 .. |cover_status| image:: https://coveralls.io/repos/github/vinci1it2000/formulas/badge.svg?branch=master
@@ -65,7 +141,6 @@ Things yet to do implement the missing excel formulas.
 
 .. |docs_status| image:: https://readthedocs.org/projects/formulas/badge/?version=master
     :alt: Documentation status
-    :scale: 100%
     :target: https://readthedocs.org/builds/formulas/
 
 .. |pypi_ver| image::  https://img.shields.io/pypi/v/formulas.svg?
