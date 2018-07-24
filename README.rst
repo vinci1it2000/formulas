@@ -139,9 +139,9 @@ Things yet to do implement the missing excel formulas.
     :target: https://coveralls.io/github/vinci1it2000/formulas?branch=master
     :alt: Code coverage
 
-.. |docs_status| image:: https://readthedocs.org/projects/formulas/badge/?version=master
+.. |docs_status| image:: https://readthedocs.org/projects/formulas/badge/?version=stable
     :alt: Documentation status
-    :target: https://readthedocs.org/builds/formulas/
+    :target: https://formulas.readthedocs.io/en/stable/?badge=stable
 
 .. |pypi_ver| image::  https://img.shields.io/pypi/v/formulas.svg?
     :target: https://pypi.python.org/pypi/formulas/
