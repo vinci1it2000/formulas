@@ -8,6 +8,7 @@
 
 import io
 import os
+import collections
 import os.path as osp
 
 name = 'formulas'
@@ -55,6 +56,10 @@ def get_long_description(cleanup=True):
 proj_ver = read_project_version()
 url = 'https://github.com/vinci1it2000/%s' % name
 download_url = '%s/tarball/v%s' % (url, proj_ver)
+project_urls = collections.OrderedDict((
+    ('Documentation', 'http://%s.readthedocs.io' % name),
+    ('Issue tracker', '%s/issues' % url),
+))
 
 if __name__ == '__main__':
     import functools
@@ -82,6 +87,7 @@ if __name__ == '__main__':
             'appveyor'
         ]),
         url=url,
+        project_urls=project_urls,
         download_url=download_url,
         license='EUPL 1.1+',
         author='Vincenzo Arcidiacono',
