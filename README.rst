@@ -119,6 +119,17 @@ To compile and execute a sub model from a workbook you can do the following:
     >>> func.plot(view=False)  # Set view=True to plot in the default browser.
     SiteMap([(Dispatcher ..., SiteMap())])
 
+Custom functions
+----------------
+An example how to add a custom function to the formula parser is the following:
+
+    >>> import formulas
+    >>> FUNCTIONS = formulas.get_functions()
+    >>> FUNCTIONS['MYFUNC'] = lambda x, y: 1 + y + x
+    >>> func = formulas.Parser().ast('=MYFUNC(1, 2)')[1].compile()
+    >>> func()
+    4
+
 .. _end-pypi:
 
 Next moves
