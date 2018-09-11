@@ -28,5 +28,4 @@ Modules:
 
 from .excel import ExcelModel
 from .parser import Parser
-from .functions import FUNCTIONS
-from .functions.operators import OPERATORS
+from .functions import get_functions, SUBMODULES
