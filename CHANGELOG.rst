@@ -2,6 +2,27 @@ Changelog
 =========
 
 
+v0.1.1 (2018-09-11)
+-------------------
+
+Feat
+~~~~
+- (contrib): Add contribution instructions.
+
+- (setup): Add additional project_urls.
+
+- (setup): Update `Development Status` to `4 - Beta`.
+
+
+Fix
+~~~
+
+- (init) :gh:`15`: Replace `FUNCTIONS` and `OPERATORS` objs with
+  `get_functions`, `SUBMODULES`.
+
+- (doc): Correct link docs_status.
+
+
 v0.1.0 (2018-07-20)
 -------------------
 
