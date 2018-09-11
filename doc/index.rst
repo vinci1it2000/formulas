@@ -18,6 +18,7 @@
     :name: mastertoc
 
     doc
+    contrib
     api
     change
 
