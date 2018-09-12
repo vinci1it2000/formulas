@@ -2,6 +2,23 @@ Changelog
 =========
 
 
+v0.1.2 (2018-09-12)
+-------------------
+
+Feat
+~~~~
+- (functions) :gh:`14`: Add `ROW` and `COLUMN`.
+
+- (cell): Pass cell reference when compiling cell + new function struct
+  with dict to add inputs like CELL.
+
+Fix
+~~~
+- (ranges): Replace system max size with excel max row and col.
+
+- (tokens): Correct number regex.
+
+
 v0.1.1 (2018-09-11)
 -------------------
 
