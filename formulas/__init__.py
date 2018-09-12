@@ -29,3 +29,5 @@ Modules:
 from .excel import ExcelModel
 from .parser import Parser
 from .functions import get_functions, SUBMODULES
+from .cell import CELL
+from .ranges import Ranges

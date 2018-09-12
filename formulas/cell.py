@@ -21,11 +21,15 @@ from .tokens.operand import Error, XlError
 def wrap_cell_func(func, parse_args=lambda *a: a, parse_kwargs=lambda **kw: kw):
     def wrapper(*args, **kwargs):
         return func(*parse_args(*args), **parse_kwargs(**kwargs))
+
     return functools.update_wrapper(wrapper, func)
 
 
 def format_output(rng, value):
     return Ranges().set_value(rng, value)
+
+
+CELL = sh.Token('Cell')
 
 
 class Cell(object):
@@ -54,7 +58,9 @@ class Cell(object):
 
     def compile(self, references=None):
         if self.builder:
-            func = self.builder.compile(references=references)
+            func = self.builder.compile(
+                references=references, **{CELL: self.range}
+            )
             self.func = wrap_cell_func(func, self._args)
             self.update_inputs(references=references)
         return self
@@ -63,9 +69,10 @@ class Cell(object):
         if not self.builder:
             return
         self.inputs = inp = collections.OrderedDict()
+        ref = references or {}
         for k, rng in self.func.inputs.items():
             try:
-                rng = rng or Ranges().push((references or {})[k])
+                rng = rng or Ranges().push(ref[k])
             except KeyError:
                 sh.get_nested_dicts(
                     inp, Error.errors['#REF!'], default=list

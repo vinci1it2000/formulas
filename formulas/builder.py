@@ -40,9 +40,15 @@ class AstBuilder(collections.deque):
             token.set_expr(*tokens)
             out, dmap, get_id = token.node_id, self.dsp.dmap, get_unused_node_id
             if out not in self.dsp.nodes:
+                func = token.compile()
+                if isinstance(func, dict):
+                    for k, v in func['inputs'].items():
+                        if v is not sh.NONE:
+                            self.dsp.add_data(k, v)
+                    inputs, func = list(func['inputs']) + inputs, func['function']
                 self.dsp.add_function(
                     function_id=get_id(dmap, token.name),
-                    function=token.compile(),
+                    function=func,
                     inputs=inputs or None,
                     outputs=[out]
                 )
@@ -73,12 +79,11 @@ class AstBuilder(collections.deque):
         for token in list(self.missing_operands):
             self.get_node_id(token)
 
-    def compile(self, references=None):
-        dsp = self.dsp
-        inputs = {}
+    def compile(self, references=None, **inputs):
+        dsp, inp = self.dsp, inputs.copy()
         for k in set(dsp.data_nodes).intersection(references or {}):
-            inputs[k] = Ranges().push(references[k])
-        res, o = dsp(inputs), self.get_node_id(self[-1])
+            inp[k] = Ranges().push(references[k])
+        res, o = dsp(inp), self.get_node_id(self[-1])
         dsp = dsp.get_sub_dsp_from_workflow(
             [o], graph=dsp.dmap, reverse=True, blockers=res,
             wildcard=False
@@ -90,7 +95,7 @@ class AstBuilder(collections.deque):
             if not dsp.dmap.pred[k]:
                 if k in res:
                     v = res[k]
-                    if isinstance(v, Ranges) and v.ranges:
+                    if k not in inputs and isinstance(v, Ranges) and v.ranges:
                         i[k] = v
                     else:
                         dsp.add_data(data_id=k, default_value=v)
