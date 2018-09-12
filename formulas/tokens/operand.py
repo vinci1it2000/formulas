@@ -13,13 +13,13 @@ It provides Operand classes.
 from . import Token
 # noinspection PyCompatibility
 import regex
-import sys
 import functools
 import schedula as sh
 from ..errors import TokenError
 from .parenthesis import _update_n_args
 
-maxsize = sys.maxsize
+maxcol = 16384
+maxrow = 1048576
 
 
 class XlError(sh.Token):
@@ -150,12 +150,12 @@ def _col2index(col):
 
 @functools.lru_cache(None)
 def _maxcol():
-    return _index2col(maxsize)
+    return _index2col(maxcol)
 
 
 @functools.lru_cache(None)
 def _maxrow():
-    return str(maxsize)
+    return str(maxrow)
 
 
 def _build_cel(c, r):
@@ -211,8 +211,8 @@ def _range2parts(inputs, outputs):
     dsp.add_data(data_id='name', filters=(str.upper,))
     dsp.add_data(data_id='n1', default_value=0, initial_dist=100)
     dsp.add_data(data_id='r1', default_value='0', initial_dist=100)
-    dsp.add_data(data_id='n2', default_value=maxsize, initial_dist=100)
-    dsp.add_data(data_id='r2', default_value='%s' % maxsize, initial_dist=100)
+    dsp.add_data(data_id='c2', default_value=_maxcol(), initial_dist=100)
+    dsp.add_data(data_id='r2', default_value=_maxrow(), initial_dist=100)
     dsp.add_function(None, _build_ref, ['c1', 'r1', 'c2', 'r2'], ['ref'])
     dsp.add_function(None, _build_id, ['ref', 'sheet', 'excel'], ['name'])
     func = sh.DispatchPipe(dsp, '', inputs, outputs)

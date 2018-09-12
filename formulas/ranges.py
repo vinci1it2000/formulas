@@ -11,7 +11,9 @@ It provides Ranges class.
 """
 import itertools
 import numpy as np
-from .tokens.operand import _re_range, range2parts, _index2col, maxsize, Error
+from .tokens.operand import (
+    _re_range, range2parts, _index2col, maxrow, maxcol, Error
+)
 from .errors import RangeValueError
 from .functions import Array
 import schedula as sh
@@ -112,8 +114,8 @@ def _assemble_values(base, values, empty=''):
 # noinspection PyUnusedLocal
 def _shape(n1, n2, r1, r2, **kw):
     r1, r2 = int(r1), int(r2)
-    r = -1 if r1 == 0 or r2 == maxsize else (r2 - r1 + 1)
-    c = -1 if n1 == 0 or n2 == maxsize else (n2 - n1 + 1)
+    r = -1 if r1 == 0 or r2 == maxrow else (r2 - r1 + 1)
+    c = -1 if n1 == 0 or n2 == maxcol else (n2 - n1 + 1)
     return r, c
 
 
