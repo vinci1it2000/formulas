@@ -12,9 +12,30 @@ import schedula as sh
 from formulas.cell import Cell
 
 
+def inp_ranges(*rng):
+    return dict.fromkeys(rng, sh.EMPTY)
+
+
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.data(
+        ('A1', '=ROW(4:7)', inp_ranges('4:7'), '<Ranges>(A1)=[[4]]'),
+        ('A1', '=ROW(B8:D8:F7:H8 D7:E8)',
+         inp_ranges('B8:D8', 'F7:H8', 'D7:E8'), '<Ranges>(A1)=[[7]]'),
+        ('A1', '=COLUMN(B8:D8:F7:H8 D7:E7)',
+         inp_ranges('B8:D8', 'F7:H8', 'D7:E7'), '<Ranges>(A1)=[[4]]'),
+        ('A1:C3', '=ROW(D1:E1)', inp_ranges('D1:E1'),
+         '<Ranges>(A1:C3)=[[1 1 1]\n [1 1 1]\n [1 1 1]]'),
+        ('A1:C3', '=ROW(D1:D2)', inp_ranges('D1:D2'),
+         '<Ranges>(A1:C3)=[[1 1 1]\n [2 2 2]\n [#N/A #N/A #N/A]]'),
+        ('A1:C3', '=ROW(D1:E2)', inp_ranges('D1:E2'),
+         '<Ranges>(A1:C3)=[[1 1 1]\n [2 2 2]\n [#N/A #N/A #N/A]]'),
+        ('A11', '=ROW(B55:D55:F54:H55 D54:E54)',
+         inp_ranges('B55:D55', 'F54:H55', 'D54:E54'), '<Ranges>(A11)=[[54]]'),
+        ('A11', '=ROW(B53:D54 C54:E54)', inp_ranges('B53:D54', 'C54:E54'),
+         '<Ranges>(A11)=[[54]]'),
+        ('A11', '=ROW(L45)', inp_ranges('L45'), '<Ranges>(A11)=[[45]]'),
+        ('A11', '=ROW()', {}, '<Ranges>(A11)=[[11]]'),
         ('A1', '=REF', {}, "<Ranges>(A1)=[[#REF!]]"),
         ('A1', '=(-INT(2))', {}, '<Ranges>(A1)=[[-2.0]]'),
         ('A1', '=(1+1)+(1+1)', {}, '<Ranges>(A1)=[[4.0]]'),

@@ -11,8 +11,12 @@ Python equivalents of lookup and reference excel functions.
 """
 import regex
 import functools
+import collections
 import numpy as np
-from . import wrap_ufunc, Error, flatten, get_error, XlError, FoundError
+from . import (
+    wrap_func, wrap_ufunc, Error, flatten, get_error, XlError, FoundError, Array
+)
+from ..cell import CELL
 
 FUNCTIONS = {}
 
@@ -24,10 +28,38 @@ def _get_type_id(obj):
         return 1
     return 0
 
+
 def _yield_vals(type_id, array):
     for i, v in enumerate(array, 1):
         if type_id == _get_type_id(v):
             yield i, v
+
+
+def _xref(func, cell=None, ref=None):
+    try:
+        return func((ref or cell).ranges[0]).view(Array)
+    except IndexError:
+        return Error.errors['#NULL!']
+
+
+def xrow(cell=None, ref=None):
+    return _xref(
+        lambda r: np.arange(int(r['r1']), int(r['r2']) + 1)[:, None], cell, ref
+    )
+
+
+def xcolumn(cell=None, ref=None):
+    return _xref(lambda r: np.arange(r['n1'], r['n2'] + 1)[None, :], cell, ref)
+
+
+FUNCTIONS['COLUMN'] = {
+    'inputs': collections.OrderedDict([(CELL, None)]),
+    'function': wrap_func(xcolumn, ranges=True)
+}
+FUNCTIONS['ROW'] = {
+    'inputs': collections.OrderedDict([(CELL, None)]),
+    'function': wrap_func(xrow, ranges=True)
+}
 
 
 def xmatch(lookup_value, lookup_array, match_type=1):
