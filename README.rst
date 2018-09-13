@@ -96,8 +96,16 @@ Excel
 -----
 An example how to load, calculate, and write an excel workbook is the following:
 
+.. testsetup::
+
+    >>> import os.path as osp
+    >>> from setup import mydir
+    >>> fpath = osp.join(mydir, 'test/test_files/excel.xlsx')
+
+.. doctest::
+
     >>> import formulas
-    >>> fpath = 'test/test_files/excel.xlsx'
+    >>> fpath = 'file.xlsx'  # doctest: +SKIP
     >>> xl_model = formulas.ExcelModel().loads(fpath).finish()
     >>> xl_model.calculate()
     Solution(...)
