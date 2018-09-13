@@ -33,7 +33,9 @@ def get_long_description(cleanup=True):
     import tempfile
     import shutil
     from doc.conf import extensions
-
+    from sphinxcontrib.writers.rst import RstTranslator
+    from sphinx.ext.graphviz import text_visit_graphviz
+    RstTranslator.visit_dsp = text_visit_graphviz
     outdir = tempfile.mkdtemp(prefix='setup-', dir='.')
     exclude_patterns = os.listdir(mydir or '.')
     exclude_patterns.remove('pypi.rst')
@@ -65,10 +67,12 @@ if __name__ == '__main__':
     import functools
     from setuptools import setup, find_packages
 
-    # noinspection PyBroadException
     try:
         long_description = get_long_description()
-    except:
+    except Exception as ex:
+        import logging
+
+        logging.getLogger(__name__).warning('%r', ex)
         long_description = ''
 
     extras = {
