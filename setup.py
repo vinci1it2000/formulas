@@ -61,6 +61,7 @@ download_url = '%s/tarball/v%s' % (url, proj_ver)
 project_urls = collections.OrderedDict((
     ('Documentation', 'http://%s.readthedocs.io' % name),
     ('Issue tracker', '%s/issues' % url),
+    ('Donate', 'https://donorbox.org/formulas'),
 ))
 
 if __name__ == '__main__':
