@@ -13,6 +13,7 @@ formulas: An Excel formulas interpreter in Python.
 :docs:          http://formulas.readthedocs.io/
 :wiki:          https://github.com/vinci1it2000/formulas/wiki/
 :download:      http://github.com/vinci1it2000/formulas/releases/
+:donate:        https://donorbox.org/formulas
 :keywords:      excel, formulas, interpreter, compiler, dispatch
 :developers:    .. include:: AUTHORS.rst
 :license:       `EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_
@@ -142,7 +143,7 @@ An example how to add a custom function to the formula parser is the following:
 
 Next moves
 ==========
-Things yet to do implement the missing excel formulas.
+Things yet to do: implement the missing excel formulas.
 
 .. _end-intro:
 .. _start-badges:

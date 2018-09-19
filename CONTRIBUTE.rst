@@ -83,3 +83,32 @@ Well done! Your contribution is ready to be submitted:
   Target the project's ``dev`` branch!
 - Once the *pull request* is approved and merged you can pull the changes from
   ``upstream`` to your local repo and delete your extra branch(es).
+
+
+Donate
+======
+
+If you want to `support <https://donorbox.org/formulas>`_ the formulas
+development please donate and add your excel function preferences. The selection
+of the functions to be implemented is done considering the cumulative donation
+amount per function collected by the campaign.
+
+.. raw:: html
+
+    <script src="https://donorbox.org/widget.js" paypalExpress="false"></script><iframe src="https://donorbox.org/embed/formulas?amount=25&show_content=true" height="685px" width="100%" style="max-width:100%; min-width:100%; max-height:none!important" seamless="seamless" name="donorbox" frameborder="0" scrolling="no" allowpaymentrequest></iframe>
+
+
+.. note::
+
+    The cumulative donation amount per function is calculated as the example:
+
+    ======== ========= ========= ========= ====== ======================
+    Function Donator 1 Donator 2 Donator 3  TOT    Implementation order
+    -------- --------- --------- --------- ------ ----------------------
+       -        150€      120€      50€     -            -
+    ======== ========= ========= ========= ====== ======================
+      SUM       50€       40€       25€     125€         1st
+      SIN       50€                 25€     75€          3rd
+      TAN       50€       40€               90€          2nd
+      COS                 40€               40€          4th
+    ======== ========= ========= ========= ====== ======================
