@@ -74,7 +74,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'formulas'
-copyright = '2015-2017, Vincenzo Arcidiacono'
+copyright = '2016-2018, Vincenzo Arcidiacono'
 author = 'Vincenzo Arcidiacono'
 
 # The version info for the project you're documenting, acts as replacement for
