@@ -23,11 +23,11 @@ formulas: An Excel formulas interpreter in Python.
 
 What is formulas?
 =================
-Formulas implements an interpreter for excel formulas, which parses and compile
-excel formulas expressions.
+**formulas** implements an interpreter for Excel formulas, which parses and
+compile Excel formulas expressions.
 
-Moreover, it compiles excel workbooks to python and executes without using the
-Excel COM server. Hence,  **Excel is not needed**.
+Moreover, it compiles Excel workbooks to python and executes without using the
+Excel COM server. Hence, **Excel is not needed**.
 
 
 Installation
@@ -49,9 +49,9 @@ Install extras
 --------------
 Some additional functionality is enabled installing the following extras:
 
-- excel: enables to compile excel workbooks to python and execute using:
+- excel: enables to compile Excel workbooks to python and execute using:
   :class:`~formulas.excel.ExcelModel`.
-- plot: enables to plot the formula ast and the excel model.
+- plot: enables to plot the formula ast and the Excel model.
 
 To install formulas and all extras, do:
 
@@ -63,10 +63,16 @@ To install formulas and all extras, do:
 
 Basic Examples
 ==============
+The following sections will show how to:
 
-Parsing
--------
-An example how to parse and execute an excel formula is the following:
+- parse a Excel formulas;
+- load, compile, and execute a Excel workbook;
+- extract a sub-model from a Excel workbook;
+- add a custom function.
+
+Parsing formula
+---------------
+An example how to parse and execute an Excel formula is the following:
 
     >>> import formulas
     >>> func = formulas.Parser().ast('=(1 + 1) + B3 / A2')[1].compile()
@@ -93,9 +99,9 @@ Finally to execute the formula and plot the workflow:
     >>> func.plot(workflow=True, view=False)  # Set view=True to plot in the default browser.
     SiteMap([(=((1 + 1) + (B3 / A2)), SiteMap())])
 
-Excel
------
-An example how to load, calculate, and write an excel workbook is the following:
+Excel workbook
+--------------
+An example how to load, calculate, and write an Excel workbook is the following:
 
 .. testsetup::
 
@@ -113,18 +119,25 @@ An example how to load, calculate, and write an excel workbook is the following:
     >>> xl_model.write()
     {'EXCEL.XLSX': {Book: <openpyxl.workbook.workbook.Workbook ...>}}
 
+To plot the dependency graph that depict relationships between Excel cells:
 
-To compile and execute a sub model from a workbook you can do the following:
+.. dispatcher:: dsp
+   :code:
+
+    >>> dsp = xl_model.dsp
+    >>> dsp.plot(view=False)  # Set view=True to plot in the default browser.
+    SiteMap([(Dispatcher ..., SiteMap())])
+
+To compile, execute, and plot a Excel sub-model you can do the following:
+
+.. dispatcher:: func
+   :code:
 
     >>> inputs = ["'[EXCEL.XLSX]DATA'!A2"]  # input cells
     >>> outputs = ["'[EXCEL.XLSX]DATA'!C2"]  # output cells
     >>> func = xl_model.compile(inputs, outputs)
     >>> func(2).value[0,0]
     4.0
-
-.. dispatcher:: func
-   :code:
-
     >>> func.plot(view=False)  # Set view=True to plot in the default browser.
     SiteMap([(Dispatcher ..., SiteMap())])
 
@@ -143,7 +156,7 @@ An example how to add a custom function to the formula parser is the following:
 
 Next moves
 ==========
-Things yet to do: implement the missing excel formulas.
+Things yet to do: implement the missing Excel formulas.
 
 .. _end-intro:
 .. _start-badges:

@@ -40,15 +40,15 @@ Make sure that you have implemented the **full function syntax**, including the
 -examples-of-array-formulas-7d94a64e-3ff3-4686-9372-ecfd5caa57c7>`_.
 
 Test cases are very important. This library uses a data-driven testing approach.
-For implementing a new function I recommend the `test-driven development cycle
+To implement a new function I recommend the `test-driven development cycle
 <https://en.wikipedia.org/wiki/Test-driven_development
 #Test-driven_development_cycle>`_. Hence, when you implement a new function,
 you should write new test cases in ``test_cell/TestCell.test_output`` suite to
 execute in the *cycle loop*. When you think that the code is ready, add new raw
 test in ``test/test_files/test.xlsx`` (please follow the standard used for other
 functions) and run the ``test_excel/TestExcelModel.test_excel_model``. This
-requires more time but is needed to test the **array syntax** and if the excel
-documentation respect the reality.
+requires more time but is needed to test the **array syntax** and to check if
+the Excel documentation respects the reality.
 
 When all test cases are ok (``python setup.py test``), open a pull request.
 
@@ -79,7 +79,7 @@ Well done! Your contribution is ready to be submitted:
 - `Push <https://help.github.com/articles/pushing-to-a-remote/>`_ your branch to
   your fork on Github (i.e., ``git push origin dev``).
 - From your fork `open <https://help.github.com/articles/creating-a-pull-
-  request-from-a-fork/>`_) a *pull request* in the correct branch.
+  request-from-a-fork/>`_ a *pull request* in the correct branch.
   Target the project's ``dev`` branch!
 - Once the *pull request* is approved and merged you can pull the changes from
   ``upstream`` to your local repo and delete your extra branch(es).
@@ -88,7 +88,7 @@ Well done! Your contribution is ready to be submitted:
 Donate
 ======
 
-If you want to `support <https://donorbox.org/formulas>`_ the formulas
+If you want to `support <https://donorbox.org/formulas>`_ the **formulas**
 development please donate and add your excel function preferences. The selection
 of the functions to be implemented is done considering the cumulative donation
 amount per function collected by the campaign.
