@@ -9,6 +9,7 @@ env:
   - EXTRAS=excel
   - EXTRAS=plot
   - EXTRAS=all
+  - EXTRAS=dev
 
 addons:
   apt:
