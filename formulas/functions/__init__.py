@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-It provides functions implementations to compile the excel functions.
+It provides functions implementations to compile the Excel functions.
 
 Sub-Modules:
 

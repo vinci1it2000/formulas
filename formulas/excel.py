@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-It provides excel model class.
+It provides Excel model class.
 """
 
 import os.path as osp

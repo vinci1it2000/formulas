@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-Python equivalents of engineering excel functions.
+Python equivalents of engineering Excel functions.
 """
 import itertools
 import functools

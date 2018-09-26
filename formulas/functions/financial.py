@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-Python equivalents of financial excel functions.
+Python equivalents of financial Excel functions.
 """
 import numpy as np
 from . import wrap_ufunc, flatten, get_error, Error

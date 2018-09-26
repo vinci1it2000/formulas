@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-Python equivalents of statistical excel functions.
+Python equivalents of statistical Excel functions.
 """
 from . import raise_errors, flatten, wrap_func, Error
 

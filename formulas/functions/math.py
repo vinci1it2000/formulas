@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-Python equivalents of math and trigonometry excel functions.
+Python equivalents of math and trigonometry Excel functions.
 """
 import math
 import functools

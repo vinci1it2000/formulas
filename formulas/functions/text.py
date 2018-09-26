@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-Python equivalents of text excel functions.
+Python equivalents of text Excel functions.
 """
 import functools
 from . import wrap_ufunc, Error, replace_empty, XlError, Array

@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-Python equivalents of lookup and reference excel functions.
+Python equivalents of lookup and reference Excel functions.
 """
 import regex
 import functools

@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-Python equivalents of information excel functions.
+Python equivalents of information Excel functions.
 """
 import numpy as np
 from . import wrap_ranges_func, Error, Array, XlError

@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-Python equivalents of excel operators.
+Python equivalents of Excel operators.
 """
 import schedula as sh
 import functools

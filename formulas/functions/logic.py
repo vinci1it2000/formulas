@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-Python equivalents of logical excel functions.
+Python equivalents of logical Excel functions.
 """
 from . import wrap_ufunc, Array, Error, flatten
 

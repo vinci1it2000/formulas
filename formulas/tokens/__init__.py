@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-It provides tokens needed to parse the excel formulas.
+It provides tokens needed to parse the Excel formulas.
 
 Sub-Modules:
 
