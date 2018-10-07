@@ -22,10 +22,14 @@ class IfArray(Array):
 
 
 def xif(condition, x=True, y=False):
+    if isinstance(condition, str):
+        return Error.errors['#VALUE!']
     return x if condition else y
 
 
-FUNCTIONS['IF'] = wrap_ufunc(xif, otype=lambda *a: IfArray)
+FUNCTIONS['IF'] = wrap_ufunc(
+    xif, input_parser=lambda *a: a, otype=lambda *a: IfArray
+)
 
 
 class IfErrorArray(Array):

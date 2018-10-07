@@ -19,6 +19,7 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.data(
+        ('A1', '=IF(TRUE, "1a", "2b")', {}, '<Ranges>(A1)=[[\'1a\']]'),
         ('A1', '=ROW(4:7)', inp_ranges('4:7'), '<Ranges>(A1)=[[4]]'),
         ('A1', '=ROW(B8:D8:F7:H8 D7:E8)',
          inp_ranges('B8:D8', 'F7:H8', 'D7:E8'), '<Ranges>(A1)=[[7]]'),
@@ -92,7 +93,7 @@ class TestCell(unittest.TestCase):
         ('A1', '=LOOKUP(4,{4.1,2.1,3.1,1.1},{"L","ML","MR","R"})', {},
          '<Ranges>(A1)=[[\'R\']]'),
         ('A1:D1', '=IF({0,-0.2,0},2,{1})', {},
-         '<Ranges>(A1:D1)=[[1.0 2.0 1.0 #N/A]]'),
+         '<Ranges>(A1:D1)=[[1 2 1 #N/A]]'),
         ('A1', '=HEX2DEC(9999999999)', {}, '<Ranges>(A1)=[[-439804651111]]'),
         ('A1', '=HEX2BIN(9999999999)', {}, '<Ranges>(A1)=[[#NUM!]]'),
         ('A1', '=HEX2BIN("FFFFFFFE00")', {}, '<Ranges>(A1)=[[\'1000000000\']]'),
