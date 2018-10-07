@@ -53,11 +53,11 @@ def xcolumn(cell=None, ref=None):
 
 
 FUNCTIONS['COLUMN'] = {
-    'inputs': collections.OrderedDict([(CELL, None)]),
+    'extra_inputs': collections.OrderedDict([(CELL, None)]),
     'function': wrap_func(xcolumn, ranges=True)
 }
 FUNCTIONS['ROW'] = {
-    'inputs': collections.OrderedDict([(CELL, None)]),
+    'extra_inputs': collections.OrderedDict([(CELL, None)]),
     'function': wrap_func(xrow, ranges=True)
 }
 

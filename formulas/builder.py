@@ -41,17 +41,22 @@ class AstBuilder(collections.deque):
             out, dmap, get_id = token.node_id, self.dsp.dmap, get_unused_node_id
             if out not in self.dsp.nodes:
                 func = token.compile()
-                if isinstance(func, dict):
-                    for k, v in func['inputs'].items():
-                        if v is not sh.NONE:
-                            self.dsp.add_data(k, v)
-                    inputs, func = list(func['inputs']) + inputs, func['function']
-                self.dsp.add_function(
+                kw = dict(
                     function_id=get_id(dmap, token.name),
                     function=func,
                     inputs=inputs or None,
-                    outputs=[out]
+                    outputs=[out],
                 )
+                if isinstance(func, dict):
+                    _inputs = func.get('extra_inputs', {})
+                    for k, v in _inputs.items():
+                        if v is not sh.NONE:
+                            self.dsp.add_data(k, v)
+                    kw = sh.combine_dicts(
+                        {'inputs': (list(_inputs) + inputs) or None}, func,
+                        base=kw
+                    )
+                self.dsp.add_function(**kw)
             else:
                 self.nodes[token] = n_id = get_id(dmap, out, 'c%d>{}')
                 self.dsp.add_function(None, sh.bypass, [out], [n_id])
