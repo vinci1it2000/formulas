@@ -10,11 +10,11 @@
 It provides Operand classes.
 """
 
-from . import Token
 # noinspection PyCompatibility
 import regex
 import functools
 import schedula as sh
+from . import Token
 from ..errors import TokenError
 from .parenthesis import _update_n_args
 
@@ -58,7 +58,8 @@ class Error(Operand):
 
 class Number(Operand):
     _re = regex.compile(
-        r'^\s*(?P<name>[0-9]+(?>\.[0-9]+)?(?>E[+-]?[0-9]+|%)?|TRUE|FALSE)\s*(?!\:)',
+        r'^\s*(?P<name>[0-9]+(?>\.[0-9]+)?(?>E[+-]?[0-9]+|%)?|TRUE|FALSE)'
+        r'\s*(?!\:)',
         regex.IGNORECASE
     )
 
@@ -172,7 +173,10 @@ def _build_ref(c1, r1, c2, r2):
         raise ValueError()
     return '%s:%s' % (v1, v2)
 
+
 _re_build_id = regex.compile(r'^[0-9]+$')
+
+
 def _build_id(ref, sheet='', excel=''):
     if excel:
         sheet = "[%s]%s" % (excel, sheet.replace("''", "'"))
