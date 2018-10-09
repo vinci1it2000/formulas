@@ -2,6 +2,48 @@ Changelog
 =========
 
 
+v0.1.3 (2018-10-09)
+-------------------
+
+Feat
+~~~~
+- (excel) :gh:`16`: Solve circular references.
+
+- (setup): Add donate url.
+
+
+Fix
+~~~
+
+- (functions) :gh:`18`: Enable `check_error` in `IF` function just for
+  the first argument.
+
+- (functions) :gh:`18`: Disable `input_parser` in `IF` function to
+  return any type of values.
+
+- (rtd): Define `fpath` from `prj_dir` for rtd.
+
+- (rtd): Add missing requirements `openpyxl` for rtd.
+
+- (setup): Patch to use `sphinxcontrib.restbuilder` in setup
+  `long_description`.
+
+
+Other
+~~~~~
+- Update documentation.
+
+- Replace `excel` with `Excel`.
+
+- Create PULL_REQUEST_TEMPLATE.md.
+
+- Update issue templates.
+
+- Update copyright.
+
+- (doc): Update author mail.
+
+
 v0.1.2 (2018-09-12)
 -------------------
 

@@ -6,8 +6,8 @@ formulas: An Excel formulas interpreter in Python.
 |pypi_ver| |travis_status| |appveyor_status| |cover_status| |docs_status|
 |dependencies| |github_issues| |python_ver| |proj_license|
 
-:release:       0.1.2
-:date:          2018-09-12 16:00:00
+:release:       0.1.3
+:date:          2018-10-09 14:30:00
 :repository:    https://github.com/vinci1it2000/formulas
 :pypi-repo:     https://pypi.org/project/formulas/
 :docs:          http://formulas.readthedocs.io/
