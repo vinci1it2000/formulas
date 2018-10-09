@@ -9,7 +9,7 @@
 """
 Python equivalents of logical Excel functions.
 """
-from . import wrap_ufunc, Array, Error, flatten
+from . import wrap_ufunc, Array, Error, flatten, get_error
 
 FUNCTIONS = {}
 
@@ -28,7 +28,8 @@ def xif(condition, x=True, y=False):
 
 
 FUNCTIONS['IF'] = wrap_ufunc(
-    xif, input_parser=lambda *a: a, otype=lambda *a: IfArray
+    xif, input_parser=lambda *a: a, otype=lambda *a: IfArray,
+    check_error=lambda *a: get_error(a[0])
 )
 
 
