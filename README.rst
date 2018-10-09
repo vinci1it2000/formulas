@@ -119,6 +119,9 @@ An example how to load, calculate, and write an Excel workbook is the following:
     >>> xl_model.write()
     {'EXCEL.XLSX': {Book: <openpyxl.workbook.workbook.Workbook ...>}}
 
+.. tip:: If you have or could have **circular references**, add `circular=True`
+   to `finish` method.
+
 To plot the dependency graph that depict relationships between Excel cells:
 
 .. dispatcher:: dsp
