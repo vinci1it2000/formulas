@@ -27,10 +27,17 @@ def xif(condition, x=True, y=False):
     return x if condition else y
 
 
-FUNCTIONS['IF'] = wrap_ufunc(
-    xif, input_parser=lambda *a: a, otype=lambda *a: IfArray,
-    check_error=lambda *a: get_error(a[0])
-)
+def solve_cycle(*args):
+    return not args[0]
+
+
+FUNCTIONS['IF'] = {
+    'function': wrap_ufunc(
+        xif, input_parser=lambda *a: a, otype=lambda *a: IfArray,
+        check_error=lambda cond, *a: get_error(cond)
+    ),
+    'solve_cycle': solve_cycle
+}
 
 
 class IfErrorArray(Array):
@@ -55,7 +62,10 @@ def xiferror_otype(val, val_if_error):
     return _IfErrorArray
 
 
-FUNCTIONS['IFERROR'] = wrap_ufunc(
-    xiferror, input_parser=lambda *a: a,
-    check_error=lambda *a: False, otype=xiferror_otype
-)
+FUNCTIONS['IFERROR'] = {
+    'function': wrap_ufunc(
+        xiferror, input_parser=lambda *a: a,
+        check_error=lambda *a: False, otype=xiferror_otype
+    ),
+    'solve_cycle': solve_cycle
+}

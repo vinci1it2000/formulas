@@ -17,19 +17,41 @@ from .parser import Parser
 from .ranges import Ranges, _assemble_values
 from .tokens.operand import Error, XlError
 
+CELL = sh.Token('Cell')
+
+
+class CellWrapper:
+    def __init__(self, func, parse_args, parse_kwargs):
+        self.func = func
+        self.parse_args = parse_args
+        self.parse_kwargs = parse_kwargs
+
+    def __call__(self, *args, **kwargs):
+        return self.func(*self.parse_args(*args), **self.parse_kwargs(**kwargs))
+
+    def check_cycles(self, cycle):
+        import networkx as nx
+        func = self.func
+        f_nodes, o, cells = func.dsp.function_nodes, func.outputs[0], set()
+        dmap, inputs, k = func.dsp.dmap.copy(), func.inputs, 'solve_cycle'
+        dmap.add_edges_from((o, i) for i in inputs if i in cycle)
+        for c in map(set, nx.simple_cycles(dmap)):
+            for n in map(f_nodes.get, c.intersection(f_nodes)):
+                if k in n and n[k](*(i in c for i in n['inputs'])):
+                    cells.update(c.intersection(inputs))
+                    break
+            else:
+                return set()
+        return cells
+
 
 def wrap_cell_func(func, parse_args=lambda *a: a, parse_kwargs=lambda **kw: kw):
-    def wrapper(*args, **kwargs):
-        return func(*parse_args(*args), **parse_kwargs(**kwargs))
-
+    wrapper = CellWrapper(func, parse_args, parse_kwargs)
     return functools.update_wrapper(wrapper, func)
 
 
 def format_output(rng, value):
     return Ranges().set_value(rng, value)
-
-
-CELL = sh.Token('Cell')
 
 
 class Cell(object):

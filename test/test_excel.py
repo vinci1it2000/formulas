@@ -18,6 +18,7 @@ mydir = osp.join(osp.dirname(__file__), 'test_files')
 _filename = 'test.xlsx'
 _filename_compile = 'excel.xlsx'
 _link_filename = 'test_link.xlsx'
+_filename_circular = 'circular.xlsx'
 
 
 def _book2dict(book):
@@ -36,20 +37,26 @@ class TestExcelModel(unittest.TestCase):
     def setUp(self):
         import openpyxl
         self.filename = osp.join(mydir, _filename)
-        self.filename_compile = osp.join(mydir, _filename_compile)
-
         self.link_filename = osp.join(mydir, _link_filename)
+        self.filename_compile = osp.join(mydir, _filename_compile)
+        self.filename_circular = osp.join(mydir, _filename_circular)
+
         self.results = {
             _filename.upper(): _book2dict(
                 openpyxl.load_workbook(self.filename, data_only=True)
             ),
             _link_filename.upper(): _book2dict(
                 openpyxl.load_workbook(self.link_filename, data_only=True)
-            ),
+            )
         }
         self.results_compile = _book2dict(
             openpyxl.load_workbook(self.filename_compile, data_only=True)
         )['DATA']
+        self.results_circular = {
+            _filename_circular.upper(): _book2dict(
+                openpyxl.load_workbook(self.filename_circular, data_only=True)
+            )
+        }
 
         self.maxDiff = None
 
@@ -97,3 +104,12 @@ class TestExcelModel(unittest.TestCase):
         i = sh.selector(inputs, self.results_compile, output_type='list')
         res = sh.selector(outputs, self.results_compile, output_type='list')
         self.assertEqual([x.value[0, 0] for x in func(*i)], res)
+
+    def test_excel_model_cycles(self):
+        xl_model = ExcelModel().loads(self.filename_circular).finish(cycles=1)
+        xl_model.calculate()
+        books = xl_model.books
+        books = {k: _book2dict(v[BOOK])
+                 for k, v in xl_model.write(books).items()}
+
+        self._compare(books, self.results_circular)

@@ -81,7 +81,7 @@ if __name__ == '__main__':
         long_description = ''
 
     extras = {
-        'excel': ['openpyxl'],
+        'excel': ['openpyxl', 'networkx'],
         'plot': ['graphviz', 'regex', 'flask', 'Pygments', 'lxml', 'bs4',
                  'jinja2', 'docutils']  # ['schedula[plot]>=0.2.0']
     }

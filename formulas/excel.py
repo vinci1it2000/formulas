@@ -14,12 +14,13 @@ import os.path as osp
 import schedula as sh
 from .ranges import Ranges
 from .cell import Cell, RangesAssembler
-from .tokens.operand import range2parts
+from .tokens.operand import range2parts, XlError
 from .functions import flatten
-
 
 BOOK = sh.Token('Book')
 SHEETS = sh.Token('Sheets')
+CIRCULAR = sh.Token('CIRCULAR')
+ERR_CIRCULAR = XlError('0')
 
 
 def _get_name(name, names):
@@ -142,7 +143,7 @@ class ExcelModel(object):
             d['formula_references'] = formula_references = {
                 k: v['ref'] for k, v in worksheet.formula_attributes.items()
                 if v.get('t') == 'array' and 'ref' in v
-                }
+            }
         else:
             formula_references = d['formula_references']
 
@@ -150,7 +151,7 @@ class ExcelModel(object):
             d['formula_ranges'] = {
                 Ranges().push(ref, context=context)
                 for ref in formula_references.values()
-                }
+            }
         return worksheet, context
 
     def add_cell(self, cell, context, references=None, formula_references=None,
@@ -212,7 +213,7 @@ class ExcelModel(object):
                 if cell:
                     stack.extend(cell.inputs or ())
 
-    def finish(self, complete=True):
+    def finish(self, complete=True, circular=False):
         if complete:
             self.complete()
         for n_id in sorted(set(self.dsp.data_nodes) - set(self.cells)):
@@ -225,6 +226,9 @@ class ExcelModel(object):
                     break
 
             self.dsp.add_function(None, ra, ra.inputs or None, [ra.output])
+
+        if circular:
+            self.solve_circular()
 
         return self
 
@@ -286,3 +290,38 @@ class ExcelModel(object):
         )
 
         return func
+
+    def solve_circular(self):
+        import networkx as nx
+        mod, dsp = {}, self.dsp
+        f_nodes, d_nodes, dmap = dsp.function_nodes, dsp.data_nodes, dsp.dmap
+
+        for cycle in sorted(map(set, nx.simple_cycles(dmap))):
+            for k in sorted(cycle.intersection(f_nodes)):
+                if _check_cycles(k, f_nodes, cycle, mod):
+                    break
+            else:
+                dist = sh.inf(*((len(cycle) + 1,) * 2))
+                for k in sorted(cycle.intersection(d_nodes))[:1]:
+                    dsp.set_default_value(k, ERR_CIRCULAR, dist)
+
+        if mod:  # Update dsp.
+            dsp.add_data(CIRCULAR, ERR_CIRCULAR)
+
+            for k, v in mod.items():
+                d = f_nodes[k]
+                d['inputs'] = [CIRCULAR if i in v else i for i in d['inputs']]
+                dmap.remove_edges_from(((i, k) for i in v))
+                dmap.add_edge(CIRCULAR, k)
+
+        return self
+
+
+def _check_cycles(node_id, nodes, cycle, mod=None):
+    node, mod = nodes[node_id], {} if mod is None else mod
+    _map = dict(zip(node['function'].inputs, node['inputs']))
+    cycle = [i for i, j in _map.items() if j in cycle]
+    i = tuple(map(_map.get, node['function'].check_cycles(cycle)))
+    if i:
+        sh.get_nested_dicts(mod, node_id, default=set).update(i)
+        return i
