@@ -106,7 +106,7 @@ class TestExcelModel(unittest.TestCase):
         self.assertEqual([x.value[0, 0] for x in func(*i)], res)
 
     def test_excel_model_cycles(self):
-        xl_model = ExcelModel().loads(self.filename_circular).finish(cycles=1)
+        xl_model = ExcelModel().loads(self.filename_circular).finish(circular=1)
         xl_model.calculate()
         books = xl_model.books
         books = {k: _book2dict(v[BOOK])
