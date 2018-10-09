@@ -298,11 +298,11 @@ class ExcelModel(object):
 
         for cycle in sorted(map(set, nx.simple_cycles(dmap))):
             for k in sorted(cycle.intersection(f_nodes)):
-                if _check_cycles(k, f_nodes, cycle, mod):
+                if _check_cycles(dmap, k, f_nodes, cycle, mod):
                     break
             else:
-                dist = sh.inf(*((len(cycle) + 1,) * 2))
-                for k in sorted(cycle.intersection(d_nodes))[:1]:
+                dist = sh.inf(len(cycle) + 1, 0)
+                for k in sorted(cycle.intersection(d_nodes)):
                     dsp.set_default_value(k, ERR_CIRCULAR, dist)
 
         if mod:  # Update dsp.
@@ -317,11 +317,16 @@ class ExcelModel(object):
         return self
 
 
-def _check_cycles(node_id, nodes, cycle, mod=None):
+def _check_cycles(dmap, node_id, nodes, cycle, mod=None):
     node, mod = nodes[node_id], {} if mod is None else mod
     _map = dict(zip(node['function'].inputs, node['inputs']))
-    cycle = [i for i, j in _map.items() if j in cycle]
-    i = tuple(map(_map.get, node['function'].check_cycles(cycle)))
-    if i:
-        sh.get_nested_dicts(mod, node_id, default=set).update(i)
-        return i
+    pred, res = dmap.predecessors, ()
+    check = lambda j: isinstance(nodes[j]['function'], RangesAssembler)
+    if not any(any(map(check, pred(k))) for k in _map.values() if k in cycle):
+        cycle = [i for i, j in _map.items() if j in cycle]
+        try:
+            res = tuple(map(_map.get, node['function'].check_cycles(cycle)))
+            res and sh.get_nested_dicts(mod, node_id, default=set).update(res)
+        except AttributeError:
+            pass
+    return res
