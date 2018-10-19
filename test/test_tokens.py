@@ -8,7 +8,7 @@
 
 import unittest
 import ddt
-from formulas.tokens.operand import String, Error, Range
+from formulas.tokens.operand import String, Error, Range, Number
 from formulas.tokens.operator import OperatorToken
 from formulas.errors import TokenError
 
@@ -28,6 +28,18 @@ class TestTokens(unittest.TestCase):
     def test_invalid_range(self, inputs):
         with self.assertRaises(TokenError):
             Range(inputs)
+
+    @ddt.data(('1.2 a', 1.2), ('TrUe', True), ('FAlse', False),
+              ('1e+10', 1e10), ('5', 5), ('3e-2', 3e-2))
+    def test_number(self, case):
+        inputs, result = case
+        output = Number(inputs).compile()
+        self.assertEqual(result, output, '%r != %r' % (result, output))
+
+    @ddt.data('+1', '-1', '.4', '2e10', '3 :', '4.5a', 'TRUE1', 'FALSE3')
+    def test_invalid_number(self, inputs):
+        with self.assertRaises(TokenError):
+            Number(inputs)
 
     @ddt.data(
         (' <=', '<='), (' <>', '<>'), ('  <', '<'), ('>', '>'), ('>=', '>='),

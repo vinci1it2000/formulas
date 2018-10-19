@@ -19,6 +19,7 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.data(
+        ('A1', '=5%', {}, '<Ranges>(A1)=[[0.05]]'),
         ('A1', '=IF(#NAME?, #VALUE!, #N/A)', {}, '<Ranges>(A1)=[[#NAME?]]'),
         ('A1', '=IF(TRUE, #VALUE!, #N/A)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=IF(FALSE, #VALUE!, #N/A)', {}, '<Ranges>(A1)=[[#N/A]]'),

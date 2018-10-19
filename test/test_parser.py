@@ -20,6 +20,7 @@ from formulas.functions import wrap_ranges_func
 @ddt.ddt
 class TestParser(unittest.TestCase):
     @ddt.data(
+        ('=5%', '5%'),
         ('=2:3', '2:3'),
         ('=A:B', 'A:B'),
         ('=[0]S.H.E.E.t!_r_e_f_1__', '[0]S.H.E.E.T!_R_E_F_1__'),
