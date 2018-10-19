@@ -8,8 +8,8 @@
 
 
 #: Authoritative project's PEP 440 version.
-__version__ = version = "0.1.3"  # Also update README.rst
+__version__ = version = "0.1.4"  # Also update README.rst
 
 # Please UPDATE TIMESTAMP WHEN BUMPING VERSIONS AND BEFORE RELEASE.
 #: Release date.
-__updated__ = "2018-10-09 14:30:00"
+__updated__ = "2018-10-19 11:00:00"
