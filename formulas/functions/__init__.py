@@ -32,6 +32,7 @@ import functools
 import collections
 import numpy as np
 import schedula as sh
+import datetime
 from formulas.errors import (
     RangeValueError, FunctionError, FoundError, BaseError, BroadcastError
 )
@@ -109,7 +110,7 @@ def parse_ranges(*args, **kw):
 
 
 SUBMODULES = [
-    '.info', '.logic', '.math', '.stat', '.financial', '.text', '.look', '.eng'
+    '.info', '.logic', '.math', '.stat', '.financial', '.text', '.look', '.eng', '.date'
 ]
 # noinspection PyDictCreation
 FUNCTIONS = {}
@@ -141,6 +142,41 @@ def is_number(number):
             return False
     return True
 
+def excel_datevalue(d):
+    if(isinstance(d, datetime.datetime)):
+        return (d.date() - datetime.date(day=1, month=1, year=1900)).days + 2
+    return (d - datetime.date(day=1, month=1, year=1900)).days + 2
+
+def excel_filter(accumlator, test_range, condition, operating_range=None):
+
+    from formulas.functions.operators import OPERATORS
+    if(operating_range is None):
+        operating_range = test_range
+
+    ret = 0
+    operating_r = list(flatten(operating_range, None))
+    test_r = list(flatten(test_range, None))
+    test = OPERATORS["="]
+    try:
+        # Check if starts with an operator
+        operator = list(filter(lambda x: condition.strip().startswith(x), OPERATORS.keys()))[0]
+        condition = float(condition.lstrip(operator))
+        test = OPERATORS[operator]
+    except (KeyError, IndexError, AttributeError):
+        pass
+    for i in range(0, len(test_r)):
+        if(test(test_r[i], condition).item()):
+            ret = accumlator(ret, operating_r[i])
+    return ret
+
+def convert_dates(l):
+    if(isinstance(l, np.ndarray)):
+        for x in np.nditer(l, op_flags=['readwrite'], flags=['refs_ok']):
+            if(isinstance(x.item(), datetime.date)):
+                x[...] = excel_datevalue(x.item())
+    elif(isinstance(l, datetime.date)):
+        return excel_datevalue(l)
+    return l
 
 def flatten(l, check=is_number):
     if not isinstance(l, str) and isinstance(l, collections.Iterable):
@@ -156,15 +192,19 @@ def flatten(l, check=is_number):
 def wrap_ufunc(
         func, input_parser=lambda *a: map(float, a), check_error=get_error,
         args_parser=lambda *a: map(replace_empty, a), otype=lambda *a: Array,
-        ranges=False, **kw):
+        ranges=False, output_parser=lambda x: x, **kw):
     """Helps call a numpy universal function (ufunc)."""
 
     def safe_eval(*vals):
         try:
-            r = check_error(*vals) or func(*input_parser(*vals))
+            r = check_error(*vals) or output_parser(func(*input_parser(*vals)))
             if not isinstance(r, (XlError, str)):
-                r = (np.isnan(r) or np.isinf(r)) and Error.errors['#NUM!'] or r
-        except (ValueError, TypeError):
+                try:
+                    r = (np.isnan(r) or np.isinf(r)) and Error.errors['#NUM!'] or r
+                except (TypeError, ) as e:
+                    # Leave r unchanged. Most likely a date value that can't be cast to nan or inf
+                    pass
+        except (ValueError, TypeError) as e:
             r = Error.errors['#VALUE!']
         return r
 

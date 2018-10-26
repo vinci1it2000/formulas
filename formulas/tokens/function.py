@@ -31,6 +31,10 @@ class Function(Token):
         from formulas.functions import get_functions
         return get_functions()[self.name.upper()]
 
+    def exists(self):
+        from formulas.functions import get_functions
+        return self.name.upper() in get_functions()
+
     def set_expr(self, *tokens):
         args = ', '.join(t.get_expr for t in tokens)
         self.attr['expr'] = '%s(%s)' % (self.name.upper(), args)

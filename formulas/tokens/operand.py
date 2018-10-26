@@ -41,6 +41,10 @@ class String(Operand):
     def compile(self):
         return self.name.replace('""', '"')
 
+    @property
+    def node_id(self):
+        # A string could be the same as the name of an operator (example "OR" used inside OR function)
+        return "__" + self.get_expr
 
 class Error(Operand):
     _re = regex.compile(
@@ -84,13 +88,13 @@ _re_range = r"""
         (?>
             (?>
                 (?>
-                    \$?(?P<c1>[A-Z]+)?\$?(?P<r1>[1-9]\d*)?
-                    (?>:\$?(?P<c2>[A-Z]+)?)(\$?(?P<r2>[1-9]\d*)?)?
+                    \$?(?P<c1>[A-Z]{1,3})?\$?(?P<r1>[1-9]\d*)?
+                    (?>:\$?(?P<c2>[A-Z]{1,3})?)(\$?(?P<r2>[1-9]\d*)?)?
                 )
             |
-                \$?(?P<c1>[A-Z]+)\$?(?P<r1>[1-9]\d*)
+                \$?(?P<c1>[A-Z]{1,3})\$?(?P<r1>[1-9]\d*)
             |
-                \$?(?P<c1>[A-Z]+):\$?(?P<c2>[A-Z]+)
+                \$?(?P<c1>[A-Z]{1,3}):\$?(?P<c2>[A-Z]{1,3})
             |
                 \$?(?P<r1>[1-9]\d*):\$?(?P<r2>[1-9]\d*)
             )

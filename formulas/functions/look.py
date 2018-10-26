@@ -14,7 +14,7 @@ import functools
 import collections
 import numpy as np
 from . import (
-    wrap_func, wrap_ufunc, Error, flatten, get_error, XlError, FoundError, Array
+    wrap_func, wrap_ufunc, Error, flatten, get_error, XlError, FoundError, Array, convert_dates
 )
 from ..cell import CELL
 
@@ -111,8 +111,9 @@ def xmatch(lookup_value, lookup_array, match_type=1):
 FUNCTIONS['MATCH'] = wrap_ufunc(
     xmatch,
     input_parser=lambda val, vec, match_type=1: (
-        val, list(flatten(vec, None)), match_type
+        val, list(flatten(convert_dates(vec), None)), match_type
     ),
+    args_parser=lambda *a: a,
     check_error=lambda *a: get_error(a[:1]), excluded={1, 2}
 )
 
@@ -128,9 +129,10 @@ def xlookup(lookup_val, lookup_vec, result_vec=None, match_type=1):
 FUNCTIONS['LOOKUP'] = wrap_ufunc(
     xlookup,
     input_parser=lambda val, vec, res=None: (
-        val, list(flatten(vec, None)),
+        convert_dates(val), list(flatten(convert_dates(vec), None)),
         res if res is None else list(flatten(res, None))
     ),
+    args_parser=lambda *a: a,
     check_error=lambda *a: get_error(a[:1]), excluded={1, 2}
 )
 
@@ -144,15 +146,17 @@ def _hlookup_parser(val, vec, index, match_type=1, transpose=False):
         ref = list(flatten(vec[index].A1, None))
     except IndexError:
         raise FoundError(err=Error.errors['#REF!'])
-    vec = list(flatten(vec[0].A1, None))
-    return val, vec, ref, bool(match_type)
-
+    vec = list(flatten(convert_dates(vec[0].A1), None))
+    return convert_dates(val), vec, ref, bool(match_type)
 
 FUNCTIONS['HLOOKUP'] = wrap_ufunc(
     xlookup, input_parser=_hlookup_parser,
+    args_parser=lambda *a: a,
     check_error=lambda *a: get_error(a[:1]), excluded={1, 2, 3}
 )
 FUNCTIONS['VLOOKUP'] = wrap_ufunc(
     xlookup, input_parser=functools.partial(_hlookup_parser, transpose=True),
+    args_parser=lambda *a: a,
     check_error=lambda *a: get_error(a[:1]), excluded={1, 2, 3}
 )
+

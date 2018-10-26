@@ -12,9 +12,11 @@ Python equivalents of math and trigonometry Excel functions.
 import math
 import functools
 import numpy as np
+from decimal import Decimal, ROUND_HALF_UP
+
 from . import (
     get_error, raise_errors, is_number, flatten, wrap_ufunc, wrap_func,
-    replace_empty, Error
+    replace_empty, Error, excel_filter
 )
 
 # noinspection PyDictCreation
@@ -266,7 +268,10 @@ def xroman(num, form=0):
 FUNCTIONS['ROMAN'] = wrap_ufunc(xroman, input_parser=lambda *a: a)
 
 
-def xround(x, d, func=round):
+def round_up(x):
+    return float(Decimal(x).quantize(0, rounding=ROUND_HALF_UP))
+
+def xround(x, d=0, func=round_up):
     d = 10 ** int(d)
     v = func(abs(x * d)) / d
     return -v if x < 0 else v
@@ -325,6 +330,14 @@ def xsum(*args):
 
 
 FUNCTIONS['SUM'] = wrap_func(xsum)
+
+
+def xsumif(test_range, condition, sum_range=None):
+    return excel_filter(lambda x, y: x + y, test_range, condition, sum_range)
+
+
+FUNCTIONS['SUMIF'] = wrap_func(xsumif)
+
 FUNCTIONS['TAN'] = wrap_ufunc(np.tan)
 FUNCTIONS['TANH'] = wrap_ufunc(np.tanh)
 FUNCTIONS['TRUNC'] = wrap_ufunc(functools.partial(xround, func=math.trunc))

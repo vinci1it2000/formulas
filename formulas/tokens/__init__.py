@@ -30,7 +30,9 @@ class Token(object):
 
     def __init__(self, s, context=None):
         self.source, self.attr = s, {}
-        self.match = m = self.match(s)
+        self.s = s
+        m = self.match
+        self.context = context
         if m and m.end(0):
             self.attr.update(self.process(m, context))
         if not self.attr:
@@ -62,8 +64,12 @@ class Token(object):
     def __repr__(self):
         return '{} <{}>'.format(self.name, self.__class__.__name__)
 
+    def __getstate__(self): return self.__dict__
+    def __setstate__(self, d): self.__dict__.update(d)
+
     def process(self, match, context=None):
         return {k: v for k, v in match.groupdict().items() if v is not None}
 
-    def match(self, s):
-        return self._re.match(s)
+    @property
+    def match(self):
+        return self._re.match(self.s)

@@ -12,6 +12,11 @@ It provides Excel model class.
 
 import os.path as osp
 import schedula as sh
+import dill
+
+from schedula.utils.io import save_dispatcher, load_dispatcher
+
+from formulas.errors import FormulaError
 from .ranges import Ranges
 from .cell import Cell, RangesAssembler
 from .tokens.operand import range2parts, XlError
@@ -66,6 +71,67 @@ class ExcelModel(object):
         book, context = self.add_book(filename)
         self.pushes(*book.worksheets, context=context)
         return self
+
+
+    def _load_bin(self, fn):
+        with open(fn, 'rb') as f:
+            return dill.load(f)
+
+    def _save_bin(self, obj, fn):
+        with open(fn, 'wb') as f:
+            dill.dump(obj, f)
+
+    def save_bin(self, fn):
+        self._save_bin(self, fn + ".fxl")
+
+    def _update_constant_value(self, attr, value):
+        setattr(sh.utils.cst, attr, value)
+        setattr(sh.utils.sol, attr, value)
+        setattr(sh.dispatcher, attr, value)
+        setattr(sh.utils.alg, attr, value)
+        setattr(sh.utils, attr, value)
+        setattr(sh.utils.base, attr, value)
+        setattr(sh, attr, value)
+
+    def _update_constants(self, constant_token):
+        k = constant_token
+        if(str(k) == "start"):
+            self._update_constant_value("START", k)
+        if(str(k) == "empty"):
+            self._update_constant_value("EMPTY", k)
+        if(str(k) == "none"):
+            self._update_constant_value("NONE", k)
+        if(str(k) == "sink"):
+            self._update_constant_value("SINK", k)
+        if(str(k) == "end"):
+            self._update_constant_value("END", k)
+        if(str(k) == "self"):
+            self._update_constant_value("SELF", k)
+        if(str(k) == "plot"):
+            self._update_constant_value("PLOT", k)
+
+    def _populate_self(self, xl_model):
+        self.dsp = xl_model.dsp
+        self.cells = xl_model.cells
+        self.books = xl_model.books
+        self.calculate = self.dsp.dispatch
+        for k, v in self.dsp.nodes.items():
+            self._update_constants(k)
+            self._update_constants(v)
+        for k, v in self.cells.items():
+            if(str(v.range._value)=="none"):
+                self._update_constants(v.range._value)
+                break
+
+    def load_bin_file(self, f):
+        """Load already open filehandle"""
+        xl_model = dill.load(f)
+        self._populate_self(xl_model)
+
+    def load_bin(self, fn):
+        """Load file by name"""
+        xl_model = self._load_bin(fn + ".fxl")
+        self._populate_self(xl_model)
 
     def pushes(self, *worksheets, context=None):
         for ws in worksheets:
@@ -181,7 +247,11 @@ class ExcelModel(object):
         )
         crd = cell.coordinate
         crd = formula_references.get(crd, crd)
-        cell = Cell(crd, cell.value, context=context).compile()
+        try:
+            cell = Cell(crd, cell.value, context=context).compile()
+        except FormulaError:
+            # There was an error so set this value with the NA error using the excel function
+            cell = Cell(crd, "=NA()", context=context).compile()
         if cell.output in self.cells:
             return
         if cell.value is not sh.EMPTY:
@@ -280,8 +350,11 @@ class ExcelModel(object):
         )
 
         for k, v in sh.selector(dsp.data_nodes, res, allow_miss=True).items():
-            dsp.set_default_value(k, v.value)
-
+            try:
+                dsp.set_default_value(k, v.value)
+            except AttributeError:
+                # Circular token does not have v.value (it is an XlError)
+                pass
         func = self.compile_class(
             dsp=dsp,
             function_id=self.dsp.name,
