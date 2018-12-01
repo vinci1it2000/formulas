@@ -279,7 +279,8 @@ class ExcelModel(object):
             wildcard=False
         )
 
-        for k, v in sh.selector(dsp.data_nodes, res, allow_miss=True).items():
+        keys = set(dsp.data_nodes) - set(dsp.default_values)
+        for k, v in sh.selector(keys, res, allow_miss=True).items():
             dsp.set_default_value(k, v.value)
 
         func = self.compile_class(

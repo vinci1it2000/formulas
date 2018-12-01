@@ -9,7 +9,7 @@ import os
 import unittest
 import os.path as osp
 import schedula as sh
-from formulas.excel import ExcelModel, BOOK
+from formulas.excel import ExcelModel, BOOK, ERR_CIRCULAR
 from formulas.functions import is_number
 
 EXTRAS = os.environ.get('EXTRAS', 'all')
@@ -104,6 +104,15 @@ class TestExcelModel(unittest.TestCase):
         i = sh.selector(inputs, self.results_compile, output_type='list')
         res = sh.selector(outputs, self.results_compile, output_type='list')
         self.assertEqual([x.value[0, 0] for x in func(*i)], res)
+
+        xl_model = ExcelModel()
+        xl_model.loads(self.filename_circular)
+        xl_model.finish(circular=1)
+        func = xl_model.compile(
+            ["'[CIRCULAR.XLSX]DATA'!A10"], ["'[CIRCULAR.XLSX]DATA'!E10"]
+        )
+        self.assertEqual(func(False).value[0, 0], 2.0)
+        self.assertIs(func(True).value[0, 0], ERR_CIRCULAR)
 
     def test_excel_model_cycles(self):
         xl_model = ExcelModel().loads(self.filename_circular).finish(circular=1)
