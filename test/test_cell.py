@@ -136,7 +136,7 @@ class TestCell(unittest.TestCase):
     def test_invalid(self, case):
         reference, formula, inputs = case
         with self.assertRaises(sh.DispatcherError):
-            dsp = sh.Dispatcher()
+            dsp = sh.Dispatcher(raises=True)
             cell = Cell(reference, formula).compile()
             assert cell.add(dsp)
             dsp(inputs)

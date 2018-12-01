@@ -25,7 +25,9 @@ class AstBuilder(collections.deque):
     def __init__(self, *args, dsp=None, nodes=None, match=None, **kwargs):
         super(AstBuilder, self).__init__(*args, **kwargs)
         self.match = match
-        self.dsp = dsp or sh.Dispatcher(raises=True)
+        self.dsp = dsp or sh.Dispatcher(
+            raises=lambda ex: not isinstance(ex, FormulaError)
+        )
         self.nodes = nodes or {}
         self.missing_operands = set()
 
@@ -109,6 +111,6 @@ class AstBuilder(collections.deque):
                         i[k] = Ranges().push(k)
                     except ValueError:
                         i[k] = None
-
+        dsp.raises = True
         dsp.nodes[o]['filters'] = wrap_ranges_func(sh.bypass),
         return sh.DispatchPipe(dsp, '=%s' % o, i, [o], wildcard=False)

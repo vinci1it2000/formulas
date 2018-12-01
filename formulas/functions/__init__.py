@@ -76,13 +76,14 @@ def replace_empty(x, empty=0):
 # noinspection PyUnusedLocal
 def wrap_func(func, ranges=False):
     def wrapper(*args, **kwargs):
+        # noinspection PyBroadException
         try:
             return func(*args, **kwargs)
         except FoundError as ex:
             return np.asarray([[ex.err]], object)
         except BaseError as ex:
             raise ex
-        except (ValueError, TypeError):
+        except Exception:
             return np.asarray([[Error.errors['#VALUE!']]], object)
 
     if not ranges:

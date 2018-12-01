@@ -9,7 +9,7 @@ import os
 import unittest
 from setup import get_long_description, read_project_version
 
-EXTRAS = os.environ.get('EXTRAS', 'all')
+EXTRAS = os.environ.get('EXTRAS', 'dev')
 
 
 @unittest.skipIf(EXTRAS not in ('dev',), 'Not for extra %s.' % EXTRAS)

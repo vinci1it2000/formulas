@@ -142,7 +142,7 @@ To compile, execute, and plot a Excel sub-model you can do the following:
     >>> func(2).value[0,0]
     4.0
     >>> func.plot(view=False)  # Set view=True to plot in the default browser.
-    SiteMap([(Dispatcher ..., SiteMap())])
+    SiteMap([(..., SiteMap())])
 
 Custom functions
 ----------------

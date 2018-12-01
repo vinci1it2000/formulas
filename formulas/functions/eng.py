@@ -81,7 +81,7 @@ def _dec2x(x, places=None, base=16):
 
 @functools.lru_cache()
 def hex2dec2bin2oct(function_id):
-    dsp = sh.Dispatcher()
+    dsp = sh.Dispatcher(raises=True)
 
     for k in ('HEX', 'OCT', 'BIN'):
         dsp.add_data(k, filters=[_parseX])

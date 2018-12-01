@@ -192,7 +192,7 @@ def _sum(*args):
 
 @functools.lru_cache(None)
 def _range2parts(inputs, outputs):
-    dsp = sh.Dispatcher()
+    dsp = sh.Dispatcher(raises=True)
     dsp.add_data(data_id='cr', default_value='1')
     dsp.add_data(data_id='cc', default_value='1')
     dsp.add_function('relative2absolute', _sum, ['cr', 'rr1'], ['r1'])
