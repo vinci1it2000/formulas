@@ -85,3 +85,13 @@ class TestTokens(unittest.TestCase):
     def test_invalid_errors(self, inputs):
         with self.assertRaises(TokenError):
             Error(inputs)
+
+    def test_deepcopy(self):
+        import copy
+        obj = Range('A:A')
+        self.assertIsNot(obj, copy.deepcopy(obj))
+
+    def test_dill(self):
+        import dill
+        obj = Range('A:A')
+        self.assertEqual(str(obj), str(dill.loads(dill.dumps(obj))))

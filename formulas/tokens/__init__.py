@@ -25,13 +25,14 @@ Sub-Modules:
 from ..errors import TokenError
 
 
-class Token(object):
+class Token:
     _re = None
 
     def __init__(self, s, context=None):
         self.source, self.attr = s, {}
-        self.match = m = self.match(s)
-        if m and m.end(0):
+        m = self.match(s)
+        self.end_match = m and m.end(0)
+        if self.end_match:
             self.attr.update(self.process(m, context))
         if not self.attr:
             raise TokenError(s)
@@ -58,6 +59,7 @@ class Token(object):
             return item[4:] in self.attr
         elif item.startswith('get_'):
             return self.attr[item[4:]]
+        return super(Token, self).__getattr__(item)
 
     def __repr__(self):
         return '{} <{}>'.format(self.name, self.__class__.__name__)

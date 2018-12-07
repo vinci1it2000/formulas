@@ -21,15 +21,24 @@ from .ranges import Ranges
 from schedula.utils.alg import get_unused_node_id
 
 
-class AstBuilder(collections.deque):
-    def __init__(self, *args, dsp=None, nodes=None, match=None, **kwargs):
-        super(AstBuilder, self).__init__(*args, **kwargs)
+class AstBuilder:
+    def __init__(self, dsp=None, nodes=None, match=None):
+        self._deque = collections.deque()
         self.match = match
         self.dsp = dsp or sh.Dispatcher(
             raises=lambda ex: not isinstance(ex, FormulaError)
         )
         self.nodes = nodes or {}
         self.missing_operands = set()
+
+    def __len__(self):
+        return len(self._deque)
+
+    def __getitem__(self, index):
+        return self._deque[index]
+
+    def pop(self):
+        return self._deque.pop()
 
     def append(self, token):
         if isinstance(token, (Operator, Function)):
@@ -64,8 +73,7 @@ class AstBuilder(collections.deque):
                 self.dsp.add_function(None, sh.bypass, [out], [n_id])
         elif isinstance(token, Operand):
             self.missing_operands.add(token)
-
-        super(AstBuilder, self).append(token)
+        self._deque.append(token)
 
     def get_node_id(self, token):
         if token in self.nodes:

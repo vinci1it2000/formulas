@@ -32,14 +32,19 @@ def _get_name(name, names):
     return name
 
 
-class ExcelModel(object):
+class ExcelModel:
     compile_class = sh.DispatchPipe
 
     def __init__(self):
-        self.dsp = sh.Dispatcher()
-        self.calculate = self.dsp.dispatch
+        self.dsp = sh.Dispatcher(name='ExcelModel')
         self.cells = {}
         self.books = {}
+
+    def calculate(self, *args, **kwargs):
+        return self.dsp.dispatch(*args, **kwargs)
+
+    def __getstate__(self):
+        return {'dsp': self.dsp, 'cells': {}, 'books': {}}
 
     @staticmethod
     def _yield_refs(book, context=None):
@@ -92,8 +97,7 @@ class ExcelModel(object):
 
     def add_book(self, book, context=None, data_only=False):
         context = context or {}
-        are_in = sh.are_in_nested_dicts
-        get_in = sh.get_nested_dicts
+        are_in, get_in = sh.are_in_nested_dicts, sh.get_nested_dicts
 
         if 'excel' in context:
             context = context.copy()
@@ -235,8 +239,7 @@ class ExcelModel(object):
     def write(self, books=None, solution=None):
         books = {} if books is None else books
         solution = self.dsp.solution if solution is None else solution
-        are_in = sh.are_in_nested_dicts
-        get_in = sh.get_nested_dicts
+        are_in, get_in = sh.are_in_nested_dicts, sh.get_nested_dicts
         for k, r in solution.items():
             if isinstance(k, sh.Token):
                 continue

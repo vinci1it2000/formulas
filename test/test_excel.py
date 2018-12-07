@@ -6,6 +6,9 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 import os
+import copy
+import dill
+import time
 import unittest
 import os.path as osp
 import schedula as sh
@@ -24,12 +27,16 @@ _filename_circular = 'circular.xlsx'
 def _book2dict(book):
     res = {}
     for ws in book.worksheets:
-        s = res[ws.title] = {}
+        s = res[ws.title.upper()] = {}
         for k, cell in ws._cells.items():
             value = cell.value
             if value is not None:
                 s[cell.coordinate] = value
     return res
+
+
+def _res2books(res):
+    return {k.upper(): _book2dict(v[BOOK]) for k, v in res.items()}
 
 
 @unittest.skipIf(EXTRAS not in ('all', 'excel'), 'Not for extra %s.' % EXTRAS)
@@ -72,29 +79,72 @@ class TestExcelModel(unittest.TestCase):
         return len(it)
 
     def test_excel_model(self):
-        xl_model = ExcelModel()
-        xl_model.loads(self.filename)
-        xl_model.add_book(self.link_filename)
-        xl_model.finish()
-        xl_model.calculate()
-        books = xl_model.books
-        books = {k: _book2dict(v[BOOK])
-                 for k, v in xl_model.write(books).items()}
+        start = time.time()
+        _msg = '[info] test_excel_model: '
+        xl_mdl = ExcelModel()
 
-        n_test = self._compare(books, self.results)
+        print('\n%sLoading excel-model.' % _msg); s = time.time()
 
-        books = {k: _book2dict(v[BOOK]) for k, v in xl_model.write().items()}
-        res = {}
-        for k, v in sh.stack_nested_keys(self.results, depth=2):
-            sh.get_nested_dicts(res, *map(str.upper, k), default=lambda: v)
+        xl_mdl.loads(self.filename)
+        xl_mdl.add_book(self.link_filename)
 
-        n_test += self._compare(books, res)
-        print('[info] test_excel_model: Ran %d tests.' % n_test)
+        msg = '%sLoaded excel-model in %.2fs.\n%sFinishing excel-model.'
+        print(msg % (_msg, time.time() - s, _msg)); s = time.time()
+
+        xl_mdl.finish()
+
+        print('%sFinished excel-model in %.2fs.' % (_msg, time.time() - s))
+
+        n_test = 0
+        for i in range(3):
+            print('%sCalculate excel-model.' % _msg); s = time.time()
+
+            xl_mdl.calculate()
+
+            msg = '%sCalculated excel-model in %.2fs.\n%s' \
+                  'Comparing overwritten results.'
+            print(msg % (_msg, time.time() - s, _msg)); s = time.time()
+
+            books = _res2books(xl_mdl.write(xl_mdl.books))
+            n_test += self._compare(books, self.results)
+
+            msg = '%sCompared overwritten results in %.2fs.\n' \
+                  '%sComparing fresh written results.'
+            print(msg % (_msg, time.time() - s, _msg)); s = time.time()
+
+            n_test += self._compare(_res2books(xl_mdl.write()), self.results)
+
+            msg = '%sCompared fresh written results in %.2fs.'
+            print(msg % (_msg, time.time() - s))
+
+            if i == 0:
+                print('%sSaving excel-model dill.' % _msg); s = time.time()
+
+                xl_copy = dill.dumps(xl_mdl)
+
+                msg = '%sSaved excel-model dill in %.2fs.\n' \
+                      '%sLoading excel-model dill.'
+                print(msg % (_msg, time.time() - s, _msg)); s = time.time()
+
+                xl_mdl = dill.loads(xl_copy)
+                del xl_copy
+
+                msg = '%sLoaded excel-model dill in %.2fs.'
+                print(msg % (_msg, time.time() - s))
+
+            elif i == 1:
+                print('%sDeep-copying excel-model.' % _msg); s = time.time()
+
+                xl_mdl = copy.deepcopy(xl_mdl)
+
+                msg = '%sDeep-copied excel-model in %.2fs.'
+                print(msg % (_msg, time.time() - s))
+
+        print('%sRan %d tests in %.2fs' % (_msg, n_test, time.time() - start))
 
     def test_excel_model_compile(self):
-        xl_model = ExcelModel()
-        xl_model.loads(self.filename_compile)
-        xl_model.finish()
+        xl_model = ExcelModel().loads(self.filename_compile).finish()
+
         inputs = ["A%d" % i for i in range(2, 5)]
         outputs = ["C%d" % i for i in range(2, 5)]
         func = xl_model.compile(
@@ -104,15 +154,17 @@ class TestExcelModel(unittest.TestCase):
         i = sh.selector(inputs, self.results_compile, output_type='list')
         res = sh.selector(outputs, self.results_compile, output_type='list')
         self.assertEqual([x.value[0, 0] for x in func(*i)], res)
+        self.assertIsNot(xl_model, copy.deepcopy(xl_model))
+        self.assertIsNot(func, copy.deepcopy(func))
 
-        xl_model = ExcelModel()
-        xl_model.loads(self.filename_circular)
-        xl_model.finish(circular=1)
+        xl_model = ExcelModel().loads(self.filename_circular).finish(circular=1)
         func = xl_model.compile(
             ["'[CIRCULAR.XLSX]DATA'!A10"], ["'[CIRCULAR.XLSX]DATA'!E10"]
         )
         self.assertEqual(func(False).value[0, 0], 2.0)
         self.assertIs(func(True).value[0, 0], ERR_CIRCULAR)
+        self.assertIsNot(xl_model, copy.deepcopy(xl_model))
+        self.assertIsNot(func, copy.deepcopy(func))
 
     def test_excel_model_cycles(self):
         xl_model = ExcelModel().loads(self.filename_circular).finish(circular=1)

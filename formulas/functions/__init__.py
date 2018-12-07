@@ -41,6 +41,8 @@ from formulas.tokens.operand import Error, XlError
 class Array(np.ndarray):
     _default = Error.errors['#N/A']
 
+    _collapse_value = None
+
     def reshape(self, shape, *shapes, order='C'):
         try:
             return super(Array, self).reshape(shape, *shapes, order=order)
@@ -56,7 +58,22 @@ class Array(np.ndarray):
             return res
 
     def collapse(self, shape):
+        if self._collapse_value is not None and tuple(shape) == (
+        1, 1) != self.shape:
+            return self._collapse_value
         return np.resize(self, shape)
+
+    def __reduce__(self):
+        reduce = super(Array, self).__reduce__() # Get the parent's __reduce__.
+        state = {
+            '_collapse_value': self._collapse_value,
+            '_default': self._default
+        },  # Additional state params to pass to __setstate__.
+        return reduce[0], reduce[1], reduce[2] + state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state[-1])  # Set the attributes.
+        super(Array, self).__setstate__(state[0:-1])
 
 
 # noinspection PyUnusedLocal
@@ -154,10 +171,15 @@ def flatten(l, check=is_number):
         yield l
 
 
+def value_return(res, *args):
+    res._collapse_value = Error.errors['#VALUE!']
+    return res
+
+
 def wrap_ufunc(
         func, input_parser=lambda *a: map(float, a), check_error=get_error,
-        args_parser=lambda *a: map(replace_empty, a), otype=lambda *a: Array,
-        ranges=False, **kw):
+        args_parser=lambda *a: map(replace_empty, a), otype=Array,
+        ranges=False, return_func=lambda res, *args: res, **kw):
     """Helps call a numpy universal function (ufunc)."""
 
     def safe_eval(*vals):
@@ -177,11 +199,11 @@ def wrap_ufunc(
             args = tuple(args_parser(*args))
             with np.errstate(divide='ignore', invalid='ignore'):
                 res = np.vectorize(safe_eval, **kw)(*args)
-            ot = otype(*args)
             try:
-                return res.view(ot)
+                res = res.view(otype)
             except AttributeError:
-                return np.asarray([[res]], object).view(ot)
+                res = np.asarray([[res]], object).view(otype)
+            return return_func(res, *args)
         except ValueError as ex:
             try:
                 np.broadcast(*args)

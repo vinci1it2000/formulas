@@ -9,16 +9,9 @@
 """
 Python equivalents of logical Excel functions.
 """
-from . import wrap_ufunc, Array, Error, flatten, get_error
+from . import wrap_ufunc, Error, flatten, get_error, value_return
 
 FUNCTIONS = {}
-
-
-class IfArray(Array):
-    def collapse(self, shape):
-        if tuple(shape) == (1, 1) != self.shape:
-            return Error.errors['#VALUE!']
-        return super(IfArray, self).collapse(shape)
 
 
 def xif(condition, x=True, y=False):
@@ -33,20 +26,11 @@ def solve_cycle(*args):
 
 FUNCTIONS['IF'] = {
     'function': wrap_ufunc(
-        xif, input_parser=lambda *a: a, otype=lambda *a: IfArray,
+        xif, input_parser=lambda *a: a, return_func=value_return,
         check_error=lambda cond, *a: get_error(cond)
     ),
     'solve_cycle': solve_cycle
 }
-
-
-class IfErrorArray(Array):
-    _value = Error.errors['#VALUE!']
-
-    def collapse(self, shape):
-        if tuple(shape) == (1, 1) != self.shape:
-            return self._value
-        return super(IfErrorArray, self).collapse(shape)
 
 
 def xiferror(val, val_if_error):
@@ -55,17 +39,15 @@ def xiferror(val, val_if_error):
 
 
 # noinspection PyUnusedLocal
-def xiferror_otype(val, val_if_error):
-    class _IfErrorArray(IfErrorArray):
-        _value = list(flatten(val_if_error, None))[0]
-
-    return _IfErrorArray
+def xiferror_return(res, val, val_if_error):
+    res._collapse_value = list(flatten(val_if_error, None))[0]
+    return res
 
 
 FUNCTIONS['IFERROR'] = {
     'function': wrap_ufunc(
-        xiferror, input_parser=lambda *a: a,
-        check_error=lambda *a: False, otype=xiferror_otype
+        xiferror, input_parser=lambda *a: a, check_error=lambda *a: False,
+        return_func=xiferror_return
     ),
     'solve_cycle': solve_cycle
 }

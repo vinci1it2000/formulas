@@ -20,7 +20,7 @@ from .tokens.parenthesis import Parenthesis
 from .builder import AstBuilder
 
 
-class Parser(object):
+class Parser:
     formula_check = regex.compile(
         r"""
         (?P<array>^\s*{\s*=\s*(?P<name>\S.*)\s*}\s*$)
@@ -51,7 +51,7 @@ class Parser(object):
                 try:
                     token = f(expr, context)
                     token.ast(tokens, stack, builder)
-                    expr = expr[token.match.end(0):]
+                    expr = expr[token.end_match:]
                     break
                 except TokenError:
                     pass

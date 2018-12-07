@@ -54,7 +54,7 @@ def format_output(rng, value):
     return Ranges().set_value(rng, value)
 
 
-class Cell(object):
+class Cell:
     parser = Parser()
 
     def __init__(self, reference, value, context=None):
@@ -142,7 +142,7 @@ class Cell(object):
             return True
 
 
-class RangesAssembler(object):
+class RangesAssembler:
     def __init__(self, ref, context=None):
         self.missing = self.range = Ranges().push(ref, context=context)
         self.inputs = []

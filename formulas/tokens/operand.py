@@ -26,6 +26,15 @@ class XlError(sh.Token):
     pass
 
 
+NULL = XlError('#NULL!')
+DIV = XlError('#DIV/0!')
+VALUE = XlError('#VALUE!')
+REF = XlError('#REF!')
+NUM = XlError('#NUM!')
+NAME = XlError('#NAME?')
+NA = XlError('#N/A')
+
+
 class Operand(Token):
     def ast(self, tokens, stack, builder):
         if tokens and isinstance(tokens[-1], Operand):
@@ -47,10 +56,7 @@ class Error(Operand):
         r'^\s*(?P<name>\#(?>NULL!|DIV/0!|VALUE!|REF!|NUM!|NAME\?|N/A))\s*',
         regex.IGNORECASE
     )
-    errors = {}
-    for k in ('NULL!', 'DIV/0!', 'VALUE!', 'REF!', 'NUM!', 'NAME?', 'N/A'):
-        k = '#%s' % k
-        errors[k] = XlError(k)
+    errors = {str(k): k for k in (NULL, DIV, VALUE, REF, NUM, NAME, NA)}
 
     def compile(self):
         return self.errors[self.name]

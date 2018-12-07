@@ -10,7 +10,7 @@
 Python equivalents of text Excel functions.
 """
 import functools
-from . import wrap_ufunc, Error, replace_empty, XlError, Array
+from . import wrap_ufunc, Error, replace_empty, XlError, value_return
 
 FUNCTIONS = {}
 
@@ -44,15 +44,8 @@ def xleft(from_str, num_chars):
 FUNCTIONS['LEFT'] = wrap_ufunc(xleft, **_kw0)
 
 
-class TrimArray(Array):
-    def collapse(self, shape):
-        if tuple(shape) == (1, 1) != self.shape:
-            return Error.errors['#VALUE!']
-        return super(TrimArray, self).collapse(shape)
-
-
 _kw1 = dict(
-    input_parser=lambda text: [_str(text)], otype=lambda *a: TrimArray,
+    input_parser=lambda text: [_str(text)], return_func=value_return,
     args_parser=lambda *a: map(functools.partial(replace_empty, empty=''), a),
 )
 FUNCTIONS['LEN'] = wrap_ufunc(str.__len__, **_kw1)

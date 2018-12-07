@@ -95,7 +95,7 @@ Finally to execute the formula and plot the workflow:
    :code:
 
     >>> func(1, 5)
-    OperatorArray(7.0, dtype=object)
+    Array(7.0, dtype=object)
     >>> func.plot(workflow=True, view=False)  # Set view=True to plot in the default browser.
     SiteMap([(=((1 + 1) + (B3 / A2)), SiteMap())])
 
@@ -129,7 +129,7 @@ To plot the dependency graph that depict relationships between Excel cells:
 
     >>> dsp = xl_model.dsp
     >>> dsp.plot(view=False)  # Set view=True to plot in the default browser.
-    SiteMap([(Dispatcher ..., SiteMap())])
+    SiteMap([(ExcelModel, SiteMap())])
 
 To compile, execute, and plot a Excel sub-model you can do the following:
 
@@ -142,7 +142,7 @@ To compile, execute, and plot a Excel sub-model you can do the following:
     >>> func(2).value[0,0]
     4.0
     >>> func.plot(view=False)  # Set view=True to plot in the default browser.
-    SiteMap([(..., SiteMap())])
+    SiteMap([(ExcelModel, SiteMap())])
 
 Custom functions
 ----------------
