@@ -1,6 +1,5 @@
 language: python
 python:
-  - "3.4"
   - "3.5"
   - "3.6"
 
@@ -10,6 +9,29 @@ env:
   - EXTRAS=plot
   - EXTRAS=all
   - EXTRAS=dev
+
+matrix:
+  include:
+    - python: 3.7
+      dist: xenial
+      sudo: true
+      env: EXTRAS=base
+    - python: 3.7
+      dist: xenial
+      sudo: true
+      env: EXTRAS=excel
+    - python: 3.7
+      dist: xenial
+      sudo: true
+      env: EXTRAS=plot
+    - python: 3.7
+      dist: xenial
+      sudo: true
+      env: EXTRAS=all
+    - python: 3.7
+      dist: xenial
+      sudo: true
+      env: EXTRAS=dev
 
 addons:
   apt:

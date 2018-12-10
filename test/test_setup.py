@@ -12,10 +12,18 @@ from setup import get_long_description, read_project_version
 EXTRAS = os.environ.get('EXTRAS', 'dev')
 
 
+def rst2html(source):
+    from docutils.core import publish_string
+    return publish_string(
+        source, reader_name='standalone', parser_name='restructuredtext',
+        writer_name='html', settings_overrides={'halt_level': 2}  # 2=WARN
+    )[0]
+
+
 @unittest.skipIf(EXTRAS not in ('dev',), 'Not for extra %s.' % EXTRAS)
 class TestSetup(unittest.TestCase):
     def test_long_description(self):
-        self.assertTrue(bool(get_long_description()))
+        self.assertTrue(bool(rst2html(get_long_description())))
 
     def test_project_version(self):
         ver = read_project_version()

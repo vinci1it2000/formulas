@@ -25,9 +25,35 @@ Modules:
     ~cell
     ~excel
 """
-from ._version import __version__
-from .excel import ExcelModel
-from .parser import Parser
-from .functions import get_functions, SUBMODULES
-from .cell import CELL
-from .ranges import Ranges
+
+import sys
+from ._version import *
+
+_all = {
+    'ExcelModel': '.excel',
+    'Parser': '.parser',
+    'get_functions': '.functions',
+    'SUBMODULES': '.functions',
+    'CELL': '.cell',
+    'Ranges': '.ranges'
+}
+
+__all__ = tuple(_all)
+
+
+def __dir__():
+    return __all__ + (
+        '__doc__', '__author__', '__updated__', '__title__', '__version__',
+        '__license__', '__copyright__'
+    )
+
+
+def __getattr__(name):
+    if name in _all:
+        import importlib
+        return getattr(importlib.import_module(_all[name], __name__), name)
+    raise AttributeError("module %s has no attribute %s" % (__name__, name))
+
+
+if sys.version_info[:2] < (3, 7):
+    globals().update({k: __getattr__(k) for k in _all})
