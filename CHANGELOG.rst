@@ -2,6 +2,25 @@ Changelog
 =========
 
 
+v0.2.0 (2018-12-11)
+-------------------
+
+Feat
+~~~~
+- (doc) :gh:`23`: Enhance `ExcelModel` documentation.
+
+
+Fix
+~~~
+- (core): Add python 3.7 and drop python 3.4.
+
+- (excel): Make `ExcelModel` dillable and pickable.
+
+- (builder): Avoid FormulaError exception during formulas compilation.
+
+- (excel): Correct bug when compiling excel with circular references.
+
+
 v0.1.4 (2018-10-19)
 -------------------
 
