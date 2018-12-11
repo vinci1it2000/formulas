@@ -131,18 +131,50 @@ To plot the dependency graph that depict relationships between Excel cells:
     >>> dsp.plot(view=False)  # Set view=True to plot in the default browser.
     SiteMap([(ExcelModel, SiteMap())])
 
-To compile, execute, and plot a Excel sub-model you can do the following:
+To overwrite the default inputs that are defined by the excel file or to impose
+some value to a specific cell:
+
+    >>> xl_model.calculate(
+    ...     inputs={
+    ...         "'[EXCEL.XLSX]DATA'!A2": 3,  # To overwrite the default value.
+    ...         "'[EXCEL.XLSX]DATA'!B3": 1  # To impose a value to B3 cell.
+    ...     },
+    ...     outputs=[
+    ...        "'[EXCEL.XLSX]DATA'!C2", "'[EXCEL.XLSX]DATA'!C4"
+    ...     ] # To define the outputs that you want to calculate.
+    ... )
+    Solution([("'[EXCEL.XLSX]DATA'!A2", <Ranges>('[EXCEL.XLSX]DATA'!A2)=[[3]]),
+              ("'[EXCEL.XLSX]DATA'!A3", <Ranges>('[EXCEL.XLSX]DATA'!A3)=[[6]]),
+              ("'[EXCEL.XLSX]DATA'!B3", <Ranges>('[EXCEL.XLSX]DATA'!B3)=[[1]]),
+              ("'[EXCEL.XLSX]DATA'!B2", <Ranges>('[EXCEL.XLSX]DATA'!B2)=[[9.0]]),
+              ("'[EXCEL.XLSX]DATA'!C2", <Ranges>('[EXCEL.XLSX]DATA'!C2)=[[9.0]]),
+              ("'[EXCEL.XLSX]DATA'!C4", <Ranges>('[EXCEL.XLSX]DATA'!C4)=[[1.0]])])
+
+To build a single function out of an excel model with fixed inputs and outputs,
+you can use the `compile` method of the `ExcelModel` that returns a
+DispatchPipe_. This is a function where the inputs and outputs are defined by
+the data node ids (i.e., cell references).
 
 .. dispatcher:: func
    :code:
 
-    >>> inputs = ["'[EXCEL.XLSX]DATA'!A2"]  # input cells
-    >>> outputs = ["'[EXCEL.XLSX]DATA'!C2"]  # output cells
-    >>> func = xl_model.compile(inputs, outputs)
-    >>> func(2).value[0,0]
-    4.0
+    >>> func = xl_model.compile(
+    ...     inputs=[
+    ...         "'[EXCEL.XLSX]DATA'!A2",  # First argument of the function.
+    ...         "'[EXCEL.XLSX]DATA'!B3"   # Second argument of the function.
+    ...     ], # To define function inputs.
+    ...     outputs=[
+    ...         "'[EXCEL.XLSX]DATA'!C2", "'[EXCEL.XLSX]DATA'!C4"
+    ...     ] # To define function outputs.
+    ... )
+    >>> func
+    <schedula.utils.dsp.DispatchPipe object at ...>
+    >>> [v.value[0, 0] for v in func(3, 1)]  # To retrieve the data.
+    [9.0, 1.0]
     >>> func.plot(view=False)  # Set view=True to plot in the default browser.
     SiteMap([(ExcelModel, SiteMap())])
+
+.. _DispatchPipe: https://schedula.readthedocs.io/en/master/_build/schedula/utils/dsp/schedula.utils.dsp.DispatchPipe.html#schedula.utils.dsp.DispatchPipe
 
 Custom functions
 ----------------
