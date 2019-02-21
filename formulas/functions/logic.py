@@ -51,3 +51,22 @@ FUNCTIONS['IFERROR'] = {
     ),
     'solve_cycle': solve_cycle
 }
+
+
+def xswitch(val, *args):
+    keys = args[::2]
+    values = args[1::2]
+    if val not in keys or len(keys) != len(values):
+        return Error.errors['#VALUE!']
+    
+    index = keys.find(val)
+    return values[index]
+
+
+FUNCTIONS["SWITCH"] = {
+    'function': wrap_ufunc(
+        xswitch, input_parser=lambda *a: a, return_func=value_return,
+        check_error=lambda first, *a: get_error(first),
+    ),
+    'solve_cycle': solve_cycle
+}
