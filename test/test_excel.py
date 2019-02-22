@@ -29,7 +29,7 @@ def _book2dict(book):
     for ws in book.worksheets:
         s = res[ws.title.upper()] = {}
         for k, cell in ws._cells.items():
-            value = cell.value
+            value = getattr(cell, 'value', None)
             if value is not None:
                 s[cell.coordinate] = value
     return res

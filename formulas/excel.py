@@ -9,7 +9,7 @@
 """
 It provides Excel model class.
 """
-
+import numpy as np
 import os.path as osp
 import schedula as sh
 from .ranges import Ranges
@@ -88,11 +88,12 @@ class ExcelModel:
 
         for row in worksheet.iter_rows():
             for c in row:
-                self.add_cell(
-                    c, context, references=references,
-                    formula_references=formula_references,
-                    formula_ranges=formula_ranges
-                )
+                if hasattr(c, 'value'):
+                    self.add_cell(
+                        c, context, references=references,
+                        formula_references=formula_references,
+                        formula_ranges=formula_ranges
+                    )
         return self
 
     def add_book(self, book, context=None, data_only=False):
@@ -264,6 +265,10 @@ class ExcelModel:
             for c, v in zip(flatten(sheet[ref], None), flatten(r.value, None)):
                 if v is sh.EMPTY:
                     v = None
+                if isinstance(v, np.generic):
+                    v = v.item()
+                elif isinstance(v, XlError):
+                    v = str(v)
                 c.value = v
 
         return books

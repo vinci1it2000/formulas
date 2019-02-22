@@ -21,8 +21,7 @@ mydir = osp.dirname(__file__)
 ##
 def read_project_version():
     fglobals = {}
-    with io.open(osp.join(
-            mydir, name, '_version.py'), encoding='UTF-8') as fd:
+    with io.open(osp.join(mydir, name, '_version.py'), encoding='UTF-8') as fd:
         exec(fd.read(), fglobals)  # To read __version__
     return fglobals['__version__']
 
