@@ -152,7 +152,7 @@ class RangesAssembler:
         return self.range.ranges[0]['name']
 
     def push(self, cell):
-        if self.missing.ranges and (self.missing & cell.range).ranges:
+        if self.missing.ranges and any(self.missing.intersect(cell.range)):
             self.missing = self.range - cell.range
             self.inputs.append(cell.output)
 

@@ -41,13 +41,6 @@ def _have_intersect(x, y):
     return {}
 
 
-def _single_intersect(format_range, x, y):
-    z = _have_intersect(x, y)
-    if z:
-        return dict(format_range(('name', 'n1', 'n2'), **z))
-    return {}
-
-
 def _split(base, rng, intersect=None, format_range=range2parts):
     z = _have_intersect(base, rng)
     if not z:
@@ -72,9 +65,11 @@ def _split(base, rng, intersect=None, format_range=range2parts):
     return tuple(ranges)
 
 
-def _intersect(rng, ranges, format_range=range2parts):
-    it = map(functools.partial(_single_intersect, format_range, rng), ranges)
-    return tuple(r for r in it if r)
+def _intersect(rng, ranges):
+    for r in ranges:
+        z = _have_intersect(rng, r)
+        if z:
+            yield z
 
 
 def _merge_raw_update(base, rng):
@@ -219,12 +214,14 @@ class Ranges:
         values = sh.combine_dicts(self.values, other.values)
         return Ranges(base, values, True, self.all_values and other.all_values)
 
+    def intersect(self, other):
+        if self.ranges:
+            for rng in other.ranges:
+                yield from _intersect(rng, self.ranges)
+
     def __and__(self, other):  # Intersection.
-        r = []
-        for rng in other.ranges:
-            r.extend(_intersect(
-                rng, self.ranges, format_range=self.format_range
-            ))
+        r = [dict(self.format_range(('name', 'n1', 'n2'), **i))
+             for i in self.intersect(other)]
         values = sh.combine_dicts(self.values, other.values)
         is_set = self.is_set or other.is_set
         return Ranges(r, values, is_set, self.all_values and other.all_values)
