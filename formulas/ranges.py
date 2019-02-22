@@ -54,10 +54,8 @@ def _split(base, rng, intersect=None, format_range=range2parts):
     it = ('n1', 'n2', 1), ('n2', 'n1', -1), ('r1', 'r2', 1), ('r2', 'r1', -1)
     for i, j, n in it:
         if z[i] != rng[i]:
-            if j[0] == 'r':
-                r = sh.combine_dicts(rng, {j: str(int(z[i]) - n)})
-            else:
-                r = sh.combine_dicts(rng, {j: z[i] - n})
+            r = rng.copy()
+            r[j] = str(int(z[i]) - n) if j[0] == 'r' else z[i] - n
             r = dict(format_range(('name', 'n1', 'n2'), **r))
             ranges.append(r)
             rng[i] = z[i]
@@ -166,13 +164,13 @@ class Ranges:
 
     @staticmethod
     def get_range(format_range, ref, context=None):
-        context = context or {}
-        m = _re_range.match(ref).groupdict().items()
-        m = {k: v for k, v in m if v is not None}
-        if 'ref' in m:
-            raise ValueError
-        i = sh.combine_dicts(context, m)
-        return dict(format_range(('name', 'n1', 'n2'), **i))
+        ctx = (context or {}).copy()
+        for k, v in _re_range.match(ref).groupdict().items():
+            if v is not None:
+                if k == 'ref':
+                    raise ValueError
+                ctx[k] = v
+        return dict(format_range(('name', 'n1', 'n2'), **ctx))
 
     def push(self, ref, value=sh.EMPTY, context=None):
         rng = self.get_range(self.format_range, ref, context)
@@ -194,9 +192,9 @@ class Ranges:
                 rng['n2'] = max(rng['n2'], r['n2'])
 
         rng = dict(self.format_range(('name', 'n1', 'n2'), **rng))
-        all_values, values = self.all_values and other.all_values, None
-        if all_values:
-            values = sh.combine_dicts(self.values, other.values)
+        if self.all_values and other.all_values:
+            values = self.values.copy()
+            values.update(other.values)
             value = _assemble_values(rng, values)
             return Ranges().push(rng['name'], value)
         return Ranges((rng,), all_values=False)
@@ -211,7 +209,8 @@ class Ranges:
                 for r in s:
                     stack.extend(_split(b, r, format_range=self.format_range))
             base += tuple(stack)
-        values = sh.combine_dicts(self.values, other.values)
+        values = self.values.copy()
+        values.update(other.values)
         return Ranges(base, values, True, self.all_values and other.all_values)
 
     def intersect(self, other):
@@ -222,7 +221,8 @@ class Ranges:
     def __and__(self, other):  # Intersection.
         r = [dict(self.format_range(('name', 'n1', 'n2'), **i))
              for i in self.intersect(other)]
-        values = sh.combine_dicts(self.values, other.values)
+        values = self.values.copy()
+        values.update(other.values)
         is_set = self.is_set or other.is_set
         return Ranges(r, values, is_set, self.all_values and other.all_values)
 

@@ -162,5 +162,7 @@ class RangesAssembler:
 
     def __call__(self, *cells):
         base = self.range.ranges[0]
-        values = sh.combine_dicts(*(c.values for c in cells))
+        values = {}
+        for c in cells:
+            values.update(c.values)
         return _assemble_values(base, values, sh.EMPTY)

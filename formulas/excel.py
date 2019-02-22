@@ -48,18 +48,17 @@ class ExcelModel:
 
     @staticmethod
     def _yield_refs(book, context=None):
+        ctx = context.copy()
         for n in book.defined_names.definedName:
             if n.value == '#REF!':
                 continue
-            ref, i = n.name.upper(), n.localSheetId
+            ctx['ref'], i = n.name.upper(), n.localSheetId
             rng = Ranges().push(n.value, context=context).ranges[0]['name']
             sheet_names = book.sheetnames
             if i is not None:
                 sheet_names = sheet_names[i:i + 1]
             for sn in sheet_names:
-                name = range2parts(
-                    None, **sh.combine_dicts(context, {'sheet': sn, 'ref': ref})
-                )
+                name = range2parts(None, sheet=sn, **ctx)
                 yield name['name'], rng
 
     def loads(self, *file_names):
@@ -139,11 +138,10 @@ class ExcelModel:
             book = get_in(self.books, context['excel'], BOOK)
             worksheet = book[_get_name(worksheet, book.sheetnames)]
 
-        context = sh.combine_dicts(
-            context, base={'sheet': worksheet.title.upper()}
-        )
+        ctx = {'sheet': worksheet.title.upper()}
+        ctx.update(context)
 
-        d = get_in(self.books, context['excel'], SHEETS, context['sheet'])
+        d = get_in(self.books, ctx['excel'], SHEETS, ctx['sheet'])
         if 'formula_references' not in d:
             d['formula_references'] = formula_references = {
                 k: v['ref'] for k, v in worksheet.formula_attributes.items()
@@ -154,10 +152,10 @@ class ExcelModel:
 
         if 'formula_ranges' not in d:
             d['formula_ranges'] = {
-                Ranges().push(ref, context=context)
+                Ranges().push(ref, context=ctx)
                 for ref in formula_references.values()
             }
-        return worksheet, context
+        return worksheet, ctx
 
     def add_cell(self, cell, context, references=None, formula_references=None,
                  formula_ranges=None, external_links=None):
@@ -181,12 +179,11 @@ class ExcelModel:
             external_links = get_in(
                 self.books, context['excel'], 'external_links'
             )
-        context = sh.combine_dicts(
-            context, base={'external_links': external_links}
-        )
+        ctx = {'external_links': external_links}
+        ctx.update(context)
         crd = cell.coordinate
         crd = formula_references.get(crd, crd)
-        cell = Cell(crd, cell.value, context=context).compile()
+        cell = Cell(crd, cell.value, context=ctx).compile()
         if cell.output in self.cells:
             return
         if cell.value is not sh.EMPTY:
@@ -194,7 +191,7 @@ class ExcelModel:
                 return
         cell.update_inputs(references=references)
 
-        if cell.add(self.dsp, context=context):
+        if cell.add(self.dsp, context=ctx):
             self.cells[cell.output] = cell
             return cell
 

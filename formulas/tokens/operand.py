@@ -238,7 +238,9 @@ def fast_range2parts(**kw):
 
     for func in (fast_range2parts_v1, fast_range2parts_v2, fast_range2parts_v3):
         try:
-            return sh.combine_dicts(kw, base=func(**inputs))
+            parts = func(**inputs)
+            parts.update(kw)
+            return parts
         except TypeError:
             pass
     else:
@@ -301,7 +303,9 @@ class Range(Operand):
                 pass
         if 'ref' in d:
             self.attr['is_reference'] = True
-        return range2parts(None, **sh.combine_dicts(context or {}, d))
+        ctx = (context or {}).copy()
+        ctx.update(d)
+        return range2parts(None, **ctx)
 
     def __repr__(self):
         if self.attr.get('is_ranges', False):

@@ -63,10 +63,8 @@ class AstBuilder:
                     for k, v in _inputs.items():
                         if v is not sh.NONE:
                             self.dsp.add_data(k, v)
-                    kw = sh.combine_dicts(
-                        {'inputs': (list(_inputs) + inputs) or None}, func,
-                        base=kw
-                    )
+                    kw['inputs']= (list(_inputs) + inputs) or None
+                    kw.update(func)
                 self.dsp.add_function(**kw)
             else:
                 self.nodes[token] = n_id = get_id(dmap, out, 'c%d>{}')
