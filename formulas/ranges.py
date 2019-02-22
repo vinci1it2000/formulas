@@ -114,8 +114,8 @@ def _assemble_values(base, values, empty=''):
 # noinspection PyUnusedLocal
 def _shape(n1, n2, r1, r2, **kw):
     r1, r2 = int(r1), int(r2)
-    r = -1 if r1 == 0 or r2 == maxrow else (r2 - r1 + 1)
-    c = -1 if n1 == 0 or n2 == maxcol else (n2 - n1 + 1)
+    r = maxrow if r1 == 0 or r2 == maxrow else (r2 - r1 + 1)
+    c = maxcol if n1 == 0 or n2 == maxcol else (n2 - n1 + 1)
     return r, c
 
 
