@@ -165,8 +165,10 @@ FUNCTIONS['_XLFN.FLOOR.MATH'] = FUNCTIONS['FLOOR.MATH'] = wrap_ufunc(
 )
 FUNCTIONS['FLOOR.PRECISE'] = FUNCTIONS['FLOOR.MATH']
 FUNCTIONS['_XLFN.FLOOR.PRECISE'] = FUNCTIONS['FLOOR.MATH']
+FUNCTIONS['GCD'] = wrap_func(np.gcd)
 FUNCTIONS['INT'] = wrap_ufunc(int)
 FUNCTIONS['ISO.CEILING'] = FUNCTIONS['CEILING.PRECISE']
+FUNCTIONS['LCM'] = wrap_func(np.lcm)
 FUNCTIONS['LOG10'] = wrap_ufunc(np.log10)
 FUNCTIONS['LOG'] = wrap_ufunc(
     lambda x, base=10: np.log(x) / np.log(base) if base else np.nan
