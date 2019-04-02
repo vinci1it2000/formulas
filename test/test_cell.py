@@ -18,7 +18,12 @@ def inp_ranges(*rng):
 
 @ddt.ddt
 class TestCell(unittest.TestCase):
-    @ddt.data(
+    @ddt.idata((
+        ('A1', '=GCD(5.2, -1, TRUE)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=GCD(5.2, -1)', {}, '<Ranges>(A1)=[[#NUM!]]'),
+        ('A1', '=GCD(5.2, 10)', {}, '<Ranges>(A1)=[[5]]'),
+        ('A1', '=GCD(#NAME?, #VALUE!, #N/A)', {}, '<Ranges>(A1)=[[#NAME?]]'),
+        ('A1', '=GCD(55, 15, 5)', {}, '<Ranges>(A1)=[[5]]'),
         ('A1', '=5%', {}, '<Ranges>(A1)=[[0.05]]'),
         ('A1', '=IF(#NAME?, #VALUE!, #N/A)', {}, '<Ranges>(A1)=[[#NAME?]]'),
         ('A1', '=IF(TRUE, #VALUE!, #N/A)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
@@ -117,7 +122,7 @@ class TestCell(unittest.TestCase):
         #  '<Ranges>(A1:D1)=[[1 2 1 #N/A]]'),
         # ('A1:D1', '=IF({0,-2,0},{2,3},{1,4})', {},
         #  '<Ranges>(A1:D1)=[[1 2 #N/A #N/A]]')
-    )
+    ))
     def test_output(self, case):
         reference, formula, inputs, result = case
         dsp = sh.Dispatcher()
@@ -129,10 +134,10 @@ class TestCell(unittest.TestCase):
             'Formula({}): {} != {}'.format(formula, result, output)
         )
 
-    @ddt.data(
+    @ddt.idata((
         ('A1:D1', '=IF({0,-0.2,0},{2,3},{1})', {}),  # BroadcastError
         ('A1:D1', '=IF({0,-2,0},{2,3},{1,4})', {}),  # BroadcastError
-    )
+    ))
     def test_invalid(self, case):
         reference, formula, inputs = case
         with self.assertRaises(sh.DispatcherError):

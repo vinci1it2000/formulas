@@ -138,7 +138,7 @@ if __name__ == '__main__':
         install_requires=[
             'regex',
             'schedula>=0.3.1',
-            'numpy'
+            'numpy>=1.15'
         ],
         extras_require=extras,
         tests_require=['nose>=1.0', 'ddt'],

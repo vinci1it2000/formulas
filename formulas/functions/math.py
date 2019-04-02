@@ -165,10 +165,33 @@ FUNCTIONS['_XLFN.FLOOR.MATH'] = FUNCTIONS['FLOOR.MATH'] = wrap_ufunc(
 )
 FUNCTIONS['FLOOR.PRECISE'] = FUNCTIONS['FLOOR.MATH']
 FUNCTIONS['_XLFN.FLOOR.PRECISE'] = FUNCTIONS['FLOOR.MATH']
-FUNCTIONS['GCD'] = wrap_func(np.gcd)
+
+
+def _xgcd(func, args):
+    raise_errors(args)
+    args = list(flatten(args, None))
+    if not all(map(is_number, args)):
+        return Error.errors['#VALUE!']
+    args = np.array(args)
+    if ((0 <= args) & (args <= (2 ** 53 + 1))).all():
+        return func(args.astype(int))
+    return Error.errors['#NUM!']
+
+
+def xgcd(*args):
+    return _xgcd(np.gcd.reduce, args)
+
+
+FUNCTIONS['GCD'] = wrap_func(xgcd)
 FUNCTIONS['INT'] = wrap_ufunc(int)
 FUNCTIONS['ISO.CEILING'] = FUNCTIONS['CEILING.PRECISE']
-FUNCTIONS['LCM'] = wrap_func(np.lcm)
+
+
+def xlcm(*args):
+    return _xgcd(np.lcm.reduce, args)
+
+
+FUNCTIONS['LCM'] = wrap_func(xlcm)
 FUNCTIONS['LOG10'] = wrap_ufunc(np.log10)
 FUNCTIONS['LOG'] = wrap_ufunc(
     lambda x, base=10: np.log(x) / np.log(base) if base else np.nan
