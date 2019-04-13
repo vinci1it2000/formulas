@@ -6,7 +6,10 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 import os
+import sys
 import unittest
+import os.path as osp
+sys.path.insert(0, osp.join(osp.dirname(__file__), '../'))
 from setup import get_long_description, read_project_version
 
 EXTRAS = os.environ.get('EXTRAS', 'dev')
