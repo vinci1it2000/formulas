@@ -19,6 +19,8 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata((
+        ('A1', '=LOOKUP(2,{-1.1,2.1,3.1,4.1})', {}, '<Ranges>(A1)=[[-1.1]]'),
+        ('A1', '=LOOKUP(3,{-1.1,2.1,3.1,4.1})', {}, '<Ranges>(A1)=[[2.1]]'),
         ('A1', '=SWITCH(TRUE,1,0,,,TRUE,1,7)', {}, '<Ranges>(A1)=[[1]]'),
         ('A1:D1', '=SWITCH({0,1,TRUE},1,0,,,TRUE,1,7)', {},
          '<Ranges>(A1:D1)=[[0 0 1 #N/A]]'),

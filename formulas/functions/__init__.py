@@ -161,12 +161,14 @@ def is_number(number):
 
 
 def flatten(l, check=is_number):
-    if not isinstance(l, str) and isinstance(l, collections.Iterable):
-        try:
-            for el in l:
-                yield from flatten(el, check)
-        except TypeError:
-            yield from flatten(l.tolist(), check)
+    if isinstance(l, np.ndarray):
+        if not check:
+            yield from l.ravel()
+        else:
+            yield from filter(check, l.ravel())
+    elif not isinstance(l, str) and isinstance(l, collections.Iterable):
+        for el in l:
+            yield from flatten(el, check)
     elif not check or check(l):
         yield l
 

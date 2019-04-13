@@ -14,7 +14,7 @@ import functools
 import collections
 import numpy as np
 from . import (
-    wrap_func, wrap_ufunc, Error, flatten, get_error, XlError, FoundError, Array
+    wrap_func, wrap_ufunc, Error, get_error, XlError, FoundError, Array
 )
 from ..cell import CELL
 
@@ -109,11 +109,8 @@ def xmatch(lookup_value, lookup_array, match_type=1):
 
 
 FUNCTIONS['MATCH'] = wrap_ufunc(
-    xmatch,
-    input_parser=lambda val, vec, match_type=1: (
-        val, list(flatten(vec, None)), match_type
-    ),
-    check_error=lambda *a: get_error(a[:1]), excluded={1, 2}
+    xmatch, check_error=lambda *a: get_error(a[:1]), excluded={1, 2},
+    input_parser=lambda val, vec, match_type=1: (val, np.ravel(vec), match_type)
 )
 
 
@@ -121,30 +118,29 @@ def xlookup(lookup_val, lookup_vec, result_vec=None, match_type=1):
     result_vec = lookup_vec if result_vec is None else result_vec
     r = xmatch(lookup_val, lookup_vec, match_type)
     if not isinstance(r, XlError):
-        r = result_vec[r - 1]
+        r = np.ravel(result_vec[r - 1])[0]
     return r
 
 
 FUNCTIONS['LOOKUP'] = wrap_ufunc(
     xlookup,
     input_parser=lambda val, vec, res=None: (
-        val, list(flatten(vec, None)),
-        res if res is None else list(flatten(res, None))
+        val, np.ravel(vec), res if res is None else np.ravel(res)
     ),
     check_error=lambda *a: get_error(a[:1]), excluded={1, 2}
 )
 
 
 def _hlookup_parser(val, vec, index, match_type=1, transpose=False):
-    index = list(flatten(index, None))[0] - 1
+    index = np.ravel(index)[0] - 1
     vec = np.matrix(vec)
     if transpose:
         vec = vec.T
     try:
-        ref = list(flatten(vec[index].A1, None))
+        ref = vec[index].A1.ravel()
     except IndexError:
         raise FoundError(err=Error.errors['#REF!'])
-    vec = list(flatten(vec[0].A1, None))
+    vec = vec[0].A1.ravel()
     return val, vec, ref, bool(match_type)
 
 
