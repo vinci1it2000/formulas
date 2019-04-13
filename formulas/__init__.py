@@ -51,7 +51,9 @@ def __dir__():
 def __getattr__(name):
     if name in _all:
         import importlib
-        return getattr(importlib.import_module(_all[name], __name__), name)
+        obj = getattr(importlib.import_module(_all[name], __name__), name)
+        globals()[name] = obj
+        return obj
     raise AttributeError("module %s has no attribute %s" % (__name__, name))
 
 
