@@ -51,3 +51,26 @@ FUNCTIONS['IFERROR'] = {
     ),
     'solve_cycle': solve_cycle
 }
+
+
+def xswitch(val, *args):
+    if isinstance(val, bool):
+        condition = lambda x: val is x
+    else:
+        condition = lambda x: val == x
+    for k, v in zip(args[::2], args[1::2]):
+        if isinstance(k, Error):
+            return k
+        elif condition(k):
+            return v
+    else:
+        return args[-1] if len(args) % 2 else Error.errors['#N/A']
+
+
+FUNCTIONS["_XLFN.SWITCH"] = FUNCTIONS["SWITCH"] = {
+    'function': wrap_ufunc(
+        xswitch, input_parser=lambda *a: a, return_func=value_return,
+        check_error=lambda first, *a: get_error(first),
+    ),
+    'solve_cycle': solve_cycle
+}
