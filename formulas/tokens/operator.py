@@ -105,10 +105,13 @@ class Intersect(Operator):
 
 
 class Separator(Operator):
-    _re = regex.compile(r'^([,\s]+)')
+    _re = regex.compile(r'^(,\s*)')
     _re_process = regex.compile(r'^(?P<name>,)$')
 
     def ast(self, tokens, stack, builder):
+        if tokens and isinstance(tokens[-1], Separator):
+            from .operand import Empty
+            Empty().ast(tokens, stack, builder)
         super(Operator, self).ast(tokens, stack, builder)
         while stack and not stack[-1].has_start:
             builder.append(stack.pop())

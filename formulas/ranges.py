@@ -17,7 +17,6 @@ from .tokens.operand import (
 from .errors import RangeValueError
 from .functions import Array
 import schedula as sh
-import functools
 
 
 def _has_same_sheet(x, y):

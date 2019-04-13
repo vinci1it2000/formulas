@@ -51,6 +51,16 @@ class String(Operand):
         return self.name.replace('""', '"')
 
 
+class Empty(Operand):
+    # noinspection PyMissingConstructor
+    def __init__(self):
+        self.source, self.attr = None, {'name': ''}
+
+    @staticmethod
+    def compile():
+        return 0
+
+
 class Error(Operand):
     _re = regex.compile(
         r'^\s*(?P<name>\#(?>NULL!|DIV/0!|VALUE!|REF!|NUM!|NAME\?|N/A))\s*',
