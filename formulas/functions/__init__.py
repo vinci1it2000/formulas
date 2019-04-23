@@ -181,13 +181,13 @@ def value_return(res, *args):
 def wrap_ufunc(
         func, input_parser=lambda *a: map(float, a), check_error=get_error,
         args_parser=lambda *a: map(replace_empty, a), otype=Array,
-        ranges=False, return_func=lambda res, *args: res, **kw):
+        ranges=False, return_func=lambda res, *args: res, check_nan=True, **kw):
     """Helps call a numpy universal function (ufunc)."""
 
     def safe_eval(*vals):
         try:
             r = check_error(*vals) or func(*input_parser(*vals))
-            if not isinstance(r, (XlError, str)):
+            if check_nan and not isinstance(r, (XlError, str)):
                 r = (np.isnan(r) or np.isinf(r)) and Error.errors['#NUM!'] or r
         except (ValueError, TypeError):
             r = Error.errors['#VALUE!']

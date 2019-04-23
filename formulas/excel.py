@@ -211,9 +211,10 @@ class ExcelModel:
             worksheet, context = self.add_sheet(rng['sheet'], context)
             rng = '{c1}{r1}:{c2}{r2}'.format(**rng)
             for c in flatten(worksheet[rng], None):
-                cell = self.add_cell(c, context)
-                if cell:
-                    stack.extend(cell.inputs or ())
+                if hasattr(c, 'value'):
+                    cell = self.add_cell(c, context)
+                    if cell:
+                        stack.extend(cell.inputs or ())
 
     def finish(self, complete=True, circular=False):
         if complete:
@@ -260,13 +261,14 @@ class ExcelModel:
 
             ref = '{c1}{r1}:{c2}{r2}'.format(**rng)
             for c, v in zip(flatten(sheet[ref], None), flatten(r.value, None)):
-                if v is sh.EMPTY:
-                    v = None
-                if isinstance(v, np.generic):
-                    v = v.item()
-                elif isinstance(v, XlError):
-                    v = str(v)
-                c.value = v
+                if hasattr(c, 'value'):
+                    if v is sh.EMPTY:
+                        v = None
+                    if isinstance(v, np.generic):
+                        v = v.item()
+                    elif isinstance(v, XlError):
+                        v = str(v)
+                    c.value = v
 
         return books
 

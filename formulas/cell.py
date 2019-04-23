@@ -9,6 +9,7 @@
 """
 It provides Cell class.
 """
+import copy
 import collections
 import functools
 import numpy as np
@@ -105,11 +106,14 @@ class Cell:
 
     def _args(self, *args):
         assert len(args) == len(self.inputs)
-        i = {}
+        inputs = copy.deepcopy(self.func.inputs)
         for links, v in zip(self.inputs.values(), args):
             for k in links:
-                i[k] = (v + i[k]) if k in i else v
-        return sh.selector(self.func.inputs, i, output_type='list')
+                try:
+                    inputs[k].values.update(v.values)
+                except AttributeError:  # Reference.
+                    inputs[k] = v
+        return inputs.values()
 
     def add(self, dsp, context=None):
         if self.func or self.value is not sh.EMPTY:

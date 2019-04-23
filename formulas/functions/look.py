@@ -13,9 +13,12 @@ import regex
 import functools
 import collections
 import numpy as np
+import schedula as sh
 from . import (
-    wrap_func, wrap_ufunc, Error, get_error, XlError, FoundError, Array
+    wrap_func, wrap_ufunc, Error, get_error, XlError, FoundError, Array,
+    parse_ranges
 )
+from ..ranges import Ranges
 from ..cell import CELL
 
 FUNCTIONS = {}
@@ -60,6 +63,65 @@ FUNCTIONS['ROW'] = {
     'extra_inputs': collections.OrderedDict([(CELL, None)]),
     'function': wrap_func(xrow, ranges=True)
 }
+
+
+def _index(arrays, row_num, col_num, area_num, is_reference, is_array):
+    err = get_error(row_num, col_num, area_num)
+    if err:
+        return err
+    area_num = int(area_num) - 1
+    if area_num < 0:
+        return Error.errors['#VALUE!']
+    try:
+        array = arrays[area_num]
+
+        if col_num is None:
+            col_num = 1
+            if 1 in array.shape:
+                if array.shape[0] == 1:
+                    row_num, col_num = col_num, row_num
+            elif is_reference:
+                array = None
+            elif not is_array:
+                col_num = None
+
+        if row_num is not None:
+            row_num = int(row_num) - 1
+            if row_num < -1:
+                return Error.errors['#VALUE!']
+            row_num = max(0, row_num)
+
+        if col_num is not None:
+            col_num = int(col_num) - 1
+            if col_num < -1:
+                return Error.errors['#VALUE!']
+            col_num = max(0, col_num)
+
+        val = array[row_num, col_num]
+        return 0 if val is sh.EMPTY else val
+    except (IndexError, TypeError):
+        return Error.errors['#REF!']
+
+
+def xindex(array, row_num, col_num=None, area_num=1):
+    is_reference = isinstance(array, Ranges)
+    if is_reference:
+        arrays = [Ranges((rng,), array.values).value for rng in array.ranges]
+    else:
+        arrays = [array]
+
+    row_num, col_num, area_num = parse_ranges(row_num, col_num, area_num)[0]
+
+    res = np.vectorize(_index, excluded={0}, otypes=[object])(
+        arrays, row_num, col_num, area_num, is_reference,
+        isinstance(row_num, np.ndarray)
+    )
+    if not res.shape:
+        res = res.reshape(1, 1)
+    return res.view(Array)
+
+
+FUNCTIONS['INDEX'] = wrap_func(xindex, ranges=True)
 
 
 def xmatch(lookup_value, lookup_array, match_type=1):
