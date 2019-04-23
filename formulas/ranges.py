@@ -129,17 +129,14 @@ def _reshape_array_as_excel(value, base_shape):
 class Ranges:
     input_fields = ('excel', 'sheet', 'n1', 'n2', 'r1', 'r2')
 
-    def __init__(self, ranges=(), values=None, is_set=False, all_values=True):
+    def __init__(self, ranges=(), values=None):
         self.ranges = ranges
         self.values = values or {}
-        self.is_set = is_set
-        self.all_values = all_values or not ranges
         self._value = sh.NONE
 
     def pushes(self, refs, values=(), context=None):
         for r, v in itertools.zip_longest(refs, values, fillvalue=sh.EMPTY):
             self.push(r, value=v, context=context)
-        self.is_set = self.is_set or len(self.ranges) > 1
         return self
 
     @staticmethod
@@ -157,9 +154,12 @@ class Ranges:
             shape = _shape(**rng)
             value = _reshape_array_as_excel(value, shape)
             self.values[rng['name']] = (rng, value)
-        else:
-            self.all_values = False
+
         return self
+
+    @property
+    def is_set(self):
+        return len(self.ranges) > 1
 
     @staticmethod
     def get_range(format_range, ref, context=None):
@@ -191,26 +191,17 @@ class Ranges:
                 rng['n2'] = max(rng['n2'], r['n2'])
 
         rng = dict(self.format_range(('name', 'n1', 'n2'), **rng))
-        if self.all_values and other.all_values:
+        if self.values and other.values:
             values = self.values.copy()
             values.update(other.values)
             value = _assemble_values(rng, values)
             return Ranges().push(rng['name'], value)
-        return Ranges((rng,), all_values=False)
+        return Ranges((rng,))
 
     def __or__(self, other):  # Union.
-        base = self.ranges
-        for r0 in other.ranges:
-            stack = [r0]
-            for b in base:
-                s = stack.copy()
-                stack = []
-                for r in s:
-                    stack.extend(_split(b, r, format_range=self.format_range))
-            base += tuple(stack)
         values = self.values.copy()
         values.update(other.values)
-        return Ranges(base, values, True, self.all_values and other.all_values)
+        return Ranges(self.ranges + other.ranges, values)
 
     def intersect(self, other):
         if self.ranges:
@@ -218,12 +209,11 @@ class Ranges:
                 yield from _intersect(rng, self.ranges)
 
     def __and__(self, other):  # Intersection.
-        r = [dict(self.format_range(('name', 'n1', 'n2'), **i))
-             for i in self.intersect(other)]
+        r = tuple(dict(self.format_range(('name', 'n1', 'n2'), **i))
+                  for i in self.intersect(other))
         values = self.values.copy()
         values.update(other.values)
-        is_set = self.is_set or other.is_set
-        return Ranges(r, values, is_set, self.all_values and other.all_values)
+        return Ranges(r, values)
 
     def __sub__(self, other):
         base = other.ranges
@@ -236,7 +226,7 @@ class Ranges:
                     stack.extend(_split(b, r, format_range=self.format_range))
             base += tuple(stack)
         base, values = base[len(other.ranges):], self.values
-        return Ranges(base, values, True, self.all_values)
+        return Ranges(base, values)
 
     def simplify(self):
         rng = self.ranges
@@ -244,8 +234,7 @@ class Ranges:
             return self
         it = range(min(r['n1'] for r in rng), max(r['n2'] for r in rng) + 1)
         it = ['{0}:{0}'.format(_index2col(c)) for c in it]
-        spl = (self & Ranges(is_set=False).pushes(it))._merge()
-        spl.all_values = self.all_values
+        spl = (self & Ranges().pushes(it))._merge()
         return spl
 
     def _merge(self):
@@ -262,18 +251,18 @@ class Ranges:
                         r = sh.selector(self.input_fields, r)
                     rng.append(r)
         rng = [dict(self.format_range(['name'], **r)) for r in rng]
-        return Ranges(tuple(rng), self.values, self.is_set, self.all_values)
+        return Ranges(tuple(rng), self.values)
 
     def __repr__(self):
         ranges = ', '.join(r['name'] for r in self.ranges)
-        value = '={}'.format(self.value) if ranges and self.all_values else ''
+        value = '={}'.format(self.value) if ranges and self.values else ''
         return '<%s>(%s)%s' % (self.__class__.__name__, ranges, value)
 
     @property
     def value(self):
         if self._value is not sh.NONE:
             return self._value
-        if not self.all_values:
+        if self.ranges and not self.values:
             raise RangeValueError(str(self))
         stack, values = list(self.ranges), []
         while stack:

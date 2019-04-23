@@ -35,21 +35,18 @@ class TestOperators(unittest.TestCase):
         self.assertEqual(result, output, '%s != %s' % (result, output))
 
     @ddt.data(
-        ((('D7:F14',), ('C:E',)), '<Ranges>(D7:F14, C:C, D:E6, D15:E)'),
-        ((('D7:F14',), ('C4:E9',)), '<Ranges>(D7:F14, C4:C9, D4:E6)'),
-        ((('I7:L14',), ('H9:M12',)), '<Ranges>(I7:L14, H9:H12, M9:M12)'),
-        ((('I7:L14',), ('J5:K16',)), '<Ranges>(I7:L14, J5:K6, J15:K16)'),
-        ((('F24:I32',), ('G20:H26',)), '<Ranges>(F24:I32, G20:H23)'),
-        ((('M23:P30',), ('L20:Q25',)),
-         '<Ranges>(M23:P30, L20:L25, Q20:Q25, M20:P22)'),
-        ((('M23:P30', 'L20:L25', 'Q20:Q25', 'M20:P22',), ('L20:Q25',)),
-         '<Ranges>(M23:P30, L20:L25, Q20:Q25, M20:P22)'),
-        ((('M23:P30', 'L20:L25', 'Q20:Q25', 'M20:P22',),
-          ('P18:R27', 'L25:N32')),
-         '<Ranges>(M23:P30, L20:L25, Q20:Q25, M20:P22, R18:R27, Q18:Q19,'
-         ' Q26:Q27, P18:P19, L26:L32, M31:N32)'))
+        (('D7:F14',), ('C:E',)),
+        (('D7:F14',), ('C4:E9',)),
+        (('I7:L14',), ('H9:M12',)),
+        (('I7:L14',), ('J5:K16',)),
+        (('F24:I32',), ('G20:H26',)),
+        (('M23:P30',), ('L20:Q25',)),
+        (('M23:P30', 'L20:L25', 'Q20:Q25', 'M20:P22',), ('L20:Q25',)),
+        (('M23:P30', 'L20:L25', 'Q20:Q25', 'M20:P22',), ('P18:R27', 'L25:N32')),
+    )
     def test_union_ranges(self, case):
-        (range1, range2), result = case
+        range1, range2 = case
+        result = '<Ranges>(%s)' % ', '.join(range1 + range2)
         output = str(Ranges().pushes(range1) | Ranges().pushes(range2))
         self.assertEqual(result, output, '%s != %s' % (result, output))
 
@@ -140,13 +137,9 @@ class TestOperators(unittest.TestCase):
 
     @ddt.data(
         ((('B2:E5',), ('D4:F5',)),
-         (([(1, 1, 2, 2),
-            (1, 1, 2, 2),
-            (3, 3, 4, 4),
-            (3, 3, 4, 4)],),
-          (([(4, 4, 5),
-             (4, 4, 5)],))),
-         [5, 5, 1, 1, 2, 2, 1, 1, 2, 2, 3, 3, 4, 4, 3, 3, 4, 4]),)
+         (([(1, 1, 2, 2), (1, 1, 2, 2), (3, 3, 4, 4), (3, 3, 4, 4)],),
+          (([(4, 4, 5), (4, 4, 5)],))),
+         [4, 4, 4, 4, 5, 5, 1, 1, 2, 2, 1, 1, 2, 2, 3, 3, 4, 4, 3, 3, 4, 4]),)
     def test_value_union_ranges(self, case):
         (r1, r2), (v1, v2), result = case
         rng = Ranges().pushes(r1, v1) | Ranges().pushes(r2, v2)
