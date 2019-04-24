@@ -25,8 +25,9 @@ Modules:
     ~cell
     ~excel
 """
-
+import os
 import sys
+import functools
 from ._version import *
 
 _all = {
@@ -41,6 +42,7 @@ _all = {
 __all__ = tuple(_all)
 
 
+@functools.lru_cache(None)
 def __dir__():
     return __all__ + (
         '__doc__', '__author__', '__updated__', '__title__', '__version__',
@@ -57,5 +59,14 @@ def __getattr__(name):
     raise AttributeError("module %s has no attribute %s" % (__name__, name))
 
 
-if sys.version_info[:2] < (3, 7):
-    globals().update({k: __getattr__(k) for k in _all})
+if sys.version_info[:2] < (3, 7) or os.environ.get('IMPORT_ALL') == 'True':
+    # noinspection PyUnresolvedReferences
+    from .excel import ExcelModel
+    # noinspection PyUnresolvedReferences
+    from .parser import Parser
+    # noinspection PyUnresolvedReferences
+    from .functions import get_functions, SUBMODULES
+    # noinspection PyUnresolvedReferences
+    from .cell import CELL
+    # noinspection PyUnresolvedReferences
+    from .ranges import Ranges
