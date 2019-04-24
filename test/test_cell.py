@@ -19,6 +19,14 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata((
+        ('A1', '=OR({0,0,0},FALSE,"0")', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=OR(B1,FALSE)', {'B1':[['0']]}, '<Ranges>(A1)=[[False]]'),
+        ('A1', '=OR("0",FALSE)', {'B1':[['0']]}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=XOR({0,0,0},FALSE,FALSE)', {}, '<Ranges>(A1)=[[False]]'),
+        ('A1', '=XOR({0,0},FALSE,FALSE)', {}, '<Ranges>(A1)=[[False]]'),
+        ('A1', '=XOR(TRUE,TRUE)', {}, '<Ranges>(A1)=[[False]]'),
+        ('A1', '=OR(TRUE,#REF!,"0")', {}, '<Ranges>(A1)=[[#REF!]]'),
+        ('A1', '=OR(FALSE,"0",#REF!)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=INDEX({2,3;4,5},FALSE,"0")', {}, '<Ranges>(A1)=[[2]]'),
         ('A1', '=INDEX({2,3;4,5}, -1)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=INDEX(B1:C1, 1, 1)', {'B1:C1': [[sh.EMPTY, 2]]},

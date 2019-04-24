@@ -9,7 +9,11 @@
 """
 Python equivalents of logical Excel functions.
 """
-from . import wrap_ufunc, Error, flatten, get_error, value_return
+import functools
+import numpy as np
+from . import (
+    wrap_ufunc, Error, flatten, get_error, value_return, wrap_func, raise_errors
+)
 
 FUNCTIONS = {}
 
@@ -71,6 +75,28 @@ FUNCTIONS["_XLFN.SWITCH"] = FUNCTIONS["SWITCH"] = {
     'function': wrap_ufunc(
         xswitch, input_parser=lambda *a: a, return_func=value_return,
         check_error=lambda first, *a: get_error(first),
-    ),
-    'solve_cycle': solve_cycle
+    )
 }
+
+
+def xand(logical, *logicals, func=np.logical_and.reduce):
+    check, arr = lambda x: not raise_errors(x) and not isinstance(x, str), []
+    for a in (logical,) + logicals:
+        v = list(flatten(a, check=check))
+        arr.extend(v)
+        if not v and not isinstance(a, np.ndarray):
+            return Error.errors['#VALUE!']
+    return func(arr) if arr else Error.errors['#VALUE!']
+
+
+FUNCTIONS['AND'] = {'function': wrap_func(xand)}
+FUNCTIONS['OR'] = {'function': wrap_func(
+    functools.partial(xand, func=np.logical_or.reduce)
+)}
+FUNCTIONS['_XLFN.XOR'] = FUNCTIONS['XOR'] = {'function': wrap_func(
+    functools.partial(xand, func=np.logical_xor.reduce)
+)}
+
+FUNCTIONS['NOT'] = {'function': wrap_ufunc(
+    np.logical_not, input_parser=lambda *a: a, return_func=value_return
+)}
