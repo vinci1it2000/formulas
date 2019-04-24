@@ -2,6 +2,47 @@ Changelog
 =========
 
 
+v0.3.0 (2019-04-24)
+-------------------
+
+Feat
+~~~~
+- (logic) :gh:`27`: Add `OR`, `XOR`, `AND`, `NOT` functions.
+
+- (look) :gh:`27`: Add `INDEX` function.
+
+- (look) :gh:`24`: Improve performances of `look` functions.
+
+- (functions) :gh:`26`: Add `SWITCH`.
+
+- (functions) :gh:`30`: Add `GCD` and `LCM`.
+
+- (chore): Improve performances avoiding `combine_dicts`.
+
+- (chore): Improve performances checking intersection.
+
+
+Fix
+~~~
+- (tokens): Correct string nodes ids format adding `"`.
+
+- (ranges): Correct behaviour union of ranges.
+
+- (import): Enable PyCharm autocomplete.
+
+- (import): Save imports.
+
+- (test): Add repo path to system path.
+
+- (parser): Parse empty args for functions.
+
+- (functions) :gh:`30`: Correct implementation of `GCD` and `LCM`.
+
+- (ranges) :gh:`24`: Enable full column and row reference.
+
+- (excel): Correct bugs due to new `openpyxl`.
+
+
 v0.2.0 (2018-12-11)
 -------------------
 
