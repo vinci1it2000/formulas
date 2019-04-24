@@ -50,6 +50,9 @@ class String(Operand):
     def compile(self):
         return self.name.replace('""', '"')
 
+    def set_expr(self, *tokens):
+        self.attr['expr'] = '"%s"' % self.name
+
 
 class Empty(Operand):
     # noinspection PyMissingConstructor
