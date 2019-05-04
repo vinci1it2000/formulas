@@ -231,8 +231,7 @@ Things yet to do: implement the missing Excel formulas.
     :target: https://requires.io/github/vinci1it2000/formulas/requirements/?branch=master
     :alt: Dependencies up-to-date?
 
-
 .. |binder| image:: https://mybinder.org/badge_logo.svg
-    :target: https://mybinder.org/v2/gh/vinci1it2000/formulas/master?urlpath=lab%2Ftree%2Fnotebooks%2Findex.ipynb
+    :target: https://mybinder.org/v2/gh/vinci1it2000/formulas/master?urlpath=lab%2Ftree%2Fbinder%2Findex.ipynb
     :alt: Live Demo
 .. _end-badges:
