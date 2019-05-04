@@ -12,8 +12,9 @@ dependencies:
   - networkx
   - numpy >=1.15
   - openpyxl
-  - python-graphviz
+  - pip
   - python >=3.7,<3.8.0a0
+  - python-graphviz
   - regex
   - tornado<6
   - pip:
