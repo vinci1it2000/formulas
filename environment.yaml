@@ -1,0 +1,20 @@
+name: formulas
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - beautifulsoup4
+  - docutils
+  - flask
+  - jupyterlab >=0.35.5,<0.36
+  - lxml
+  - multiprocess
+  - networkx
+  - numpy >=1.15
+  - openpyxl
+  - python-graphviz
+  - python >=3.7,<3.8.0a0
+  - regex
+  - tornado<6
+  - pip:
+    - schedula >=0.3.1

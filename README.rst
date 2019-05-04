@@ -4,7 +4,7 @@
 formulas: An Excel formulas interpreter in Python.
 ##################################################
 |pypi_ver| |travis_status| |appveyor_status| |cover_status| |docs_status|
-|dependencies| |github_issues| |python_ver| |proj_license|
+|dependencies| |github_issues| |python_ver| |proj_license| |demo|
 
 :release:       0.3.0
 :date:          2019-04-24 13:30:00
@@ -17,6 +17,7 @@ formulas: An Excel formulas interpreter in Python.
 :keywords:      excel, formulas, interpreter, compiler, dispatch
 :developers:    .. include:: AUTHORS.rst
 :license:       `EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_
+:demo:          `Binder <https://mybinder.org/v2/gh/vinci1it2000/formulas/master?urlpath=lab%2Ftree%2Fnotebooks%2Findex.ipynb>`_
 
 .. _start-pypi:
 .. _start-intro:
