@@ -5,6 +5,6 @@ regex
 graphviz
 Pygments
 lxml
-bs4
+beautifulsoup4
 jinja2
 docutils
