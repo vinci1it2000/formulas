@@ -50,7 +50,7 @@ class ExcelModel:
     def _yield_refs(book, context=None):
         ctx = context.copy()
         for n in book.defined_names.definedName:
-            if n.value == '#REF!':
+            if '#REF!' in n.value:
                 continue
             ctx['ref'], i = n.name.upper(), n.localSheetId
             rng = Ranges().push(n.value, context=context).ranges[0]['name']
