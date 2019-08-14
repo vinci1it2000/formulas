@@ -69,13 +69,18 @@ class TestExcelModel(unittest.TestCase):
 
     def _compare(self, books, results):
         it = sorted(sh.stack_nested_keys(results, depth=3))
+        errors = []
         for k, res in it:
             value = sh.get_nested_dicts(books, *k)
             msg = '[{}]{}!{}'.format(*k)
-            if is_number(value) and is_number(res):
-                self.assertAlmostEqual(float(res), float(value), msg=msg)
-            else:
-                self.assertEqual(res, value, msg=msg)
+            try:
+                if is_number(value) and is_number(res):
+                    self.assertAlmostEqual(float(res), float(value), msg=msg)
+                else:
+                    self.assertEqual(res, value, msg=msg)
+            except AssertionError as ex:
+                errors.append(str(ex))
+        self.assertFalse(bool(errors), 'Errors:\n%s' % '\n'.join(errors))
         return len(it)
 
     def test_excel_model(self):
