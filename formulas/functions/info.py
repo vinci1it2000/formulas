@@ -10,7 +10,7 @@
 Python equivalents of information Excel functions.
 """
 import numpy as np
-from . import wrap_ranges_func, Error, Array, XlError
+from . import wrap_ranges_func, Error, Array, XlError, wrap_func
 
 FUNCTIONS = {}
 
@@ -48,3 +48,10 @@ def iserror(val):
 
 
 FUNCTIONS['ISERROR'] = wrap_ranges_func(iserror)
+
+
+def xna():
+    return Error.errors['#N/A']
+
+
+FUNCTIONS['NA'] = wrap_func(xna)
