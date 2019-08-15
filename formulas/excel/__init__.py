@@ -8,14 +8,24 @@
 
 """
 It provides Excel model class.
+
+Sub-Modules:
+
+.. currentmodule:: formulas.excel
+
+.. autosummary::
+    :nosignatures:
+    :toctree: excel/
+
+    ~xlreader
 """
 import numpy as np
 import os.path as osp
 import schedula as sh
-from .ranges import Ranges
-from .cell import Cell, RangesAssembler
-from .tokens.operand import range2parts, XlError
-from .functions import flatten
+from ..ranges import Ranges
+from ..cell import Cell, RangesAssembler
+from ..tokens.operand import range2parts, XlError
+from ..functions import flatten
 
 BOOK = sh.Token('Book')
 SHEETS = sh.Token('Sheets')
@@ -110,7 +120,7 @@ class ExcelModel:
                 context.update({'excel': osp.basename(book).upper(),
                                 'directory': osp.dirname(osp.abspath(book))})
                 if not are_in(self.books, context['excel'], BOOK):
-                    from openpyxl import load_workbook
+                    from .xlreader import load_workbook
                     book = load_workbook(book, data_only=data_only)
             book = get_in(
                 self.books, context['excel'], BOOK, default=lambda: book

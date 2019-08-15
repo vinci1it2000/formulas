@@ -13,6 +13,7 @@ import unittest
 import os.path as osp
 import schedula as sh
 from formulas.excel import ExcelModel, BOOK, ERR_CIRCULAR
+from formulas.excel.xlreader import load_workbook
 from formulas.functions import is_number
 
 EXTRAS = os.environ.get('EXTRAS', 'all')
@@ -42,7 +43,6 @@ def _res2books(res):
 @unittest.skipIf(EXTRAS not in ('all', 'excel'), 'Not for extra %s.' % EXTRAS)
 class TestExcelModel(unittest.TestCase):
     def setUp(self):
-        import openpyxl
         self.filename = osp.join(mydir, _filename)
         self.link_filename = osp.join(mydir, _link_filename)
         self.filename_compile = osp.join(mydir, _filename_compile)
@@ -50,18 +50,18 @@ class TestExcelModel(unittest.TestCase):
 
         self.results = {
             _filename.upper(): _book2dict(
-                openpyxl.load_workbook(self.filename, data_only=True)
+                load_workbook(self.filename, data_only=True)
             ),
             _link_filename.upper(): _book2dict(
-                openpyxl.load_workbook(self.link_filename, data_only=True)
+                load_workbook(self.link_filename, data_only=True)
             )
         }
         self.results_compile = _book2dict(
-            openpyxl.load_workbook(self.filename_compile, data_only=True)
+            load_workbook(self.filename_compile, data_only=True)
         )['DATA']
         self.results_circular = {
             _filename_circular.upper(): _book2dict(
-                openpyxl.load_workbook(self.filename_circular, data_only=True)
+                load_workbook(self.filename_circular, data_only=True)
             )
         }
 
