@@ -117,7 +117,7 @@ def xtoday():
     return xdate(date.year, date.month, date.day)
 
 
-FUNCTIONS['TODAY'] = wrap_ufunc(xtoday)
+FUNCTIONS['TODAY'] = wrap_func(xtoday)
 
 
 def xtime(hour, minute, second):
@@ -176,7 +176,7 @@ def xnow():
     return xdate(d.year, d.month, d.day) + xtime(d.hour, d.minute, d.second)
 
 
-FUNCTIONS['NOW'] = wrap_ufunc(xnow)
+FUNCTIONS['NOW'] = wrap_func(xnow)
 
 
 def _isleap(year):
