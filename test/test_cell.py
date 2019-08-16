@@ -11,6 +11,9 @@ import ddt
 import schedula as sh
 from formulas.cell import Cell
 from formulas.functions import Error
+from formulas.functions.date import DEFAULT_DATE
+
+DEFAULT_DATE[0] = 2019
 
 
 def inp_ranges(*rng):

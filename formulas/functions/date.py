@@ -21,7 +21,7 @@ from . import (
 
 FUNCTIONS = {}
 DATE_ZERO = datetime.datetime(1899, 12, 31)
-DEFAULT_DATE = (datetime.datetime.now().year, 1, 1, 0, 0, 0)
+DEFAULT_DATE = [datetime.datetime.now().year, 1, 1, 0, 0, 0]
 
 
 def _date(y, m, d):
