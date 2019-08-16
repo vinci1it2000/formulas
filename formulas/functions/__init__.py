@@ -28,6 +28,7 @@ Sub-Modules:
     ~stat
     ~text
 """
+import re
 import importlib
 import functools
 import collections
@@ -59,16 +60,17 @@ class Array(np.ndarray):
             return res
 
     def collapse(self, shape):
-        if self._collapse_value is not None and tuple(shape) == (1, 1) != self.shape:
+        if self._collapse_value is not None and \
+                tuple(shape) == (1, 1) != self.shape:
             return self._collapse_value
         return np.resize(self, shape)
 
     def __reduce__(self):
         reduce = super(Array, self).__reduce__()  # Get the parent's __reduce__.
-        state = {
-            '_collapse_value': self._collapse_value,
-            '_default': self._default
-        },  # Additional state params to pass to __setstate__.
+        state = dict(
+            _collapse_value=self._collapse_value,
+            _default=self._default
+        ),  # Additional state params to pass to __setstate__.
         return reduce[0], reduce[1], reduce[2] + state
 
     def __setstate__(self, state, *args, **kwargs):
@@ -161,6 +163,81 @@ def is_number(number):
     return True
 
 
+def date2num(value):
+    if isinstance(value, str):
+        from .date import xdate, _text2datetime
+        try:
+            return xdate(*_text2datetime(value)[:3])
+        except (FoundError, AssertionError):
+            pass
+    return value
+
+
+date2num = np.vectorize(date2num, otypes=[object])
+_re_condition = re.compile('(?<!~)[?*]')
+
+
+def _xfilter(accumulator, test_range, condition, operating_range):
+    from .operators import LOGIC_OPERATORS
+    operator = '='
+    if isinstance(condition, str):
+        for k in LOGIC_OPERATORS:
+            if condition.startswith(k) and condition != k:
+                operator, condition = k, condition[len(k):]
+                break
+        if operator == '=':
+            it = _re_condition.findall(condition)
+            if it:
+                _ = lambda v: re.escape(v.replace('~?', '?').replace('~*', '*'))
+                match = re.compile(''.join(sum(zip(
+                    map(_, _re_condition.split(condition)),
+                    tuple(map(lambda v: '.%s' % v, it)) + ('',)
+                ), ()))).match
+                f = lambda v: isinstance(v, str) and bool(match(v))
+                b = np.vectorize(f, otypes=[bool])(test_range['raw'])
+                return accumulator(operating_range[b])
+            elif any(v in condition for v in ('~?', '~*')):
+                condition = condition.replace('~?', '?').replace('~*', '*')
+        from ..tokens.operand import Number, Error
+        from ..errors import TokenError
+
+        for token in (Number, Error):
+            try:
+                token = token(condition)
+                if token.end_match == len(condition):
+                    condition = token.compile()
+                    break
+            except TokenError:
+                pass
+        if isinstance(condition, str):
+            condition = date2num(condition).ravel()[0]
+
+    from .operators import _get_type_id
+    type_id, operator = _get_type_id(condition), LOGIC_OPERATORS[operator]
+
+    def check(value):
+        return _get_type_id(value) == type_id and operator(value, condition)
+
+    if is_number(condition):
+        if 'num' not in test_range:
+            test_range['num'] = date2num(test_range['raw'])
+        b = np.vectorize(check, otypes=[bool])(test_range['num'])
+    else:
+        b = np.vectorize(check, otypes=[bool])(test_range['raw'])
+    return accumulator(operating_range[b])
+
+
+_xfilter = np.vectorize(_xfilter, otypes=[object], excluded={0, 1, 3})
+
+
+def xfilter(accumulator, test_range, condition, operating_range=None):
+    operating_range = test_range if operating_range is None else operating_range
+    # noinspection PyTypeChecker
+    test_range = {'raw': replace_empty(test_range, '')}
+    res = _xfilter(accumulator, test_range, condition, operating_range)
+    return res.view(Array)
+
+
 def flatten(l, check=is_number):
     if isinstance(l, np.ndarray):
         if not check:
@@ -174,6 +251,7 @@ def flatten(l, check=is_number):
         yield l
 
 
+# noinspection PyUnusedLocal
 def value_return(res, *args):
     res._collapse_value = Error.errors['#VALUE!']
     return res

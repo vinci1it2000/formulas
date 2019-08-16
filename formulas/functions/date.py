@@ -62,9 +62,11 @@ def _get_date_parser():
 
 def _text2datetime(date_text):
     res = _get_date_parser()._parse(date_text)[0]
+    assert res
     date = [getattr(res, v) for v in (
         "year", "month", "day", "hour", "minute", "second"
     )]
+    assert not all(v is None for v in date)
     return tuple(d if v is None else v for v, d in zip(date, DEFAULT_DATE))
 
 

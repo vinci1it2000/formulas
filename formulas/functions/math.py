@@ -14,7 +14,7 @@ import functools
 import numpy as np
 from . import (
     get_error, raise_errors, is_number, flatten, wrap_ufunc, wrap_func,
-    replace_empty, Error
+    replace_empty, Error, xfilter
 )
 
 # noinspection PyDictCreation
@@ -350,6 +350,14 @@ def xsum(*args):
 
 
 FUNCTIONS['SUM'] = wrap_func(xsum)
+
+
+def xsumif(test_range, criteria, sum_range=None):
+    return xfilter(xsum, test_range, criteria, sum_range)
+
+
+FUNCTIONS['SUMIF'] = wrap_func(xsumif)
+
 FUNCTIONS['TAN'] = wrap_ufunc(np.tan)
 FUNCTIONS['TANH'] = wrap_ufunc(np.tanh)
 FUNCTIONS['TRUNC'] = wrap_ufunc(functools.partial(xround, func=math.trunc))

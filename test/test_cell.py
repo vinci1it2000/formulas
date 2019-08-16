@@ -10,6 +10,7 @@ import unittest
 import ddt
 import schedula as sh
 from formulas.cell import Cell
+from formulas.functions import Error
 
 
 def inp_ranges(*rng):
@@ -19,6 +20,14 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata((
+        ('A1:G1', '=SUMIF(A2:H2,{"<=FALSE",0,"",#VALUE!,"~*",FALSE},A3:H3)',
+         {'A2:H2': [[sh.EMPTY, 0, Error.errors['#VALUE!'], "*", False]],
+          'A3:H3': [[11, 7, 5, 9, 2]]},
+         '<Ranges>(A1:G1)=[[2 7 11 5 9 2 #N/A]]'),
+        ('A1:C1', '=SUMIF(A2:F2,{"60","29/02/1900","*0"},A3:F3)',
+         {'A2:F2': [[60, "29/02/1900", sh.EMPTY, 0, "*", "AUG-98"]],
+          'A3:F3': [[1, 3, 11, 7, 9, 13]]},
+         '<Ranges>(A1:C1)=[[4 4 3]]'),
         ('A1', '=YEARFRAC(0,345,TRUE)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=YEARFRAC("26/8/1987 05:00 AM",345,4)', {},
          '<Ranges>(A1)=[[86.71111111111111]]'),

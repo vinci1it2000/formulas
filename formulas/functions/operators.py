@@ -49,15 +49,15 @@ logic_wrap = functools.partial(
     wrap_ufunc, input_parser=logic_input_parser, return_func=value_return,
     args_parser=lambda *a: a
 )
-
-OPERATORS.update({k: logic_wrap(v) for k, v in {
-    '<': lambda x, y: x < y,
-    '<=': lambda x, y: x <= y,
-    '>': lambda x, y: x > y,
-    '>=': lambda x, y: x >= y,
-    '=': lambda x, y: x == y,
-    '<>': lambda x, y: x != y,
-}.items()})
+LOGIC_OPERATORS = collections.OrderedDict([
+    ('>=', lambda x, y: x >= y),
+    ('<=', lambda x, y: x <= y),
+    ('<>', lambda x, y: x != y),
+    ('<', lambda x, y: x < y),
+    ('>', lambda x, y: x > y),
+    ('=', lambda x, y: x == y),
+])
+OPERATORS.update({k: logic_wrap(v) for k, v in LOGIC_OPERATORS.items()})
 OPERATORS['&'] = wrap_ufunc(
     lambda x, y: x + y, input_parser=lambda *a: map(_str, a),
     args_parser=lambda *a: (replace_empty(v, '') for v in a),
