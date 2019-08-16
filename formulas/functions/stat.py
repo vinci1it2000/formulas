@@ -11,7 +11,10 @@ Python equivalents of statistical Excel functions.
 """
 import functools
 import schedula as sh
-from . import raise_errors, flatten, wrap_func, Error, is_number
+from . import (
+    raise_errors, flatten, wrap_func, Error, is_number, _text2num, xfilter,
+    XlError
+)
 
 FUNCTIONS = {}
 
@@ -28,24 +31,47 @@ def _convert(v):
     return v
 
 
-def xfunc(*args, func=max, check=is_number, convert=None, default=0):
-    raise_errors(args)
-    it = flatten(args, check=check)
-    return func(list(map(convert, it) if convert else it) or [default])
+def _convert_args(v):
+    if isinstance(v, XlError):
+        return v
+    if isinstance(v, bool):
+        return int(v)
+    if isinstance(v, str):
+        return float(_text2num(v))
+    return v
 
 
-def xaverage(v):
-    if v[0] is not None:
+def xfunc(*args, func=max, check=is_number, convert=None, default=0,
+          _raise=True):
+    _raise and raise_errors(args)
+    it = flatten(map(_convert_args, args), check=check)
+    default = [] if default is None else [default]
+    return func(list(map(convert, it) if convert else it) or default)
+
+
+def _xaverage(v):
+    if v:
         return sum(v) / len(v)
     return Error.errors['#DIV/0!']
 
 
-FUNCTIONS['AVERAGE'] = wrap_func(functools.partial(
-    xfunc, func=xaverage, default=None
-))
+xaverage = functools.partial(xfunc, func=_xaverage, default=None)
+FUNCTIONS['AVERAGE'] = wrap_func(xaverage)
 FUNCTIONS['AVERAGEA'] = wrap_func(functools.partial(
-    xfunc, convert=_convert, check=is_not_empty, func=xaverage, default=None
+    xfunc, convert=_convert, check=is_not_empty, func=_xaverage, default=None
 ))
+FUNCTIONS['AVERAGEIF'] = wrap_func(functools.partial(xfilter, xaverage))
+FUNCTIONS['COUNT'] = wrap_func(functools.partial(
+    xfunc, func=len, _raise=False, default=None
+))
+FUNCTIONS['COUNTA'] = wrap_func(functools.partial(
+    xfunc, convert=_convert, check=is_not_empty, func=len, _raise=False,
+    default=None
+))
+FUNCTIONS['COUNTIF'] = wrap_func(functools.partial(
+    xfilter, len, operating_range=None
+))
+
 FUNCTIONS['MAX'] = wrap_func(xfunc)
 FUNCTIONS['MAXA'] = wrap_func(functools.partial(
     xfunc, convert=_convert, check=is_not_empty

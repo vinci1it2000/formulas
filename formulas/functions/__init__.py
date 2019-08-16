@@ -163,17 +163,20 @@ def is_number(number):
     return True
 
 
-def date2num(value):
-    if isinstance(value, str):
-        from .date import xdate, _text2datetime
+def _text2num(value):
+    if not isinstance(value, Error) and isinstance(value, str):
         try:
-            return xdate(*_text2datetime(value)[:3])
-        except (FoundError, AssertionError):
-            pass
+            return float(value)
+        except (ValueError, TypeError):
+            from .date import xdate, _text2datetime
+            try:
+                return xdate(*_text2datetime(value)[:3])
+            except (FoundError, AssertionError):
+                pass
     return value
 
 
-date2num = np.vectorize(date2num, otypes=[object])
+text2num = np.vectorize(_text2num, otypes=[object])
 _re_condition = re.compile('(?<!~)[?*]')
 
 
@@ -195,12 +198,14 @@ def _xfilter(accumulator, test_range, condition, operating_range):
                 ), ()))).match
                 f = lambda v: isinstance(v, str) and bool(match(v))
                 b = np.vectorize(f, otypes=[bool])(test_range['raw'])
-                return accumulator(operating_range[b])
+                try:
+                    return accumulator(operating_range[b])
+                except FoundError as ex:
+                    return ex.err
             elif any(v in condition for v in ('~?', '~*')):
                 condition = condition.replace('~?', '?').replace('~*', '*')
         from ..tokens.operand import Number, Error
         from ..errors import TokenError
-
         for token in (Number, Error):
             try:
                 token = token(condition)
@@ -209,8 +214,8 @@ def _xfilter(accumulator, test_range, condition, operating_range):
                     break
             except TokenError:
                 pass
-        if isinstance(condition, str):
-            condition = date2num(condition).ravel()[0]
+
+        condition = _text2num(condition)
 
     from .operators import _get_type_id
     type_id, operator = _get_type_id(condition), LOGIC_OPERATORS[operator]
@@ -220,11 +225,14 @@ def _xfilter(accumulator, test_range, condition, operating_range):
 
     if is_number(condition):
         if 'num' not in test_range:
-            test_range['num'] = date2num(test_range['raw'])
+            test_range['num'] = text2num(test_range['raw'])
         b = np.vectorize(check, otypes=[bool])(test_range['num'])
     else:
         b = np.vectorize(check, otypes=[bool])(test_range['raw'])
-    return accumulator(operating_range[b])
+    try:
+        return accumulator(operating_range[b])
+    except FoundError as ex:
+        return ex.err
 
 
 _xfilter = np.vectorize(_xfilter, otypes=[object], excluded={0, 1, 3})

@@ -350,14 +350,7 @@ def xsum(*args):
 
 
 FUNCTIONS['SUM'] = wrap_func(xsum)
-
-
-def xsumif(test_range, criteria, sum_range=None):
-    return xfilter(xsum, test_range, criteria, sum_range)
-
-
-FUNCTIONS['SUMIF'] = wrap_func(xsumif)
-
+FUNCTIONS['SUMIF'] = wrap_func(functools.partial(xfilter, xsum))
 FUNCTIONS['TAN'] = wrap_ufunc(np.tan)
 FUNCTIONS['TANH'] = wrap_ufunc(np.tanh)
 FUNCTIONS['TRUNC'] = wrap_ufunc(functools.partial(xround, func=math.trunc))
