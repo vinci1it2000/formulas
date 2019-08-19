@@ -155,7 +155,7 @@ def raise_errors(*args):
 def is_number(number):
     if isinstance(number, bool):
         return False
-    elif not isinstance(number, Error):
+    elif not isinstance(number, XlError):
         try:
             float(number)
         except (ValueError, TypeError):
@@ -275,7 +275,7 @@ def wrap_ufunc(
         try:
             r = check_error(*vals) or func(*input_parser(*vals))
             if check_nan and not isinstance(r, (XlError, str)):
-                r = (np.isnan(r) or np.isinf(r)) and Error.errors['#NUM!'] or r
+                r = (not np.isfinite(r)) and Error.errors['#NUM!'] or r
         except (ValueError, TypeError):
             r = Error.errors['#VALUE!']
         return r

@@ -62,7 +62,8 @@ FUNCTIONS['AVERAGEA'] = wrap_func(functools.partial(
 ))
 FUNCTIONS['AVERAGEIF'] = wrap_func(functools.partial(xfilter, xaverage))
 FUNCTIONS['COUNT'] = wrap_func(functools.partial(
-    xfunc, func=len, _raise=False, default=None
+    xfunc, func=len, _raise=False, default=None,
+    check=lambda x: is_number(x) and not isinstance(x, XlError)
 ))
 FUNCTIONS['COUNTA'] = wrap_func(functools.partial(
     xfunc, convert=_convert, check=is_not_empty, func=len, _raise=False,
