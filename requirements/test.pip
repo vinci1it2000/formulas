@@ -4,3 +4,4 @@ nose
 coveralls
 ddt
 dill
+openpyxl
