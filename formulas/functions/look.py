@@ -180,7 +180,7 @@ def xlookup(lookup_val, lookup_vec, result_vec=None, match_type=1):
     result_vec = lookup_vec if result_vec is None else result_vec
     r = xmatch(lookup_val, lookup_vec, match_type)
     if not isinstance(r, XlError):
-        r = np.ravel(result_vec[r - 1])[0]
+        r = np.asarray(result_vec[r - 1], object).ravel()[0]
     return r
 
 
