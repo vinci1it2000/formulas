@@ -19,6 +19,7 @@ Sub-Modules:
 
     ~xlreader
 """
+import functools
 import numpy as np
 import os.path as osp
 import schedula as sh
@@ -30,7 +31,14 @@ from ..functions import flatten
 BOOK = sh.Token('Book')
 SHEETS = sh.Token('Sheets')
 CIRCULAR = sh.Token('CIRCULAR')
-ERR_CIRCULAR = XlError('0')
+
+
+class XlCircular(XlError):
+    def __str__(self):
+        return '0'
+
+
+ERR_CIRCULAR = XlCircular('#CIRC!')
 
 
 def _get_name(name, names):
@@ -311,14 +319,19 @@ class ExcelModel:
 
     def solve_circular(self):
         import networkx as nx
+        from collections import Counter
         mod, dsp = {}, self.dsp
         f_nodes, d_nodes, dmap = dsp.function_nodes, dsp.data_nodes, dsp.dmap
-
-        for cycle in sorted(map(set, nx.simple_cycles(dmap))):
+        cycles = list(nx.simple_cycles(dmap))
+        cycles_nodes = Counter(sum(cycles, []))
+        for cycle in sorted(map(set, cycles)):
+            cycles_nodes.subtract(cycle)
+            active_nodes = {k for k, v in cycles_nodes.items() if v}
             for k in sorted(cycle.intersection(f_nodes)):
-                if _check_cycles(dmap, k, f_nodes, cycle, mod):
+                if _check_cycles(dmap, k, f_nodes, cycle, active_nodes, mod):
                     break
             else:
+                cycles_nodes.update(cycle)
                 dist = sh.inf(len(cycle) + 1, 0)
                 for k in sorted(cycle.intersection(d_nodes)):
                     dsp.set_default_value(k, ERR_CIRCULAR, dist)
@@ -335,11 +348,17 @@ class ExcelModel:
         return self
 
 
-def _check_cycles(dmap, node_id, nodes, cycle, mod=None):
+def _check_range_all_cycles(nodes, active_nodes, j):
+    if isinstance(nodes[j]['function'], RangesAssembler):
+        return active_nodes.intersection(nodes[j]['inputs'])
+    return False
+
+
+def _check_cycles(dmap, node_id, nodes, cycle, active_nodes, mod=None):
     node, mod = nodes[node_id], {} if mod is None else mod
     _map = dict(zip(node['function'].inputs, node['inputs']))
     pred, res = dmap.predecessors, ()
-    check = lambda j: isinstance(nodes[j]['function'], RangesAssembler)
+    check = functools.partial(_check_range_all_cycles, nodes, active_nodes)
     if not any(any(map(check, pred(k))) for k in _map.values() if k in cycle):
         cycle = [i for i, j in _map.items() if j in cycle]
         try:
