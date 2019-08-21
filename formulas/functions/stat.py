@@ -10,10 +10,11 @@
 Python equivalents of statistical Excel functions.
 """
 import functools
+import numpy as np
 import schedula as sh
 from . import (
     raise_errors, flatten, wrap_func, Error, is_number, _text2num, xfilter,
-    XlError
+    XlError, wrap_ufunc, replace_empty, get_error
 )
 
 FUNCTIONS = {}
@@ -66,13 +67,54 @@ FUNCTIONS['COUNT'] = wrap_func(functools.partial(
     check=lambda x: is_number(x) and not isinstance(x, XlError)
 ))
 FUNCTIONS['COUNTA'] = wrap_func(functools.partial(
-    xfunc, convert=_convert, check=is_not_empty, func=len, _raise=False,
-    default=None
+    xfunc, check=is_not_empty, func=len, _raise=False, default=None
+))
+FUNCTIONS['COUNTBLANK'] = wrap_func(functools.partial(
+    xfunc, check=lambda x: (x == '' or x is sh.EMPTY), func=len,
+    _raise=False, default=None
 ))
 FUNCTIONS['COUNTIF'] = wrap_func(functools.partial(
     xfilter, len, operating_range=None
 ))
 
+
+def xsort(values, k, large=True):
+    err = get_error(k)
+    if err:
+        return err
+    k = int(_text2num(k))
+    if isinstance(values, XlError):
+        return values
+    n = len(values)
+    if 1 <= k <= n:
+        if large:
+            k = -k
+        else:
+            k -= 1
+        return values[k]
+    return Error.errors['#NUM!']
+
+
+def _sort_parser(values, k):
+    err = get_error(values)
+    if err:
+        return err, k
+    values = np.array(tuple(flatten(
+        values, lambda v: not isinstance(v, (str, bool))
+    )), float)
+    values.sort()
+    return values, replace_empty(k)
+
+
+FUNCTIONS['LARGE'] = wrap_ufunc(
+    xsort, args_parser=_sort_parser, excluded={0}, check_error=lambda *a: None,
+    input_parser=lambda *a: a
+)
+
+FUNCTIONS['SMALL'] = wrap_ufunc(
+    xsort, args_parser=_sort_parser, excluded={0}, check_error=lambda *a: None,
+    input_parser=lambda values, k: (values, k, False)
+)
 FUNCTIONS['MAX'] = wrap_func(xfunc)
 FUNCTIONS['MAXA'] = wrap_func(functools.partial(
     xfunc, convert=_convert, check=is_not_empty
