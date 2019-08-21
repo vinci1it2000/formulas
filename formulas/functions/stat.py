@@ -9,6 +9,7 @@
 """
 Python equivalents of statistical Excel functions.
 """
+import math
 import functools
 import numpy as np
 import schedula as sh
@@ -82,16 +83,15 @@ def xsort(values, k, large=True):
     err = get_error(k)
     if err:
         return err
-    k = int(_text2num(k))
+    k = float(_text2num(k))
     if isinstance(values, XlError):
         return values
-    n = len(values)
-    if 1 <= k <= n:
+    if 1 <= k <= len(values):
         if large:
             k = -k
         else:
             k -= 1
-        return values[k]
+        return values[math.floor(k)]
     return Error.errors['#NUM!']
 
 
