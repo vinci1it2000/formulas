@@ -32,7 +32,7 @@ def _date(y, m, d):
         m -= 1
         d += calendar.monthrange(y, m or 12)[1] + int(y == 1900 and m == 2)
         y, m, d = _date(y, m, d)
-    else:
+    elif y <= 9999:
         max_d = calendar.monthrange(y, m)[1]
         if d > max_d:
             y, m, d = _date(y, m + 1, d - max_d)
