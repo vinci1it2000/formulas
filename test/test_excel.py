@@ -40,6 +40,13 @@ def _res2books(res):
     return {k.upper(): _book2dict(v[BOOK]) for k, v in res.items()}
 
 
+def _file2books(*fpaths):
+    return {
+        osp.basename(fp).upper(): _book2dict(load_workbook(fp, data_only=True))
+        for fp in fpaths
+    }
+
+
 @unittest.skipIf(EXTRAS not in ('all', 'excel'), 'Not for extra %s.' % EXTRAS)
 class TestExcelModel(unittest.TestCase):
     def setUp(self):
@@ -48,30 +55,18 @@ class TestExcelModel(unittest.TestCase):
         self.filename_compile = osp.join(mydir, _filename_compile)
         self.filename_circular = osp.join(mydir, _filename_circular)
 
-        self.results = {
-            _filename.upper(): _book2dict(
-                load_workbook(self.filename, data_only=True)
-            ),
-            _link_filename.upper(): _book2dict(
-                load_workbook(self.link_filename, data_only=True)
-            )
-        }
+        self.results = _file2books(self.filename, self.link_filename)
         self.results_compile = _book2dict(
             load_workbook(self.filename_compile, data_only=True)
         )['DATA']
-        self.results_circular = {
-            _filename_circular.upper(): _book2dict(
-                load_workbook(self.filename_circular, data_only=True)
-            )
-        }
-
+        self.results_circular = _file2books(self.filename_circular)
         self.maxDiff = None
 
     def _compare(self, books, results):
         it = sorted(sh.stack_nested_keys(results, depth=3))
         errors = []
         for k, res in it:
-            value = sh.get_nested_dicts(books, *k)
+            value = sh.get_nested_dicts(books, *k, default=lambda: '')
             msg = '[{}]{}!{}'.format(*k)
             try:
                 if is_number(value) and is_number(res):
@@ -88,13 +83,15 @@ class TestExcelModel(unittest.TestCase):
         _msg = '[info] test_excel_model: '
         xl_mdl = ExcelModel()
 
-        print('\n%sLoading excel-model.' % _msg); s = time.time()
+        print('\n%sLoading excel-model.' % _msg)
+        s = time.time()
 
         xl_mdl.loads(self.filename)
         xl_mdl.add_book(self.link_filename)
 
         msg = '%sLoaded excel-model in %.2fs.\n%sFinishing excel-model.'
-        print(msg % (_msg, time.time() - s, _msg)); s = time.time()
+        print(msg % (_msg, time.time() - s, _msg))
+        s = time.time()
 
         xl_mdl.finish()
 
@@ -102,20 +99,23 @@ class TestExcelModel(unittest.TestCase):
 
         n_test = 0
         for i in range(3):
-            print('%sCalculate excel-model.' % _msg); s = time.time()
+            print('%sCalculate excel-model.' % _msg)
+            s = time.time()
 
             xl_mdl.calculate()
 
             msg = '%sCalculated excel-model in %.2fs.\n%s' \
                   'Comparing overwritten results.'
-            print(msg % (_msg, time.time() - s, _msg)); s = time.time()
+            print(msg % (_msg, time.time() - s, _msg))
+            s = time.time()
 
             books = _res2books(xl_mdl.write(xl_mdl.books))
             n_test += self._compare(books, self.results)
 
             msg = '%sCompared overwritten results in %.2fs.\n' \
                   '%sComparing fresh written results.'
-            print(msg % (_msg, time.time() - s, _msg)); s = time.time()
+            print(msg % (_msg, time.time() - s, _msg))
+            s = time.time()
 
             n_test += self._compare(_res2books(xl_mdl.write()), self.results)
 
@@ -123,13 +123,15 @@ class TestExcelModel(unittest.TestCase):
             print(msg % (_msg, time.time() - s))
 
             if i == 0:
-                print('%sSaving excel-model dill.' % _msg); s = time.time()
+                print('%sSaving excel-model dill.' % _msg)
+                s = time.time()
 
                 xl_copy = dill.dumps(xl_mdl)
 
                 msg = '%sSaved excel-model dill in %.2fs.\n' \
                       '%sLoading excel-model dill.'
-                print(msg % (_msg, time.time() - s, _msg)); s = time.time()
+                print(msg % (_msg, time.time() - s, _msg))
+                s = time.time()
 
                 xl_mdl = dill.loads(xl_copy)
                 del xl_copy
@@ -138,14 +140,30 @@ class TestExcelModel(unittest.TestCase):
                 print(msg % (_msg, time.time() - s))
 
             elif i == 1:
-                print('%sDeep-copying excel-model.' % _msg); s = time.time()
+                print('%sDeep-copying excel-model.' % _msg)
+                s = time.time()
 
                 xl_mdl = copy.deepcopy(xl_mdl)
 
                 msg = '%sDeep-copied excel-model in %.2fs.'
                 print(msg % (_msg, time.time() - s))
 
-        print('%sRan %d tests in %.2fs' % (_msg, n_test, time.time() - start))
+        print('%sSaving excel-model xlsx.' % _msg)
+        s = time.time()
+
+        dirpath = osp.join(mydir, 'tmp')
+        xl_mdl.write(dirpath=dirpath)
+
+        msg = '%sSaved excel-model exls in %.2fs.\n%sComparing saved results.'
+        print(msg % (_msg, time.time() - s, _msg))
+        s = time.time()
+
+        n_test += self._compare(_file2books(*(
+            osp.join(dirpath, fp) for fp in xl_mdl.books
+        )), self.results)
+
+        msg = '%sCompared saved results in %.2fs.\n%sRan %d tests in %.2fs'
+        print(msg % (_msg, time.time() - s, _msg, n_test, time.time() - start))
 
     def test_excel_model_compile(self):
         xl_model = ExcelModel().loads(self.filename_compile).finish()

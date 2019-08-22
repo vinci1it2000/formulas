@@ -19,6 +19,7 @@ Sub-Modules:
 
     ~xlreader
 """
+import os
 import functools
 import numpy as np
 import os.path as osp
@@ -253,7 +254,7 @@ class ExcelModel:
 
         return self
 
-    def write(self, books=None, solution=None):
+    def write(self, books=None, solution=None, dirpath=None):
         books = {} if books is None else books
         solution = self.dsp.solution if solution is None else solution
         are_in, get_in = sh.are_in_nested_dicts, sh.get_nested_dicts
@@ -287,7 +288,10 @@ class ExcelModel:
                     elif isinstance(v, XlError):
                         v = str(v)
                     c.value = v
-
+        if dirpath:
+            os.makedirs(dirpath, exist_ok=True)
+            for fname, d in books.items():
+                d[BOOK].save(osp.join(dirpath, fname))
         return books
 
     def compile(self, inputs, outputs):
