@@ -32,11 +32,23 @@ from ._version import *
 
 _all = {
     'ExcelModel': '.excel',
+    'BOOK': '.excel',
+    'SHEETS': '.excel',
+    'CIRCULAR': '.excel',
+    'ERR_CIRCULAR': '.excel',
     'Parser': '.parser',
     'get_functions': '.functions',
     'SUBMODULES': '.functions',
     'CELL': '.cell',
-    'Ranges': '.ranges'
+    'Ranges': '.ranges',
+    'XlError': '.tokens.operand',
+    'VALUE': '.tokens.operand',
+    'REF': '.tokens.operand',
+    'DIV': '.tokens.operand',
+    'NA': '.tokens.operand',
+    'NAME': '.tokens.operand',
+    'NULL': '.tokens.operand',
+    'NUM': '.tokens.operand',
 }
 
 __all__ = tuple(_all)
@@ -60,8 +72,9 @@ def __getattr__(name):
 
 
 if sys.version_info[:2] < (3, 7) or os.environ.get('IMPORT_ALL') == 'True':
-    from .excel import ExcelModel
+    from .excel import ExcelModel, BOOK, SHEETS, CIRCULAR, ERR_CIRCULAR
     from .parser import Parser
     from .functions import get_functions, SUBMODULES
     from .cell import CELL
     from .ranges import Ranges
+    from .tokens.operand import XlError, VALUE, REF, DIV, NA, NAME, NULL, NUM
