@@ -82,8 +82,8 @@ if __name__ == '__main__':
 
     extras = {
         'excel': ['openpyxl', 'networkx'],
-        'plot': ['graphviz', 'regex', 'flask', 'Pygments', 'lxml', 'beautifulsoup4',
-                 'jinja2', 'docutils']  # ['schedula[plot]>=0.2.0']
+        'plot': ['graphviz', 'regex', 'flask', 'Pygments', 'lxml',
+                 'beautifulsoup4', 'jinja2', 'docutils']
     }
     # noinspection PyTypeChecker
     extras['all'] = sorted(functools.reduce(set.union, extras.values(), set()))
