@@ -108,15 +108,16 @@ An example how to load, calculate, and write an Excel workbook is the following:
     >>> import os.path as osp
     >>> from setup import mydir
     >>> fpath = osp.join(mydir, 'test/test_files/excel.xlsx')
+    >>> dir_output = osp.join(mydir, 'test/test_files/tmp')
 
 .. doctest::
 
     >>> import formulas
-    >>> fpath = 'file.xlsx'  # doctest: +SKIP
+    >>> fpath, dir_output = 'excel.xlsx', 'output'  # doctest: +SKIP
     >>> xl_model = formulas.ExcelModel().loads(fpath).finish()
     >>> xl_model.calculate()
     Solution(...)
-    >>> xl_model.write()
+    >>> xl_model.write(dirpath=dir_output)
     {'EXCEL.XLSX': {Book: <openpyxl.workbook.workbook.Workbook ...>}}
 
 .. tip:: If you have or could have **circular references**, add `circular=True`
