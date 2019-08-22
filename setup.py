@@ -26,6 +26,7 @@ def read_project_version():
     return fglobals['__version__']
 
 
+# noinspection PyPackageRequirements
 def get_long_description(cleanup=True):
     from sphinx.application import Sphinx
     from sphinx.util.osutil import abspath
@@ -38,7 +39,7 @@ def get_long_description(cleanup=True):
     outdir = tempfile.mkdtemp(prefix='setup-', dir='.')
     exclude_patterns = os.listdir(mydir or '.')
     exclude_patterns.remove('pypi.rst')
-
+    # noinspection PyTypeChecker
     app = Sphinx(abspath(mydir), osp.join(mydir, 'doc/'), outdir,
                  outdir + '/.doctree', 'rst',
                  confoverrides={
@@ -71,19 +72,20 @@ if __name__ == '__main__':
     import functools
     from setuptools import setup, find_packages
 
-    try:
-        long_description = get_long_description()
-    except Exception as ex:
-        import logging
-
-        logging.getLogger(__name__).warning('%r', ex)
-        long_description = ''
+    long_description = ''
+    if os.environ.get('ENABLE_SETUP_LONG_DESCRIPTION') == 'TRUE':
+        try:
+            long_description = get_long_description()
+            print('LONG DESCRIPTION ENABLED!')
+        except Exception as ex:
+            print('LONG DESCRIPTION ERROR:\n %r', ex)
 
     extras = {
         'excel': ['openpyxl', 'networkx'],
         'plot': ['graphviz', 'regex', 'flask', 'Pygments', 'lxml', 'beautifulsoup4',
                  'jinja2', 'docutils']  # ['schedula[plot]>=0.2.0']
     }
+    # noinspection PyTypeChecker
     extras['all'] = sorted(functools.reduce(set.union, extras.values(), set()))
     extras['dev'] = extras['all'] + [
         'wheel', 'sphinx', 'gitchangelog', 'mako', 'sphinx_rtd_theme',
