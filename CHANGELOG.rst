@@ -2,6 +2,64 @@ Changelog
 =========
 
 
+v0.4.0 (2019-08-31)
+-------------------
+
+Feat
+~~~~
+- (doc): Add binder.
+
+- (setup): Add env `ENABLE_SETUP_LONG_DESCRIPTION`.
+
+- (core): Add useful constants.
+
+- (excel): Add option to write all calculate books inside a folder.
+
+- (stat) :gh:`21`: Add `COUNTBLANK`, `LARGE`, `SMALL` functions.
+
+- (date) :gh:`35`: Add `NPV`, `XNPV`, `IRR`, `XIRR` functions.
+
+- (stat) :gh:`21`: Add `AVERAGEIF`, `COUNT`, `COUNTA`, `COUNTIF`
+  functions.
+
+- (math) :gh:`21`: Add `SUMIF` function.
+
+- (date) :gh:`21`, :gh:`35`, :gh:`36`: Add `date` functions `DATE`,
+  `DATEVALUE`, `DAY`, `MONTH`, `YEAR`, `TODAY`, `TIME`, `TIMEVALUE`,
+  `SECOND`, `MINUTE`, `HOUR`, `NOW`, `YEARFRAC`.
+
+- (info) :gh:`21`: Add `NA` function.
+
+- (date) :gh:`21`, :gh:`35`, :gh:`36`: Add `date` functions `DATE`,
+  `DATEVALUE`, `DAY`, `MONTH`, `YEAR`, `TODAY`, `TIME`, `TIMEVALUE`,
+  `SECOND`, `MINUTE`, `HOUR`, `NOW`, `YEARFRAC`.
+
+- (stat) :gh:`35`: Add `MINA`, `AVERAGEA`, `MAXA` functions.
+
+
+Fix
+~~~
+- (setup): Update tests requirements.
+
+- (setup): Correct setup dependency (`beautifulsoup4`).
+
+- (stat): Correct round indices.
+
+- (setup) :gh:`34`: Build universal wheels.
+
+- (test): Correct import error.
+
+- (date) :gh:`35`: Correct behaviour of `LOOKUP` function when dealing
+  with errors.
+
+- (excel) :gh:`35`: Improve cycle detection.
+
+- (excel,date) :gh:`21`, :gh:`35`: Add custom Excel Reader to parse raw
+  datetime.
+
+- (excel) :gh:`35`: Correct when definedName is relative `#REF!`.
+
+
 v0.3.0 (2019-04-24)
 -------------------
 
