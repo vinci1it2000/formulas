@@ -100,3 +100,12 @@ FUNCTIONS['_XLFN.XOR'] = FUNCTIONS['XOR'] = {'function': wrap_func(
 FUNCTIONS['NOT'] = {'function': wrap_ufunc(
     np.logical_not, input_parser=lambda *a: a, return_func=value_return
 )}
+
+def _true():
+    return True
+
+def _false():
+    return False
+
+FUNCTIONS['TRUE'] = wrap_func(_true)
+FUNCTIONS['FALSE'] = wrap_func(_false)
