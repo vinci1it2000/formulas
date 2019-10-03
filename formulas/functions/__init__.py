@@ -107,6 +107,10 @@ def replace_empty(x, empty=0):
     return x
 
 
+def is_not_empty(v):
+    return v is not sh.EMPTY
+
+
 # noinspection PyUnusedLocal
 def wrap_func(func, ranges=False):
     def wrapper(*args, **kwargs):

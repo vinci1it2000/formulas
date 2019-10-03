@@ -15,14 +15,10 @@ import numpy as np
 import schedula as sh
 from . import (
     raise_errors, flatten, wrap_func, Error, is_number, _text2num, xfilter,
-    XlError, wrap_ufunc, replace_empty, get_error
+    XlError, wrap_ufunc, replace_empty, get_error, is_not_empty
 )
 
 FUNCTIONS = {}
-
-
-def is_not_empty(v):
-    return v is not sh.EMPTY
 
 
 def _convert(v):
