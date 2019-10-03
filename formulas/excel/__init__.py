@@ -24,6 +24,8 @@ import functools
 import numpy as np
 import os.path as osp
 import schedula as sh
+
+from formulas.errors import FormulaError
 from ..ranges import Ranges
 from ..cell import Cell, RangesAssembler
 from ..tokens.operand import range2parts, XlError
@@ -202,7 +204,11 @@ class ExcelModel:
         ctx.update(context)
         crd = cell.coordinate
         crd = formula_references.get(crd, crd)
-        cell = Cell(crd, cell.value, context=ctx).compile()
+        try:
+            cell = Cell(crd, cell.value, context=ctx).compile()
+        except FormulaError as e:
+            # There was an error so set this value with the NA error using the excel function
+            cell = Cell(crd, "=NA()", context=context).compile()
         if cell.output in self.cells:
             return
         if cell.value is not sh.EMPTY:
