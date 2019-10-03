@@ -10,7 +10,7 @@
 Python equivalents of text Excel functions.
 """
 import functools
-from . import wrap_ufunc, Error, replace_empty, XlError, value_return
+from . import wrap_ufunc, Error, replace_empty, XlError, value_return, flatten, wrap_func
 
 FUNCTIONS = {}
 
@@ -83,3 +83,10 @@ def xright(from_str, num_chars):
 FUNCTIONS['RIGHT'] = wrap_ufunc(xright, **_kw0)
 FUNCTIONS['TRIM'] = wrap_ufunc(str.strip, **_kw1)
 FUNCTIONS['UPPER'] = wrap_ufunc(str.upper, **_kw1)
+
+
+def xconcat(*args):
+    return functools.reduce(lambda x, y: "{}{}".format(x, y), flatten(args, None), "")
+
+
+FUNCTIONS['CONCAT'] = FUNCTIONS['CONCATENATE'] = wrap_func(xconcat)

@@ -312,6 +312,14 @@ class TestCell(unittest.TestCase):
         ('A1', '=DEC2BIN(4,6)', {}, '<Ranges>(A1)=[[\'000100\']]'),
         ('A1', '=DEC2BIN(4,-2)', {}, '<Ranges>(A1)=[[#NUM!]]'),
         ('A1', '=DEC2BIN(4,"a")', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=CONCAT("con", "cat", "enate")', {}, '<Ranges>(A1)=[[\'concatenate\']]'),
+        ('A1', '=CONCAT(A2:E2)', {
+            'A2:E2':[["h", "e", "l", "l", 0.15]]
+        }, '<Ranges>(A1)=[[\'hell0.15\']]'),
+        ('A1', '=CONCAT(A2:E2, A3:E3, "curl")', {
+            'A2:E2':[["h", "e", "l", "l", "o"]],
+            'A3:E3':[["h", "e", "l", "l", "o"]]
+        }, '<Ranges>(A1)=[[\'hellohellocurl\']]'),
         # ('A1:D1', '=IF({0,-0.2,0},{2,3},{1})', {},
         #  '<Ranges>(A1:D1)=[[1 2 1 #N/A]]'),
         # ('A1:D1', '=IF({0,-2,0},{2,3},{1,4})', {},
