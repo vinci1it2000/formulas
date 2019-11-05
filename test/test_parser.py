@@ -75,6 +75,8 @@ class TestParser(unittest.TestCase):
             Parser().ast(inputs)
 
     @ddt.data(
+        ({}, '=CG_TEST', (1,), '1'),
+        ({}, '=CG2033_TEST', (1,), '1'),
         ({}, '=(L4:N7 (K5:L6, N5:O6))', (
             Ranges().pushes(('L5:L6', 'N5:N6'), ([2, 2], [3, 3])),
         ), '[3 3 2 2]'),
