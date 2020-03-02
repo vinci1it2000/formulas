@@ -4,7 +4,5 @@ flask
 regex
 graphviz
 Pygments
-lxml
-beautifulsoup4
 jinja2
 docutils

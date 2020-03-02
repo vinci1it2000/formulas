@@ -3,13 +3,10 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - beautifulsoup4
   - docutils
   - flask
   - jupyterlab >=0.35.5,<0.36
-  - lxml
   - multiprocess
-  - networkx
   - numpy >=1.15
   - openpyxl
   - pip
@@ -18,4 +15,4 @@ dependencies:
   - regex
   - tornado<6
   - pip:
-    - schedula >=0.3.1
+    - schedula >=1.1.0

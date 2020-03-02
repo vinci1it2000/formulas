@@ -31,12 +31,12 @@ class CellWrapper:
         return self.func(*self.parse_args(*args), **self.parse_kwargs(**kwargs))
 
     def check_cycles(self, cycle):
-        import networkx as nx
-        func = self.func
-        f_nodes, o, cells = func.dsp.function_nodes, func.outputs[0], set()
-        dmap, inputs, k = func.dsp.dmap.copy(), func.inputs, 'solve_cycle'
-        dmap.add_edges_from((o, i) for i in inputs if i in cycle)
-        for c in map(set, nx.simple_cycles(dmap)):
+        from .excel.cycle import simple_cycles
+        fn, k, cells = self.func, 'solve_cycle', set()
+        f_nodes, o, inputs = fn.dsp.function_nodes, fn.outputs[0], fn.inputs
+        dmap = {v: set(nbrs) for v, nbrs in fn.dsp.dmap.succ.items()}
+        dmap[o] = set(cycle).intersection(inputs)
+        for c in map(set, simple_cycles(dmap, False)):
             for n in map(f_nodes.get, c.intersection(f_nodes)):
                 if k in n and n[k](*(i in c for i in n['inputs'])):
                     cells.update(c.intersection(inputs))

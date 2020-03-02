@@ -17,6 +17,7 @@ Sub-Modules:
     :nosignatures:
     :toctree: excel/
 
+    ~cycle
     ~xlreader
 """
 import os
@@ -322,11 +323,11 @@ class ExcelModel:
         return func
 
     def solve_circular(self):
-        import networkx as nx
+        from .cycle import simple_cycles
         from collections import Counter
         mod, dsp = {}, self.dsp
         f_nodes, d_nodes, dmap = dsp.function_nodes, dsp.data_nodes, dsp.dmap
-        cycles = list(nx.simple_cycles(dmap))
+        cycles = list(simple_cycles(dmap.succ))
         cycles_nodes = Counter(sum(cycles, []))
         for cycle in sorted(map(set, cycles)):
             cycles_nodes.subtract(cycle)
@@ -361,9 +362,9 @@ def _check_range_all_cycles(nodes, active_nodes, j):
 def _check_cycles(dmap, node_id, nodes, cycle, active_nodes, mod=None):
     node, mod = nodes[node_id], {} if mod is None else mod
     _map = dict(zip(node['function'].inputs, node['inputs']))
-    pred, res = dmap.predecessors, ()
+    pred, res = dmap.pred, ()
     check = functools.partial(_check_range_all_cycles, nodes, active_nodes)
-    if not any(any(map(check, pred(k))) for k in _map.values() if k in cycle):
+    if not any(any(map(check, pred[k])) for k in _map.values() if k in cycle):
         cycle = [i for i, j in _map.items() if j in cycle]
         try:
             res = tuple(map(_map.get, node['function'].check_cycles(cycle)))

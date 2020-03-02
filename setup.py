@@ -81,9 +81,8 @@ if __name__ == '__main__':
             print('LONG DESCRIPTION ERROR:\n %r', ex)
 
     extras = {
-        'excel': ['openpyxl', 'networkx'],
-        'plot': ['graphviz', 'regex', 'flask', 'Pygments', 'lxml',
-                 'beautifulsoup4', 'jinja2', 'docutils']
+        'excel': ['openpyxl'],
+        'plot': ['graphviz', 'regex', 'flask', 'Pygments', 'jinja2', 'docutils']
     }
     # noinspection PyTypeChecker
     extras['all'] = sorted(functools.reduce(set.union, extras.values(), set()))
@@ -137,7 +136,7 @@ if __name__ == '__main__':
         ],
         install_requires=[
             'regex',
-            'schedula>=0.3.1',
+            'schedula>=1.1.0',
             'numpy>=1.15',
             'python-dateutil'
         ],
