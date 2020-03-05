@@ -15,7 +15,7 @@ from .tokens.operand import (
     _re_range, range2parts, _index2col, maxrow, maxcol, Error
 )
 from .errors import RangeValueError
-from .functions import Array
+from .functions import Array, _init_reshape
 import schedula as sh
 
 
@@ -115,10 +115,7 @@ def _reshape_array_as_excel(value, base_shape):
     try:
         return np.reshape(value, base_shape)
     except ValueError:
-        res, (r, c) = np.empty(base_shape, object), value.shape
-        res[:, :] = getattr(value, '_default', Error.errors['#N/A'])
-        r = None if r == 1 else r
-        c = None if c == 1 else c
+        res, r, c = _init_reshape(base_shape, value)
         try:
             res[:r, :c] = value
         except ValueError:

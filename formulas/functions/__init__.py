@@ -41,6 +41,14 @@ from formulas.errors import (
 from formulas.tokens.operand import Error, XlError
 
 
+def _init_reshape(base_shape, value):
+    res, (r, c) = np.empty(base_shape, object), value.shape
+    res[:, :] = getattr(value, '_default', Error.errors['#N/A'])
+    r = None if r == 1 else r
+    c = None if c == 1 else c
+    return res, r, c
+
+
 class Array(np.ndarray):
     _default = Error.errors['#N/A']
 
@@ -51,10 +59,7 @@ class Array(np.ndarray):
             # noinspection PyArgumentList
             return super(Array, self).reshape(shape, *shapes, order=order)
         except ValueError:
-            res, (r, c) = np.empty(shape, object), self.shape
-            res[:, :] = self._default
-            r = None if r == 1 else r
-            c = None if c == 1 else c
+            res, r, c = _init_reshape(shape, self)
             try:
                 res[:r, :c] = self
             except ValueError:
