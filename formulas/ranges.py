@@ -127,7 +127,8 @@ def _reshape_array_as_excel(value, base_shape):
 
 
 class Ranges:
-    input_fields = ('excel', 'sheet', 'n1', 'n2', 'r1', 'r2')
+    input_fields = 'excel', 'sheet', 'n1', 'n2', 'r1', 'r2'
+    __slots__ = 'ranges', 'values', '_value'
 
     def __init__(self, ranges=(), values=None):
         self.ranges = ranges

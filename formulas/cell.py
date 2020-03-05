@@ -114,7 +114,7 @@ class Cell:
         return inputs.values()
 
     def _output_filters(self):
-        return functools.partial(format_output, dict(self.range.ranges[0])),
+        return functools.partial(format_output, self.range.ranges[0]),
 
     def add(self, dsp, context=None):
         nodes = set()

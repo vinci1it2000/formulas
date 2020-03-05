@@ -10,6 +10,7 @@
 It provides AstBuilder class.
 """
 
+import functools
 import collections
 import schedula as sh
 from .errors import FormulaError, RangeValueError
@@ -19,6 +20,11 @@ from .tokens.operand import Operand
 from .functions import wrap_ranges_func
 from .ranges import Ranges
 from schedula.utils.alg import get_unused_node_id
+
+
+@functools.lru_cache(None)
+def _default_filter():
+    return wrap_ranges_func(sh.bypass),
 
 
 class AstBuilder:
@@ -120,5 +126,5 @@ class AstBuilder:
                     except ValueError:
                         i[k] = None
         dsp.raises = True
-        dsp.nodes[o]['filters'] = wrap_ranges_func(sh.bypass),
+        dsp.nodes[o]['filters'] = _default_filter()
         return sh.DispatchPipe(dsp, '=%s' % o, i, [o], wildcard=False)
