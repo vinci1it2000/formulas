@@ -29,6 +29,7 @@ Sub-Modules:
     ~text
 """
 import re
+import copy
 import importlib
 import functools
 import collections
@@ -47,6 +48,7 @@ class Array(np.ndarray):
 
     def reshape(self, shape, *shapes, order='C'):
         try:
+            # noinspection PyArgumentList
             return super(Array, self).reshape(shape, *shapes, order=order)
         except ValueError:
             res, (r, c) = np.empty(shape, object), self.shape
@@ -76,6 +78,14 @@ class Array(np.ndarray):
     def __setstate__(self, state, *args, **kwargs):
         self.__dict__.update(state[-1])  # Set the attributes.
         super(Array, self).__setstate__(state[0:-1], *args, **kwargs)
+
+    def __deepcopy__(self, memo=None, *args, **kwargs):
+        obj = super(Array, self).__deepcopy__(memo, *args, **kwargs)
+        # noinspection PyArgumentList
+        obj._collapse_value = copy.deepcopy(self._collapse_value, memo)
+        # noinspection PyArgumentList
+        obj._default = copy.deepcopy(self._default, memo)
+        return obj
 
 
 # noinspection PyUnusedLocal
@@ -246,17 +256,17 @@ def xfilter(accumulator, test_range, condition, operating_range=None):
     return res.view(Array)
 
 
-def flatten(l, check=is_number):
-    if isinstance(l, np.ndarray):
+def flatten(v, check=is_number):
+    if isinstance(v, np.ndarray):
         if not check:
-            yield from l.ravel()
+            yield from v.ravel()
         else:
-            yield from filter(check, l.ravel())
-    elif not isinstance(l, str) and isinstance(l, collections.Iterable):
-        for el in l:
+            yield from filter(check, v.ravel())
+    elif not isinstance(v, str) and isinstance(v, collections.Iterable):
+        for el in v:
             yield from flatten(el, check)
-    elif not check or check(l):
-        yield l
+    elif not check or check(v):
+        yield v
 
 
 # noinspection PyUnusedLocal
