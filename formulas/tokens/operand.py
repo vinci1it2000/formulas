@@ -297,7 +297,7 @@ def fast_range2parts_v4(ref, excel, sheet=''):
 
 
 def range2parts(outputs, **inputs):
-    if 'excel_id' in inputs:
+    if inputs.get('excel_id', '0') != '0':
         inputs.pop('excel', None)
     elif 'excel' not in inputs:
         inputs['excel'] = ''
