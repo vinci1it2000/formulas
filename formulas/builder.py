@@ -26,7 +26,7 @@ class AstBuilder:
         self._deque = collections.deque()
         self.match = match
         self.dsp = dsp or sh.Dispatcher(
-            raises=lambda ex: not isinstance(ex, (FormulaError, RangeValueError))
+            raises=lambda e: not isinstance(e, (FormulaError, RangeValueError))
         )
         self.nodes = nodes or {}
         self.missing_operands = set()
@@ -63,7 +63,7 @@ class AstBuilder:
                     for k, v in _inputs.items():
                         if v is not sh.NONE:
                             self.dsp.add_data(k, v)
-                    kw['inputs']= (list(_inputs) + inputs) or None
+                    kw['inputs'] = (list(_inputs) + inputs) or None
                     kw.update(func)
                 self.dsp.add_function(**kw)
             else:
@@ -95,7 +95,9 @@ class AstBuilder:
     def compile(self, references=None, **inputs):
         dsp, inp = self.dsp, inputs.copy()
         for k in set(dsp.data_nodes).intersection(references or {}):
-            inp[k] = Ranges().push(references[k])
+            ref = references[k]
+            if ref is not None:
+                inp[k] = ref if isinstance(ref, Ranges) else Ranges().push(ref)
         res, o = dsp(inp), self.get_node_id(self[-1])
         dsp = dsp.get_sub_dsp_from_workflow(
             [o], graph=dsp.dmap, reverse=True, blockers=res,

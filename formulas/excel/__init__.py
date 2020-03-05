@@ -26,8 +26,8 @@ import numpy as np
 import os.path as osp
 import schedula as sh
 from ..ranges import Ranges
-from ..cell import Cell, RangesAssembler
-from ..tokens.operand import range2parts, XlError
+from ..cell import Cell, RangesAssembler, Ref
+from ..tokens.operand import XlError
 from ..functions import flatten
 
 BOOK = sh.Token('Book')
@@ -66,20 +66,19 @@ class ExcelModel:
     def __getstate__(self):
         return {'dsp': self.dsp, 'cells': {}, 'books': {}}
 
-    @staticmethod
-    def _yield_refs(book, context=None):
-        ctx = context.copy()
+    def add_references(self, book, context=None):
+        refs, nodes = {}, set()
         for n in book.defined_names.definedName:
-            if '#REF!' in n.value:
-                continue
-            ctx['ref'], i = n.name.upper(), n.localSheetId
-            rng = Ranges().push(n.value, context=context).ranges[0]['name']
-            sheet_names = book.sheetnames
-            if i is not None:
-                sheet_names = sheet_names[i:i + 1]
-            for sn in sheet_names:
-                name = range2parts(None, sheet=sn, **ctx)
-                yield name['name'], rng
+            ref = Ref(n.name.upper(), '=%s' % n.value, context).compile()
+            nodes.update(ref.add(self.dsp, context=context))
+            refs[ref.output] = None
+        dsp = self.dsp.get_sub_dsp(nodes)
+        dsp.raises = ''
+        sol = dsp(dict.fromkeys(set(dsp.data_nodes) - set(refs), sh.EMPTY))
+        refs.update({
+            k: v for k, v in sol.items() if k in refs and isinstance(v, Ranges)
+        })
+        return refs
 
     def loads(self, *file_names):
         for filename in file_names:
@@ -98,12 +97,10 @@ class ExcelModel:
 
     def push(self, worksheet, context):
         worksheet, context = self.add_sheet(worksheet, context)
-
-        get_in = sh.get_nested_dicts
-        references = get_in(self.books, context['excel'], 'references')
-        d = get_in(self.books, context['excel'], SHEETS, context['sheet'])
-        formula_references = d['formula_references']
-        formula_ranges = d['formula_ranges']
+        references = self.references
+        formula_references = self.formula_references(context)
+        formula_ranges = self.formula_ranges(context)
+        external_links = self.external_links(context)
 
         for row in worksheet.iter_rows():
             for c in row:
@@ -111,7 +108,8 @@ class ExcelModel:
                     self.add_cell(
                         c, context, references=references,
                         formula_references=formula_references,
-                        formula_ranges=formula_ranges
+                        formula_ranges=formula_ranges,
+                        external_links=external_links
                     )
         return self
 
@@ -135,20 +133,16 @@ class ExcelModel:
             book = get_in(
                 self.books, context['excel'], BOOK, default=lambda: book
             )
+        data = get_in(self.books, context['excel'])
 
-        if not are_in(self.books, context['excel'], 'references'):
-            get_in(
-                self.books, context['excel'], 'references',
-                default=lambda: dict(self._yield_refs(book, context=context))
-            )
+        if 'external_links' not in data:
+            data['external_links'] = {
+                str(el.file_link.idx_base + 1): el.file_link.Target
+                for el in book._external_links
+            }
 
-        if not are_in(self.books, context['excel'], 'external_links'):
-            external_links = {str(l.file_link.idx_base + 1): l.file_link.Target
-                              for l in book._external_links}
-            get_in(
-                self.books, context['excel'], 'external_links',
-                default=lambda: external_links
-            )
+        if 'references' not in data:
+            data['references'] = self.add_references(book, context=context)
 
         return book, context
 
@@ -177,47 +171,60 @@ class ExcelModel:
             }
         return worksheet, ctx
 
+    @property
+    def references(self):
+        return sh.combine_dicts(*(
+            d.get('references', {}) for d in self.books.values()
+        ))
+
+    def formula_references(self, ctx):
+        return sh.get_nested_dicts(
+            self.books, ctx['excel'], SHEETS, ctx['sheet'], 'formula_references'
+        )
+
+    def formula_ranges(self, ctx):
+        return sh.get_nested_dicts(
+            self.books, ctx['excel'], SHEETS, ctx['sheet'], 'formula_ranges'
+        )
+
+    def external_links(self, ctx):
+        return sh.get_nested_dicts(self.books, ctx['excel'], 'external_links')
+
     def add_cell(self, cell, context, references=None, formula_references=None,
                  formula_ranges=None, external_links=None):
-        get_in = sh.get_nested_dicts
         if formula_references is None:
-            formula_references = get_in(
-                self.books, context['excel'], SHEETS, context['sheet'],
-                'formula_references'
-            )
+            formula_references = self.formula_references(context)
 
         if formula_ranges is None:
-            formula_ranges = get_in(
-                self.books, context['excel'], SHEETS, context['sheet'],
-                'formula_ranges'
-            )
+            formula_ranges = self.formula_ranges(context)
 
         if references is None:
-            references = get_in(self.books, context['excel'], 'references')
+            references = self.references
 
         if external_links is None:
-            external_links = get_in(
-                self.books, context['excel'], 'external_links'
-            )
+            external_links = self.external_links(context)
+
         ctx = {'external_links': external_links}
         ctx.update(context)
         crd = cell.coordinate
         crd = formula_references.get(crd, crd)
-        cell = Cell(crd, cell.value, context=ctx).compile()
+        value = cell.value
+        if cell.data_type == 'f' and value[:2] == '==':
+            value = value[1:]
+        cell = Cell(crd, value, context=ctx).compile(references=references)
         if cell.output in self.cells:
             return
         if cell.value is not sh.EMPTY:
             if any(not (cell.range - rng).ranges for rng in formula_ranges):
                 return
-        cell.update_inputs(references=references)
 
         if cell.add(self.dsp, context=ctx):
             self.cells[cell.output] = cell
             return cell
 
     def complete(self):
-        nodes = self.dsp.nodes
-        stack = list(sorted(set(self.dsp.data_nodes) - set(self.cells)))
+        nodes, data_nodes = self.dsp.nodes, self.dsp.data_nodes
+        stack = sorted(set(data_nodes) - set(self.cells) - set(self.references))
         while stack:
             n_id = stack.pop()
             if isinstance(n_id, sh.Token):
@@ -239,11 +246,13 @@ class ExcelModel:
     def finish(self, complete=True, circular=False):
         if complete:
             self.complete()
-        for n_id in sorted(set(self.dsp.data_nodes) - set(self.cells)):
+        cells = sorted(self.cells.items())
+        it = set(self.dsp.data_nodes) - set(self.cells) - set(self.references)
+        for n_id in sorted(it):
             if isinstance(n_id, sh.Token):
                 continue
             ra = RangesAssembler(n_id)
-            for k, c in sorted(self.cells.items()):
+            for k, c in cells:
                 ra.push(c)
                 if not ra.missing.ranges:
                     break
@@ -260,7 +269,7 @@ class ExcelModel:
         solution = self.dsp.solution if solution is None else solution
         are_in, get_in = sh.are_in_nested_dicts, sh.get_nested_dicts
         for k, r in solution.items():
-            if isinstance(k, sh.Token):
+            if isinstance(k, sh.Token) or not hasattr(r, 'ranges'):
                 continue
             rng = r.ranges[0]
             filename, sheet_name = _get_name(rng['excel'], books), rng['sheet']
@@ -281,7 +290,7 @@ class ExcelModel:
 
             ref = '{c1}{r1}:{c2}{r2}'.format(**rng)
             for c, v in zip(flatten(sheet[ref], None), flatten(r.value, None)):
-                if hasattr(c, 'value'):
+                try:
                     if v is sh.EMPTY:
                         v = None
                     if isinstance(v, np.generic):
@@ -289,6 +298,8 @@ class ExcelModel:
                     elif isinstance(v, XlError):
                         v = str(v)
                     c.value = v
+                except AttributeError:
+                    pass
         if dirpath:
             os.makedirs(dirpath, exist_ok=True)
             for fname, d in books.items():

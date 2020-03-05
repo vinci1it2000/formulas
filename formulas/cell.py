@@ -16,14 +16,14 @@ import numpy as np
 import schedula as sh
 from .parser import Parser
 from .ranges import Ranges, _assemble_values
-from .tokens.operand import Error, XlError
+from .tokens.operand import Error, XlError, range2parts
 
 CELL = sh.Token('Cell')
 
 
-class CellWrapper:
+class CellWrapper(sh.add_args):
     def __init__(self, func, parse_args, parse_kwargs):
-        self.func = func
+        super(CellWrapper, self).__init__(func, n=0)
         self.parse_args = parse_args
         self.parse_kwargs = parse_kwargs
 
@@ -59,11 +59,11 @@ class Cell:
     parser = Parser()
 
     def __init__(self, reference, value, context=None):
-        self.func = None
-        self.inputs = None
-        self.range = Ranges().push(reference, context=context)
-        self.value = sh.EMPTY
-        self.tokens, self.builder = (), None
+        self.func = self.range = self.inputs = self.output = None
+        if reference is not None:
+            self.range = Ranges().push(reference, context=context)
+            self.output = self.range.ranges[0]['name']
+        self.tokens, self.builder, self.value = (), None, sh.EMPTY
         if isinstance(value, str) and self.parser.is_formula(value):
             self.tokens, self.builder = self.parser.ast(value, context=context)
         elif value is not None:
@@ -75,10 +75,6 @@ class Cell:
             return self.func.__name__
         return self.output
 
-    @property
-    def output(self):
-        return self.range.ranges[0]['name']
-
     def compile(self, references=None):
         if self.builder:
             func = self.builder.compile(
@@ -88,21 +84,23 @@ class Cell:
             self.update_inputs(references=references)
         return self
 
+    def _missing_ref(self, inp, k):
+        sh.get_nested_dicts(inp, Error.errors['#REF!'], default=list).append(k)
+
     def update_inputs(self, references=None):
         if not self.builder:
             return
         self.inputs = inp = collections.OrderedDict()
-        ref = references or {}
+        references, get = references or set(), sh.get_nested_dicts
         for k, rng in self.func.inputs.items():
-            try:
-                rng = rng or Ranges().push(ref[k])
-            except KeyError:
-                sh.get_nested_dicts(
-                    inp, Error.errors['#REF!'], default=list
-                ).append(k)
-                continue
-            for r in rng.ranges:
-                sh.get_nested_dicts(inp, r['name'], default=list).append(k)
+            if k in references:
+                get(inp, k, default=list).append(k)
+            else:
+                try:
+                    for r in rng.ranges:
+                        get(inp, r['name'], default=list).append(k)
+                except AttributeError:
+                    self._missing_ref(inp, k)
 
     def _args(self, *args):
         assert len(args) == len(self.inputs)
@@ -115,17 +113,21 @@ class Cell:
                     inputs[k] = v
         return inputs.values()
 
+    def _output_filters(self):
+        return functools.partial(format_output, dict(self.range.ranges[0])),
+
     def add(self, dsp, context=None):
+        nodes = set()
         if self.func or self.value is not sh.EMPTY:
             directory = context and context.get('directory') or '.'
             output = self.output
-            rng = Ranges.get_range(Ranges.format_range, output, context)
-            f = functools.partial(format_output, rng)
-            dsp.add_data(output, filters=(f,), default_value=self.value,
-                         directory=directory)
-
+            nodes.add(dsp.add_data(
+                output, filters=self._output_filters(),
+                default_value=self.value, directory=directory
+            ))
             if self.func:
                 inputs = self.inputs
+                nodes.update(inputs)
                 for k in inputs or ():
                     if k not in dsp.nodes:
                         if isinstance(k, XlError):
@@ -134,16 +136,38 @@ class Cell:
                             )
                             dsp.add_data(k, val, directory=directory)
                         else:
-                            rng = Ranges.get_range(
-                                Ranges.format_range, k, context
-                            )
-                            f = functools.partial(format_output, rng)
-                            dsp.add_data(k, filters=(f,), directory=directory)
-
-                dsp.add_function(
+                            try:
+                                rng = Ranges.get_range(
+                                    Ranges.format_range, k, context
+                                )
+                                f = functools.partial(format_output, rng),
+                            except ValueError:
+                                f = ()
+                            dsp.add_data(k, filters=f, directory=directory)
+                nodes.add(dsp.add_function(
                     self.__name__, self.func, inputs or None, [output]
-                )
-            return True
+                ))
+        return nodes
+
+
+class Ref(Cell):
+    def __init__(self, reference, value, context=None):
+        super(Ref, self).__init__(None, value, context)
+        self.output = range2parts(None, ref=reference, **context)['name']
+
+    def _missing_ref(self, inp, k):
+        sh.get_nested_dicts(inp, k, default=list).append(k)
+
+    def _output_filters(self):
+        return ()
+
+    def compile(self, references=None):
+        super(Ref, self).compile()
+        if self.inputs:
+            self.func.dsp.nodes[self.func.outputs[0]].pop('filters', None)
+        else:
+            self.value, self.func = self.func(), None
+        return self
 
 
 class RangesAssembler:
