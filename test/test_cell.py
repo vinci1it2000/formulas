@@ -23,9 +23,12 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata((
+        ('A1', '=SUM(B1:D1  (  B1:B2  ,  D1:D2  ))',
+         {'B1': 1, 'D1': 1},
+         '<Ranges>(A1)=[[2]]'),
         ('A1', '=LARGE({-1.1,10.1;"40",-2},1.1)', {}, '<Ranges>(A1)=[[-1.1]]'),
         ('A1', '=LARGE(A2:H2,"01/01/1900")', {
-            'A2:H2':[[0.1, -10, 0.9, 2.2, -0.1, sh.EMPTY, "02/01/1900", True]]
+            'A2:H2': [[0.1, -10, 0.9, 2.2, -0.1, sh.EMPTY, "02/01/1900", True]]
         }, '<Ranges>(A1)=[[2.2]]'),
 
         ('A1:B1', '=SMALL(A2:B2,A3:B3)', {

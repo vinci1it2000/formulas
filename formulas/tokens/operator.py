@@ -105,8 +105,8 @@ class Intersect(Operator):
 
 
 class Separator(Operator):
-    _re = regex.compile(r'^(,\s*)')
-    _re_process = regex.compile(r'^(?P<name>,)$')
+    _re = regex.compile(r'^(\s*,\s*)')
+    _re_process = regex.compile(r'^\s*(?P<name>,)$')
 
     def ast(self, tokens, stack, builder):
         if tokens and isinstance(tokens[-1], Separator):
