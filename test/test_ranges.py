@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2016-2019 European Commission (JRC);
+# Copyright 2016-2020 European Commission (JRC);
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
@@ -138,7 +138,7 @@ class TestOperators(unittest.TestCase):
     @ddt.data(
         ((('B2:E5',), ('D4:F5',)),
          (([(1, 1, 2, 2), (1, 1, 2, 2), (3, 3, 4, 4), (3, 3, 4, 4)],),
-          (([(4, 4, 5), (4, 4, 5)],))),
+          ([(4, 4, 5), (4, 4, 5)],)),
          [4, 4, 4, 4, 5, 5, 1, 1, 2, 2, 1, 1, 2, 2, 3, 3, 4, 4, 3, 3, 4, 4]),)
     def test_value_union_ranges(self, case):
         (r1, r2), (v1, v2), result = case
