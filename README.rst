@@ -130,7 +130,7 @@ To plot the dependency graph that depict relationships between Excel cells:
 
     >>> dsp = xl_model.dsp
     >>> dsp.plot(view=False)  # Set view=True to plot in the default browser.
-    SiteMap([(ExcelModel, SiteMap())])
+    SiteMap([(ExcelModel, SiteMap(...))])
 
 To overwrite the default inputs that are defined by the excel file or to impose
 some value to a specific cell:
@@ -173,7 +173,7 @@ the data node ids (i.e., cell references).
     >>> [v.value[0, 0] for v in func(3, 1)]  # To retrieve the data.
     [9.0, 1.0]
     >>> func.plot(view=False)  # Set view=True to plot in the default browser.
-    SiteMap([(ExcelModel, SiteMap())])
+    SiteMap([(ExcelModel, SiteMap(...))])
 
 .. _DispatchPipe: https://schedula.readthedocs.io/en/master/_build/schedula/utils/dsp/schedula.utils.dsp.DispatchPipe.html#schedula.utils.dsp.DispatchPipe
 
