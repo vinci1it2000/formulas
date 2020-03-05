@@ -93,7 +93,7 @@ _re_range = r"""
                 '(\[(?P<excel>[^\[\]]+)\])?
                  (?P<sheet>(?>''|[^\?!*\/\[\]':"])+)?'
             |
-                (\[(?P<excel_id>[0-9]+)\])(?P<sheet>[^\W\d][\w\.]*)
+                (\[(?P<excel_id>[0-9]+)\])(?P<sheet>[^\W\d][\w\.]*)?
             |
                 (?P<sheet>[^\W\d][\w\.]*)
             |
@@ -249,7 +249,8 @@ _keys = {'r1', 'r2', 'excel', 'c1', 'c2', 'n1', 'n2', 'sheet', 'ref', 'name'}
 def fast_range2parts(**kw):
     inputs = sh.selector(_keys, kw, allow_miss=True)
 
-    for func in (fast_range2parts_v1, fast_range2parts_v2, fast_range2parts_v3):
+    for func in (fast_range2parts_v1, fast_range2parts_v2, fast_range2parts_v3,
+                 fast_range2parts_v4):
         try:
             parts = func(**inputs)
             parts.update(kw)
@@ -287,6 +288,12 @@ def fast_range2parts_v3(r1, n1, r2, n2, excel, sheet=''):
         'r1': r1, 'r2': r2, 'c1': c1, 'c2': c2, 'n1': n1, 'n2': n2, 'ref': ref,
         'sheet': sheet, 'name': _build_id(ref, sheet, excel), 'excel': excel
     }
+
+
+# noinspection PyUnusedLocal
+def fast_range2parts_v4(ref, excel, sheet=''):
+    excel, ref = excel.upper(), ref.upper()
+    return {'ref': ref, 'name': _build_id(ref, excel=excel), 'excel': excel}
 
 
 def range2parts(outputs, **inputs):
