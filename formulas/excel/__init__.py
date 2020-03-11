@@ -26,9 +26,9 @@ import numpy as np
 import os.path as osp
 import schedula as sh
 from ..ranges import Ranges
+from ..functions import flatten
 from ..cell import Cell, RangesAssembler, Ref
 from ..tokens.operand import XlError
-from ..functions import flatten
 
 BOOK = sh.Token('Book')
 SHEETS = sh.Token('Sheets')
@@ -261,8 +261,7 @@ class ExcelModel:
                 ra.push(c)
                 if not ra.missing.ranges:
                     break
-
-            self.dsp.add_function(None, ra, ra.inputs or None, [ra.output])
+            ra.add(self.dsp)
 
         if circular:
             self.solve_circular()

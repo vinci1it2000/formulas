@@ -84,16 +84,17 @@ def _get_indices_intersection(base, i):
     return r, c
 
 
-def _assemble_values(base, values, empty=''):
-    res = np.empty(_shape(**base), object)
-    res[:, :] = empty
-    for k, (rng, value) in sorted(values.items()):
+def _assemble_values(base, values, out=None):
+    if out is None:
+        out = np.empty(_shape(**base), object)
+        out[:, :] = ''
+    for rng, value in values.values():
         ist = _intersect(base, rng)
         if ist:
             br, bc = _get_indices_intersection(base, ist)
             rr, rc = _get_indices_intersection(rng, ist)
-            res[br, bc] = value[rr, rc]
-    return res
+            out[br, bc] = value[rr, rc]
+    return out
 
 
 # noinspection PyUnusedLocal

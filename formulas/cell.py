@@ -15,8 +15,8 @@ import functools
 import numpy as np
 import schedula as sh
 from .parser import Parser
-from .ranges import Ranges, _assemble_values
 from .tokens.operand import Error, XlError, range2parts
+from .ranges import Ranges, _assemble_values, _shape, _get_indices_intersection
 
 CELL = sh.Token('Cell')
 
@@ -173,16 +173,34 @@ class Ref(Cell):
 class RangesAssembler:
     def __init__(self, ref, context=None):
         self.missing = self.range = Ranges().push(ref, context=context)
-        self.inputs = []
+        self.inputs = collections.OrderedDict()
 
     @property
     def output(self):
         return self.range.ranges[0]['name']
 
     def push(self, cell):
-        if self.missing.ranges and any(self.missing.intersect(cell.range)):
-            self.missing = self.missing - cell.range
-            self.inputs.append(cell.output)
+        for b in self.missing.intersect(cell.range):
+            if b:
+                self.missing = self.missing - cell.range
+                self.inputs[cell.output] = None
+                break
+
+    def add(self, dsp):
+        base = self.range.ranges[0]
+        for rng in self.missing.ranges:
+            ctx = sh.selector(('excel', 'sheet'), rng)
+            for r in range(int(rng['r1']), int(rng['r2']) + 1):
+                for n in range(rng['n1'], rng['n2'] + 1):
+                    ist = Ranges.format_range(
+                        ('name', 'n1', 'n2'), n1=n, r1=r, **ctx
+                    )
+                    k = ist['name']
+                    self.inputs[k] = _get_indices_intersection(base, ist)
+                    f = functools.partial(format_output, ist),
+                    dsp.add_data(k, [[sh.EMPTY]], filters=f)
+        if list(self.inputs) != [self.output]:
+            dsp.add_function(None, self, self.inputs or None, [self.output])
 
     @property
     def __name__(self):
@@ -190,7 +208,10 @@ class RangesAssembler:
 
     def __call__(self, *cells):
         base = self.range.ranges[0]
-        values = {}
-        for c in cells:
-            values.update(c.values)
-        return _assemble_values(base, values, sh.EMPTY)
+        out = np.empty(_shape(**base), object)
+        for c, ind in zip(cells, self.inputs.values()):
+            if ind:
+                out[ind[0], ind[1]] = c.value
+            else:
+                _assemble_values(base, c.values, out)
+        return out
