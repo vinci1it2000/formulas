@@ -15,4 +15,4 @@ dependencies:
   - regex
   - tornado<6
   - pip:
-    - schedula >=1.1.0
+    - schedula >=1.1.1

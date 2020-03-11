@@ -28,7 +28,12 @@ class CellWrapper(sh.add_args):
         self.parse_kwargs = parse_kwargs
 
     def __call__(self, *args, **kwargs):
-        return self.func(*self.parse_args(*args), **self.parse_kwargs(**kwargs))
+        try:
+            return self.func(*self.parse_args(*args), **self.parse_kwargs(**kwargs))
+        except sh.DispatcherError as ex:
+            if isinstance(ex.ex, NotImplementedError):
+                return Error.errors['#NAME?']
+            raise ex
 
     def check_cycles(self, cycle):
         from .excel.cycle import simple_cycles

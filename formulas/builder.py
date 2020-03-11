@@ -32,7 +32,7 @@ class AstBuilder:
         self._deque = collections.deque()
         self.match = match
         self.dsp = dsp or sh.Dispatcher(
-            raises=lambda e: not isinstance(e, (FormulaError, RangeValueError))
+            raises=lambda e: not isinstance(e, (NotImplementedError, RangeValueError))
         )
         self.nodes = nodes or {}
         self.missing_operands = set()

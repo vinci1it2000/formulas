@@ -36,7 +36,7 @@ import collections
 import numpy as np
 import schedula as sh
 from formulas.errors import (
-    RangeValueError, FunctionError, FoundError, BaseError, BroadcastError
+    RangeValueError, FoundError, BaseError, BroadcastError
 )
 from formulas.tokens.operand import Error, XlError
 
@@ -95,7 +95,7 @@ class Array(np.ndarray):
 
 # noinspection PyUnusedLocal
 def not_implemented(*args, **kwargs):
-    raise FunctionError()
+    raise NotImplementedError
 
 
 def replace_empty(x, empty=0):

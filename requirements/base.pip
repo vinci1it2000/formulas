@@ -1,4 +1,4 @@
-schedula>=1.1.0
+schedula>=1.1.1
 regex
 numpy>=1.15
 python-dateutil
