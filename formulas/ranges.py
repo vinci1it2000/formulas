@@ -26,7 +26,7 @@ def _has_same_sheet(x, y):
         return False
 
 
-def _have_intersect(x, y):
+def _intersect(x, y):
     if _has_same_sheet(x, y):
         n1, n2 = max(y['n1'], x['n1']), min(y['n2'], x['n2'])
         if n1 <= n2:
@@ -41,7 +41,7 @@ def _have_intersect(x, y):
 
 
 def _split(base, rng, intersect=None, format_range=range2parts):
-    z = _have_intersect(base, rng)
+    z = _intersect(base, rng)
     if not z:
         return rng,
 
@@ -60,13 +60,6 @@ def _split(base, rng, intersect=None, format_range=range2parts):
             rng[i] = z[i]
 
     return tuple(ranges)
-
-
-def _intersect(rng, ranges):
-    for r in ranges:
-        z = _have_intersect(rng, r)
-        if z:
-            yield z
 
 
 def _merge_raw_update(base, rng):
@@ -95,7 +88,7 @@ def _assemble_values(base, values, empty=''):
     res = np.empty(_shape(**base), object)
     res[:, :] = empty
     for k, (rng, value) in sorted(values.items()):
-        ist = _have_intersect(base, rng)
+        ist = _intersect(base, rng)
         if ist:
             br, bc = _get_indices_intersection(base, ist)
             rr, rc = _get_indices_intersection(rng, ist)
@@ -202,9 +195,11 @@ class Ranges:
         return Ranges(self.ranges + other.ranges, values)
 
     def intersect(self, other):
-        if self.ranges:
-            for rng in other.ranges:
-                yield from _intersect(rng, self.ranges)
+        for rng in other.ranges:
+            for r in self.ranges:
+                z = _intersect(rng, r)
+                if z:
+                    yield z
 
     def __and__(self, other):  # Intersection.
         r = tuple(dict(self.format_range(('name', 'n1', 'n2'), **i))
