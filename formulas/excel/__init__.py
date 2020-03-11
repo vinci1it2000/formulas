@@ -246,13 +246,18 @@ class ExcelModel:
     def finish(self, complete=True, circular=False):
         if complete:
             self.complete()
-        cells = sorted(self.cells.items())
+        cells, get = {}, sh.get_nested_dicts
+        for c in self.cells.values():
+            rng = c.range.ranges[0]
+            get(cells, rng['excel'], rng['sheet'], default=list).append(c)
+
         it = set(self.dsp.data_nodes) - set(self.cells) - set(self.references)
         for n_id in sorted(it):
             if isinstance(n_id, sh.Token):
                 continue
             ra = RangesAssembler(n_id)
-            for k, c in cells:
+            rng = ra.range.ranges[0]
+            for c in get(cells, rng['excel'], rng['sheet'], default=list):
                 ra.push(c)
                 if not ra.missing.ranges:
                     break
