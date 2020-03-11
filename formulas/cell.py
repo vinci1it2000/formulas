@@ -181,7 +181,7 @@ class RangesAssembler:
 
     def push(self, cell):
         if self.missing.ranges and any(self.missing.intersect(cell.range)):
-            self.missing = self.range - cell.range
+            self.missing = self.missing - cell.range
             self.inputs.append(cell.output)
 
     @property
