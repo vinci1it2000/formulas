@@ -21,6 +21,7 @@ Sub-Modules:
     ~xlreader
 """
 import os
+import logging
 import functools
 import numpy as np
 import os.path as osp
@@ -30,6 +31,7 @@ from ..functions import flatten
 from ..cell import Cell, RangesAssembler, Ref
 from ..tokens.operand import XlError
 
+log = logging.getLogger(__name__)
 BOOK = sh.Token('Book')
 SHEETS = sh.Token('Sheets')
 CIRCULAR = sh.Token('CIRCULAR')
@@ -273,11 +275,21 @@ class ExcelModel:
         solution = self.dsp.solution if solution is None else solution
         are_in, get_in = sh.are_in_nested_dicts, sh.get_nested_dicts
         for k, r in solution.items():
-            if isinstance(k, sh.Token) or not hasattr(r, 'ranges'):
+            if isinstance(k, sh.Token):
                 continue
-            rng = r.ranges[0]
+            if isinstance(r, Ranges):
+                rng = r.ranges[0]
+            else:
+                try:
+                    r = Ranges().push(k, r)
+                    rng = r.ranges[0]
+                except ValueError:
+                    rng = {'excel': '', 'sheet': ''}
             filename, sheet_name = _get_name(rng['excel'], books), rng['sheet']
-
+            if not (filename and sheet_name):
+                log.info('Node `%s` cannot be saved '
+                         '(missing filename and/or sheet_name).' % k)
+                continue
             if not are_in(books, filename, BOOK):
                 from openpyxl import Workbook
                 book = get_in(books, filename, BOOK, default=Workbook)
