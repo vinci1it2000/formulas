@@ -181,10 +181,6 @@ def xnow():
 FUNCTIONS['NOW'] = wrap_func(xnow)
 
 
-def _isleap(year):
-    return calendar.isleap(year) or year == 1900
-
-
 def xyearfrac(start_date, end_date, basis=0):
     raise_errors(basis, start_date, end_date)
     basis = tuple(flatten(basis, None))

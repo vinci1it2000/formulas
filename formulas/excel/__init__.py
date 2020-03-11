@@ -115,27 +115,20 @@ class ExcelModel:
                     )
         return self
 
-    def add_book(self, book, context=None, data_only=False):
-        context = context or {}
+    def add_book(self, book=None, context=None, data_only=False):
+        context = (context or {}).copy()
         are_in, get_in = sh.are_in_nested_dicts, sh.get_nested_dicts
-
-        if 'excel' in context:
-            context = context.copy()
-            context['excel'] = context['excel'].upper()
-
-        if are_in(self.books, context.get('excel'), BOOK):
-            book = get_in(self.books, context['excel'], BOOK)
-        else:
-            if isinstance(book, str):
-                context.update({'excel': osp.basename(book).upper(),
-                                'directory': osp.dirname(osp.abspath(book))})
-                if not are_in(self.books, context['excel'], BOOK):
-                    from .xlreader import load_workbook
-                    book = load_workbook(book, data_only=data_only)
-            book = get_in(
-                self.books, context['excel'], BOOK, default=lambda: book
-            )
+        if isinstance(book, str):
+            context['excel'] = book
+        if 'directory' not in context:
+            context['directory'] = osp.dirname(osp.abspath(context['excel']))
+        fpath = osp.join(context['directory'], context['excel'])
+        context['excel'] = osp.basename(context['excel']).upper()
         data = get_in(self.books, context['excel'])
+        book = data.get(BOOK)
+        if not book:
+            from .xlreader import load_workbook
+            data[BOOK] = book = load_workbook(fpath, data_only=data_only)
 
         if 'external_links' not in data:
             data['external_links'] = {
@@ -210,10 +203,9 @@ class ExcelModel:
         ctx.update(context)
         crd = cell.coordinate
         crd = formula_references.get(crd, crd)
-        value = cell.value
-        if cell.data_type == 'f' and value[:2] == '==':
-            value = value[1:]
-        cell = Cell(crd, value, context=ctx).compile(references=references)
+        val = cell.value
+        val = cell.data_type == 'f' and val[:2] == '==' and val[1:] or val
+        cell = Cell(crd, val, context=ctx).compile(references=references)
         if cell.output in self.cells:
             return
         if cell.value is not sh.EMPTY:
@@ -309,7 +301,7 @@ class ExcelModel:
                 try:
                     if v is sh.EMPTY:
                         v = None
-                    if isinstance(v, np.generic):
+                    elif isinstance(v, np.generic):
                         v = v.item()
                     elif isinstance(v, XlError):
                         v = str(v)

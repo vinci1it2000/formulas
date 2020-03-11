@@ -147,9 +147,12 @@ some value to a specific cell:
     Solution([("'[EXCEL.XLSX]DATA'!A2", <Ranges>('[EXCEL.XLSX]DATA'!A2)=[[3]]),
               ("'[EXCEL.XLSX]DATA'!A3", <Ranges>('[EXCEL.XLSX]DATA'!A3)=[[6]]),
               ("'[EXCEL.XLSX]DATA'!B3", <Ranges>('[EXCEL.XLSX]DATA'!B3)=[[1]]),
+              ("'[EXCEL.XLSX]DATA'!D2", <Ranges>('[EXCEL.XLSX]DATA'!D2)=[[1]]),
               ("'[EXCEL.XLSX]DATA'!B2", <Ranges>('[EXCEL.XLSX]DATA'!B2)=[[9.0]]),
-              ("'[EXCEL.XLSX]DATA'!C2", <Ranges>('[EXCEL.XLSX]DATA'!C2)=[[9.0]]),
-              ("'[EXCEL.XLSX]DATA'!C4", <Ranges>('[EXCEL.XLSX]DATA'!C4)=[[1.0]])])
+              ("'[EXCEL.XLSX]DATA'!D3", <Ranges>('[EXCEL.XLSX]DATA'!D3)=[[2.0]]),
+              ("'[EXCEL.XLSX]DATA'!C2", <Ranges>('[EXCEL.XLSX]DATA'!C2)=[[10.0]]),
+              ("'[EXCEL.XLSX]DATA'!D4", <Ranges>('[EXCEL.XLSX]DATA'!D4)=[[3.0]]),
+              ("'[EXCEL.XLSX]DATA'!C4", <Ranges>('[EXCEL.XLSX]DATA'!C4)=[[4.0]])])
 
 To build a single function out of an excel model with fixed inputs and outputs,
 you can use the `compile` method of the `ExcelModel` that returns a
@@ -171,7 +174,7 @@ the data node ids (i.e., cell references).
     >>> func
     <schedula.utils.dsp.DispatchPipe object at ...>
     >>> [v.value[0, 0] for v in func(3, 1)]  # To retrieve the data.
-    [9.0, 1.0]
+    [10.0, 4.0]
     >>> func.plot(view=False)  # Set view=True to plot in the default browser.
     SiteMap([(ExcelModel, SiteMap(...))])
 

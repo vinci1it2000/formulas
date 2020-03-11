@@ -56,6 +56,9 @@ class TestExcelModel(unittest.TestCase):
         self.filename_circular = osp.join(mydir, _filename_circular)
 
         self.results = _file2books(self.filename, self.link_filename)
+        sh.get_nested_dicts(self.results, 'EXTRA.XLSX', 'EXTRA').update({
+            'A1': 1, 'B1': 1
+        })
         self.results_compile = _book2dict(
             load_workbook(self.filename_compile, data_only=True)
         )['DATA']
@@ -102,7 +105,7 @@ class TestExcelModel(unittest.TestCase):
             print('%sCalculate excel-model.' % _msg)
             s = time.time()
 
-            xl_mdl.calculate()
+            xl_mdl.calculate({"'[EXTRA.XLSX]EXTRA'!A1:B1": [[1, 1]]})
 
             msg = '%sCalculated excel-model in %.2fs.\n%s' \
                   'Comparing overwritten results.'
