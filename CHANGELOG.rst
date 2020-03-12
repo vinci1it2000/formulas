@@ -2,6 +2,59 @@ Changelog
 =========
 
 
+v1.0.0 (2020-03-12)
+-------------------
+
+Feat
+~~~~
+- (core): Add `CODE_OF_CONDUCT.md`.
+
+- (function) :gh:`39`: Transform `NotImplementedError` into `#NAME?`.
+
+- (text) :gh:`39`: Add `CONCAT` and `CONCATENATE` functions.
+
+- (logic) :gh:`38`: Add TRUE/FALSE functions.
+
+- (excel) :gh:`42`: Save missing nodes.
+
+- (excel) :gh:`42`: Update logic for `RangesAssembler`.
+
+- (excel): Improve performance of `finish` method.
+
+- (core): Update build script.
+
+- (core): Add support for python 3.8 and drop python 3.5 and drop
+  `appveyor`.
+
+- (core): Improve memory performance.
+
+- (refact): Update copyright.
+
+- (operand): Add `fast_range2parts_v4` for named ranges.
+
+
+Fix
+~~~
+- (math) :gh:`37`: Match excel default rounding algorithm of round half
+  up.
+
+- (cell): Correct reference in `push` method.
+
+- (readme): Correct doctest.
+
+- (token): Correct separator parser.
+
+- (excel) :gh:`35`: Update logic to parse named ranges.
+
+- (operand): Associate `excel_id==0` to current excel.
+
+- (array): Ensure correct deepcopy of `Array` attributes.
+
+- (operand) :gh:`39`: Correct range parser for named ranges.
+
+- (operand) :gh:`41`: Correct named ranges parser.
+
+
 v0.4.0 (2019-08-31)
 -------------------
 
