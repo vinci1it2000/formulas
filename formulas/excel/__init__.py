@@ -122,8 +122,9 @@ class ExcelModel:
             context['excel'] = book
         if 'directory' not in context:
             context['directory'] = osp.dirname(osp.abspath(context['excel']))
+        context['excel'] = osp.basename(context['excel'])
         fpath = osp.join(context['directory'], context['excel'])
-        context['excel'] = osp.basename(context['excel']).upper()
+        context['excel'] = context['excel'].upper()
         data = get_in(self.books, context['excel'])
         book = data.get(BOOK)
         if not book:
