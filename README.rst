@@ -3,8 +3,8 @@
 ##################################################
 formulas: An Excel formulas interpreter in Python.
 ##################################################
-|pypi_ver| |travis_status| |appveyor_status| |cover_status| |docs_status|
-|dependencies| |github_issues| |python_ver| |proj_license| |binder|
+|pypi_ver| |travis_status| |cover_status| |docs_status| |dependencies|
+|github_issues| |python_ver| |proj_license| |binder|
 
 :release:       0.4.0
 :date:          2019-08-31 19:00:00
@@ -202,10 +202,6 @@ Things yet to do: implement the missing Excel formulas.
 .. |travis_status| image:: https://travis-ci.org/vinci1it2000/formulas.svg?branch=master
     :alt: Travis build status
     :target: https://travis-ci.org/vinci1it2000/formulas
-
-.. |appveyor_status| image:: https://ci.appveyor.com/api/projects/status/i3bmqdc92u1bskg5?svg=true
-    :alt: Appveyor build status
-    :target: https://ci.appveyor.com/project/vinci1it2000/formulas
 
 .. |cover_status| image:: https://coveralls.io/repos/github/vinci1it2000/formulas/badge.svg?branch=master
     :target: https://coveralls.io/github/vinci1it2000/formulas?branch=master
