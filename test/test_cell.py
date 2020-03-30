@@ -23,6 +23,14 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata((
+        ('A1', '=STDEVPA(B1)', {'B1': [[sh.EMPTY]]}, '<Ranges>(A1)=[[#DIV/0!]]'),
+        ('A1', '=STDEV.P(B1)', {'B1': [[sh.EMPTY]]}, '<Ranges>(A1)=[[#DIV/0!]]'),
+        ('A1', '=STDEV.P(1)', {}, '<Ranges>(A1)=[[0.0]]'),
+        ('A1', '=STDEV.S(1)', {}, '<Ranges>(A1)=[[#DIV/0!]]'),
+        ('A1', '=STDEV.S(1, "a")', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=STDEV.S(1, "3", 2)', {}, '<Ranges>(A1)=[[1.0]]'),
+        ('A1', '=STDEV.P(2, 3)', {}, '<Ranges>(A1)=[[0.5]]'),
+        ('A1', '=STDEV.S(1, 2, 3)', {}, '<Ranges>(A1)=[[1.0]]'),
         ('A1', '=CONCAT(1, TRUE, 3)', {}, '<Ranges>(A1)=[[\'1TRUE3\']]'),
         ('A1', '=SUM(B1:D1  (  B1:B2  ,  D1:D2  ))',
          {'B1': 1, 'D1': 1},
