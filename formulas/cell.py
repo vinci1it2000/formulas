@@ -29,7 +29,9 @@ class CellWrapper(sh.add_args):
 
     def __call__(self, *args, **kwargs):
         try:
-            return self.func(*self.parse_args(*args), **self.parse_kwargs(**kwargs))
+            return self.func(
+                *self.parse_args(*args), **self.parse_kwargs(**kwargs)
+            )
         except sh.DispatcherError as ex:
             if isinstance(ex.ex, NotImplementedError):
                 return Error.errors['#NAME?']
@@ -63,14 +65,15 @@ def format_output(rng, value):
 class Cell:
     parser = Parser()
 
-    def __init__(self, reference, value, context=None):
+    def __init__(self, reference, value, context=None, check_formula=True):
         self.func = self.range = self.inputs = self.output = None
         if reference is not None:
             self.range = Ranges().push(reference, context=context)
             self.output = self.range.ranges[0]['name']
         self.tokens, self.builder, self.value = (), None, sh.EMPTY
-        if isinstance(value, str) and self.parser.is_formula(value):
-            self.tokens, self.builder = self.parser.ast(value, context=context)
+        prs = self.parser
+        if check_formula and isinstance(value, str) and prs.is_formula(value):
+            self.tokens, self.builder = prs.ast(value, context=context)
         elif value is not None:
             self.value = value
 

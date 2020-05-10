@@ -206,7 +206,10 @@ class ExcelModel:
         crd = formula_references.get(crd, crd)
         val = cell.value
         val = cell.data_type == 'f' and val[:2] == '==' and val[1:] or val
-        cell = Cell(crd, val, context=ctx).compile(references=references)
+        check_formula = cell.data_type != 's'
+        cell = Cell(crd, val, context=ctx, check_formula=check_formula).compile(
+            references=references
+        )
         if cell.output in self.cells:
             return
         if cell.value is not sh.EMPTY:
@@ -307,6 +310,8 @@ class ExcelModel:
                     elif isinstance(v, XlError):
                         v = str(v)
                     c.value = v
+                    if c.data_type == 'f':
+                        c.data_type = 's'
                 except AttributeError:
                     pass
         if dirpath:
