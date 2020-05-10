@@ -64,11 +64,24 @@ class Empty(Operand):
         return 0
 
 
+_re_error = regex.compile(r'''
+    ^\s*(?>
+        (?>
+            '(\[(?>[^\[\]]+)\])?
+            (?>(?>''|[^\?!*\/\[\]':"])+)?'
+        |
+            (\[(?>[0-9]+)\])(?>(?>''|[^\?!*\/\[\]':"])+)?
+        |
+            (?>[^\W\d][\w\.]*)
+        |
+            '(?>(?>''|[^\?!*\/\[\]':"])+)'
+        )!
+    )?(?P<name>\#(?>NULL!|DIV/0!|VALUE!|REF!|NUM!|NAME\?|N/A))\s*
+''', regex.IGNORECASE | regex.X | regex.DOTALL)
+
+
 class Error(Operand):
-    _re = regex.compile(
-        r'^\s*(?P<name>\#(?>NULL!|DIV/0!|VALUE!|REF!|NUM!|NAME\?|N/A))\s*',
-        regex.IGNORECASE
-    )
+    _re = _re_error
     errors = {str(k): k for k in (NULL, DIV, VALUE, REF, NUM, NAME, NA)}
 
     def compile(self):
@@ -93,7 +106,7 @@ _re_range = r"""
                 '(\[(?P<excel>[^\[\]]+)\])?
                  (?P<sheet>(?>''|[^\?!*\/\[\]':"])+)?'
             |
-                (\[(?P<excel_id>[0-9]+)\])(?P<sheet>[^\W\d][\w\.]*)?
+                (\[(?P<excel_id>[0-9]+)\])(?P<sheet>(?>''|[^\?!*\/\[\]':"])+)?
             |
                 (?P<sheet>[^\W\d][\w\.]*)
             |
@@ -127,7 +140,7 @@ _re_range = r"""
                 C(?P<n1>[1-9]\d*):C(?P<n2>[1-9]\d*)
             )(?![_\.\w])
         |
-            (?P<ref>[A-Z_\\]+[A-Z0-9\.\_]*)
+            (?P<ref>[[:alpha:]_\\]+[[:alnum:]\.\_]*)
         )
     |
         (?>
