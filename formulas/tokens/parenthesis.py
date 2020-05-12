@@ -17,7 +17,9 @@ import regex
 
 
 class Parenthesis(Token):
-    _re = regex.compile(r'^\s*(?P<name>(?P<start>\()|(?P<end>\)))\s*')
+    _re = regex.compile(
+        r'^\s*(?>(?P<name>(?P<start>\())\s*|(?P<name>(?P<end>\))))'
+    )
     opens = {')': '('}
     n_args = 0
 
