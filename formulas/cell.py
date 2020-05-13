@@ -159,8 +159,9 @@ class Cell:
 
 
 class Ref(Cell):
-    def __init__(self, reference, value, context=None):
-        super(Ref, self).__init__(None, value, context)
+    def __init__(self, reference, value, context=None, check_formula=True):
+        context = context or {}
+        super(Ref, self).__init__(None, value, context, check_formula)
         self.output = range2parts(None, ref=reference, **context)['name']
 
     def _missing_ref(self, inp, k):
@@ -173,7 +174,7 @@ class Ref(Cell):
         super(Ref, self).compile()
         if self.inputs:
             self.func.dsp.nodes[self.func.outputs[0]].pop('filters', None)
-        else:
+        elif self.value is not sh.EMPTY:
             self.value, self.func = self.func(), None
         return self
 

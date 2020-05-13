@@ -9,6 +9,7 @@ import os
 import copy
 import dill
 import time
+import json
 import unittest
 import os.path as osp
 import schedula as sh
@@ -78,7 +79,9 @@ class TestExcelModel(unittest.TestCase):
                     self.assertEqual(res, value, msg=msg)
             except AssertionError as ex:
                 errors.append(str(ex))
-        self.assertFalse(bool(errors), 'Errors:\n%s' % '\n'.join(errors))
+        self.assertFalse(
+            bool(errors), 'Errors(%d):\n%s' % (len(errors), '\n'.join(errors))
+        )
         return len(it)
 
     def test_excel_model(self):
@@ -101,7 +104,7 @@ class TestExcelModel(unittest.TestCase):
         print('%sFinished excel-model in %.2fs.' % (_msg, time.time() - s))
 
         n_test = 0
-        for i in range(3):
+        for i in range(4):
             print('%sCalculate excel-model.' % _msg)
             s = time.time()
 
@@ -125,7 +128,7 @@ class TestExcelModel(unittest.TestCase):
             msg = '%sCompared fresh written results in %.2fs.'
             print(msg % (_msg, time.time() - s))
 
-            if i == 0:
+            if i == 2:
                 print('%sSaving excel-model dill.' % _msg)
                 s = time.time()
 
@@ -149,6 +152,21 @@ class TestExcelModel(unittest.TestCase):
                 xl_mdl = copy.deepcopy(xl_mdl)
 
                 msg = '%sDeep-copied excel-model in %.2fs.'
+                print(msg % (_msg, time.time() - s))
+            elif i == 0:
+                print('%sSaving JSON excel-model.' % _msg)
+                s = time.time()
+
+                xl_json = json.dumps(xl_mdl.to_dict())
+
+                msg = '%sSaved JSON excel-model in %.2fs.\n' \
+                      '%sLoading JSON excel-model.'
+                print(msg % (_msg, time.time() - s, _msg))
+                s = time.time()
+                xl_mdl = ExcelModel().from_dict(json.loads(xl_json))
+                del xl_json
+
+                msg = '%sLoaded JSON excel-model in %.2fs.'
                 print(msg % (_msg, time.time() - s))
 
         print('%sSaving excel-model xlsx.' % _msg)

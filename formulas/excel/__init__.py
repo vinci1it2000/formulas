@@ -28,8 +28,8 @@ import os.path as osp
 import schedula as sh
 from ..ranges import Ranges
 from ..functions import flatten
-from ..cell import Cell, RangesAssembler, Ref
 from ..tokens.operand import XlError
+from ..cell import Cell, RangesAssembler, Ref, CellWrapper
 
 log = logging.getLogger(__name__)
 BOOK = sh.Token('Book')
@@ -68,18 +68,21 @@ class ExcelModel:
     def __getstate__(self):
         return {'dsp': self.dsp, 'cells': {}, 'books': {}}
 
-    def add_references(self, book, context=None):
-        refs, nodes = {}, set()
-        for n in book.defined_names.definedName:
-            ref = Ref(n.name.upper(), '=%s' % n.value, context).compile()
-            nodes.update(ref.add(self.dsp, context=context))
-            refs[ref.output] = None
+    def _update_refs(self, nodes, refs):
         dsp = self.dsp.get_sub_dsp(nodes)
         dsp.raises = ''
         sol = dsp(dict.fromkeys(set(dsp.data_nodes) - set(refs), sh.EMPTY))
         refs.update({
             k: v for k, v in sol.items() if k in refs and isinstance(v, Ranges)
         })
+
+    def add_references(self, book, context=None):
+        refs, nodes = {}, set()
+        for n in book.defined_names.definedName:
+            ref = Ref(n.name.upper(), '=%s' % n.value, context).compile()
+            nodes.update(ref.add(self.dsp, context=context))
+            refs[ref.output] = None
+        self._update_refs(nodes, refs)
         return refs
 
     def loads(self, *file_names):
@@ -241,19 +244,20 @@ class ExcelModel:
                     if cell:
                         stack.extend(cell.inputs or ())
 
-    def finish(self, complete=True, circular=False):
-        if complete:
-            self.complete()
-        cells, get = {}, sh.get_nested_dicts
-        for c in self.cells.values():
-            rng = c.range.ranges[0]
-            get(cells, rng['excel'], rng['sheet'], default=list).append(c)
-
-        it = set(self.dsp.data_nodes) - set(self.cells) - set(self.references)
-        for n_id in sorted(it):
+    def _assemble_ranges(self, cells, nodes=None):
+        get = sh.get_nested_dicts
+        pred = self.dsp.dmap.pred
+        it = (
+            k for k in (self.dsp.data_nodes if nodes is None else nodes)
+            if not pred[k] and not isinstance(k, sh.Token)
+        )
+        for n_id in it:
             if isinstance(n_id, sh.Token):
                 continue
-            ra = RangesAssembler(n_id)
+            try:
+                ra = RangesAssembler(n_id)
+            except ValueError:
+                continue
             rng = ra.range.ranges[0]
             for c in get(cells, rng['excel'], rng['sheet'], default=list):
                 ra.push(c)
@@ -261,9 +265,56 @@ class ExcelModel:
                     break
             ra.add(self.dsp)
 
+    def assemble(self):
+        cells, get = {}, sh.get_nested_dicts
+        for c in self.cells.values():
+            rng = c.range.ranges[0]
+            get(cells, rng['excel'], rng['sheet'], default=list).append(c)
+        self._assemble_ranges(cells)
+
+    def finish(self, complete=True, circular=False, assemble=True):
+        if complete:
+            self.complete()
+        if assemble:
+            self.assemble()
         if circular:
             self.solve_circular()
+        return self
 
+    def to_dict(self):
+        nodes = {
+            k: d['value']
+            for k, d in self.dsp.default_values.items()
+            if not isinstance(k, sh.Token)
+        }
+        nodes = {
+            k: isinstance(v, str) and v.startswith('=') and '="%s"' % v or v
+            for k, v in nodes.items() if v != [[sh.EMPTY]]
+        }
+        for d in self.dsp.function_nodes.values():
+            fun = d['function']
+            if isinstance(fun, CellWrapper):
+                nodes.update(dict.fromkeys(d['outputs'], fun.__name__))
+        return nodes
+
+    def from_dict(self, adict, context=None, assemble=True):
+        refs, cells, nodes, get = {}, {}, set(), sh.get_nested_dicts
+        for k, v in adict.items():
+            k = k.upper()
+            try:
+                cell = Cell(k, v, context=context)
+            except ValueError:
+                ref = Ref(k, v, context=context).compile()
+                nodes.update(ref.add(self.dsp))
+                refs[ref.output] = None
+                continue
+            cells[cell.output] = cell
+        self._update_refs(nodes, refs)
+        for cell in cells.values():
+            nodes.update(cell.compile(references=refs).add(self.dsp))
+        self.cells.update(cells)
+        if assemble:
+            self.assemble()
         return self
 
     def write(self, books=None, solution=None, dirpath=None):
