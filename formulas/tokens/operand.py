@@ -210,11 +210,13 @@ _re_build_id = regex.compile(r'^[0-9]+$')
 
 
 def _build_id(ref, sheet='', excel=''):
+    sheet = sheet.replace("''", "'")
     if excel:
-        sheet = "[%s]%s" % (excel, sheet.replace("''", "'"))
+        sheet = "[%s]%s" % (excel, sheet)
         if not _re_build_id.match(excel):
             sheet = "'%s'" % sheet
-
+    elif ' ' in sheet:
+        sheet = "'%s'" % sheet
     return '!'.join(s for s in (sheet, ref) if s)
 
 
