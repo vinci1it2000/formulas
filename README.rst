@@ -189,6 +189,48 @@ the data node ids (i.e., cell references).
 
 .. _DispatchPipe: https://schedula.readthedocs.io/en/master/_build/schedula/utils/dsp/schedula.utils.dsp.DispatchPipe.html#schedula.utils.dsp.DispatchPipe
 
+
+JSON export/import
+~~~~~~~~~~~~~~~~~~
+The `ExcelModel` can be exported/imported to/from a readable JSON format. The
+reason of this functionality is to have format that can be easily maintained
+(e.g. using version control programs like `git`). Follows an example on how to
+export/import to/from JSON an `ExcelModel`:
+
+.. testsetup::
+
+    >>> import formulas
+    >>> import os.path as osp
+    >>> from setup import mydir
+    >>> fpath = osp.join(mydir, 'test/test_files/excel.xlsx')
+    >>> xl_model = formulas.ExcelModel().loads(fpath).finish()
+
+.. doctest::
+
+    >>> import json
+    >>> xl_dict = xl_model.to_dict()  # To JSON-able dict.
+    >>> xl_dict  # Exported format. # doctest: +SKIP
+    {
+     "'[EXCEL.XLSX]DATA'!A1": "inputs",
+     "'[EXCEL.XLSX]DATA'!B1": "Intermediate",
+     "'[EXCEL.XLSX]DATA'!C1": "outputs",
+     "'[EXCEL.XLSX]DATA'!D1": "defaults",
+     "'[EXCEL.XLSX]DATA'!A2": 2,
+     "'[EXCEL.XLSX]DATA'!D2": 1,
+     "'[EXCEL.XLSX]DATA'!A3": 6,
+     "'[EXCEL.XLSX]DATA'!A4": 5,
+     "'[EXCEL.XLSX]DATA'!B2": "=('[EXCEL.XLSX]DATA'!A2 + '[EXCEL.XLSX]DATA'!A3)",
+     "'[EXCEL.XLSX]DATA'!C2": "=(('[EXCEL.XLSX]DATA'!B2 / '[EXCEL.XLSX]DATA'!B3) + '[EXCEL.XLSX]DATA'!D2)",
+     "'[EXCEL.XLSX]DATA'!B3": "=('[EXCEL.XLSX]DATA'!B2 - '[EXCEL.XLSX]DATA'!A3)",
+     "'[EXCEL.XLSX]DATA'!C3": "=(('[EXCEL.XLSX]DATA'!C2 * '[EXCEL.XLSX]DATA'!A2) + '[EXCEL.XLSX]DATA'!D3)",
+     "'[EXCEL.XLSX]DATA'!D3": "=(1 + '[EXCEL.XLSX]DATA'!D2)",
+     "'[EXCEL.XLSX]DATA'!B4": "=MAX('[EXCEL.XLSX]DATA'!A3:A4, '[EXCEL.XLSX]DATA'!B2)",
+     "'[EXCEL.XLSX]DATA'!C4": "=(('[EXCEL.XLSX]DATA'!B3 ^ '[EXCEL.XLSX]DATA'!C2) + '[EXCEL.XLSX]DATA'!D4)",
+     "'[EXCEL.XLSX]DATA'!D4": "=(1 + '[EXCEL.XLSX]DATA'!D3)"
+    }
+    >>> xl_json = json.dumps(xl_dict, indent=True)  # To JSON.
+    >>> xl_model = formulas.ExcelModel().from_dict(json.loads(xl_json))  # From JSON.
+
 Custom functions
 ----------------
 An example how to add a custom function to the formula parser is the following:
