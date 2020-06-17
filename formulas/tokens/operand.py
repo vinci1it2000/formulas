@@ -313,7 +313,10 @@ def fast_range2parts_v4(ref, excel, sheet=''):
 
 def range2parts(outputs, **inputs):
     if inputs.get('excel_id', '0') != '0':
-        inputs.pop('excel', None)
+        if inputs['excel_id'] in inputs.get('external_links', {}):
+            inputs.pop('excel', None)
+        else:
+            inputs.pop('external_links', None)
     elif 'excel' not in inputs:
         inputs['excel'] = ''
     try:

@@ -13,7 +13,7 @@ It provides AstBuilder class.
 import functools
 import collections
 import schedula as sh
-from .errors import FormulaError, RangeValueError
+from .errors import FormulaError, RangeValueError, InvalidRangeError
 from .tokens.operator import Operator
 from .tokens.function import Function
 from .tokens.operand import Operand
@@ -32,7 +32,9 @@ class AstBuilder:
         self._deque = collections.deque()
         self.match = match
         self.dsp = dsp or sh.Dispatcher(
-            raises=lambda e: not isinstance(e, (NotImplementedError, RangeValueError))
+            raises=lambda e: not isinstance(e, (
+                NotImplementedError, RangeValueError, InvalidRangeError
+            ))
         )
         self.nodes = nodes or {}
         self.missing_operands = set()

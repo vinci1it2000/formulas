@@ -28,7 +28,7 @@ import os.path as osp
 import schedula as sh
 from ..ranges import Ranges
 from ..functions import flatten
-from ..tokens.operand import XlError
+from ..tokens.operand import XlError, Error
 from ..cell import Cell, RangesAssembler, Ref, CellWrapper
 
 log = logging.getLogger(__name__)
@@ -138,6 +138,7 @@ class ExcelModel:
             data['external_links'] = {
                 str(el.file_link.idx_base + 1): el.file_link.Target
                 for el in book._external_links
+                if el.file_link.Target.endswith('.xlsx')
             }
 
         if 'references' not in data:
@@ -235,8 +236,13 @@ class ExcelModel:
             book = osp.abspath(
                 osp.join(nodes[n_id].get('directory', '.'), rng['excel'])
             )
-            context = self.add_book(book)[1]
-            worksheet, context = self.add_sheet(rng['sheet'], context)
+            try:
+                context = self.add_book(book)[1]
+                worksheet, context = self.add_sheet(rng['sheet'], context)
+            except Exception:  # Missing excel file or sheet.
+                Ref(n_id, '=#REF!').compile().add(self.dsp)
+                continue
+
             rng = '{c1}{r1}:{c2}{r2}'.format(**rng)
             for c in flatten(worksheet[rng], None):
                 if hasattr(c, 'value'):
@@ -247,8 +253,10 @@ class ExcelModel:
     def _assemble_ranges(self, cells, nodes=None):
         get = sh.get_nested_dicts
         pred = self.dsp.dmap.pred
+        if nodes is None:
+            nodes = set(self.dsp.data_nodes).difference(self.dsp.default_values)
         it = (
-            k for k in (self.dsp.data_nodes if nodes is None else nodes)
+            k for k in nodes
             if not pred[k] and not isinstance(k, sh.Token)
         )
         for n_id in it:

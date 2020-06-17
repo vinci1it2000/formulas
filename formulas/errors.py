@@ -40,6 +40,10 @@ class FunctionError(FormulaError):
     msg = 'Function not implemented!'
 
 
+class InvalidRangeError(BaseError):
+    msg = 'Invalid range %s!'
+
+
 class RangeValueError(BaseError):
     msg = 'Range %s has not value!'
 

@@ -37,7 +37,7 @@ import collections
 import numpy as np
 import schedula as sh
 from formulas.errors import (
-    RangeValueError, FoundError, BaseError, BroadcastError
+    RangeValueError, FoundError, BaseError, BroadcastError, InvalidRangeError
 )
 from formulas.tokens.operand import Error, XlError
 
@@ -120,6 +120,8 @@ def wrap_func(func, ranges=False):
             return func(*args, **kwargs)
         except FoundError as ex:
             return np.asarray([[ex.err]], object)
+        except InvalidRangeError:
+            return np.asarray([[Error.errors['#VALUE!']]], object)
         except BaseError as ex:
             raise ex
         except Exception:

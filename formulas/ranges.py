@@ -14,7 +14,7 @@ import numpy as np
 from .tokens.operand import (
     _re_range, range2parts, _index2col, maxrow, maxcol, Error
 )
-from .errors import RangeValueError
+from .errors import RangeValueError, InvalidRangeError
 from .functions import Array, _init_reshape
 import schedula as sh
 
@@ -175,7 +175,7 @@ class Ranges:
 
         for r in ranges:
             if not _has_same_sheet(rng, r):
-                raise RangeValueError('{}:{}'.format(self, other))
+                raise InvalidRangeError('{}:{}'.format(self, other))
             else:
                 rng['r1'] = min(rng['r1'], int(r['r1']))
                 rng['n1'] = min(rng['n1'], r['n1'])
