@@ -59,6 +59,15 @@ To install formulas and all extras, do:
 
     $ pip install formulas[all]
 
+Development version
+-------------------
+To help with the testing and the development of `formulas`, you can install the
+development version:
+
+.. code-block:: console
+
+    $ pip install https://github.com/vinci1it2000/formulas/archive/dev.zip
+
 .. _end-quick:
 
 Basic Examples
