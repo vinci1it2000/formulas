@@ -55,6 +55,8 @@ class TestParser(unittest.TestCase):
         ('=a b', 'A B'),
         ('=MYFORMULA(1)', 'MYFORMULA(1)'),
         ('=IF(G9:G12<>H10:H13,1,0)', 'IF(G9:G12<>H10:H13,1,0)'),
+        ('=IFS(G9:G12<>H10:H13,1)', 'IFS(G9:G12<>H10:H13,1)'),
+        ('=SINGLE(B8:C8)', 'SINGLE(B8:C8)'),
         ('=SUM(a,b,d,e,f,g,Sheet2!B3:B4)', 'SUM(A,B,D,E,F,G,SHEET2!B3:B4)'),
         ('=1000/(Sheet1!B1*Sheet1!B2)', '1000/(SHEET1!B1*SHEET1!B2)'),
         ('=10  ^  -  2', '10^u-2'),

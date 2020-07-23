@@ -11,6 +11,8 @@ Python equivalents of logical Excel functions.
 """
 import functools
 import numpy as np
+import schedula as sh
+from collections import deque
 from . import (
     wrap_ufunc, Error, flatten, get_error, value_return, wrap_func, raise_errors
 )
@@ -35,6 +37,67 @@ FUNCTIONS['IF'] = {
     ),
     'solve_cycle': solve_cycle
 }
+
+
+def xifs(cond, val, *cond_vals):
+    # Excel 2016 missing or empty value parameter handling.
+    try:
+        lv = deque((cond, val) + cond_vals)
+    except Exception:
+        return Error.errors['#N/A']
+
+    while True:
+        try:
+            a = lv.popleft()
+        except IndexError:
+            return Error.errors['#N/A']
+        try:
+            res = lv.popleft()
+        except IndexError:
+            return 0 if a else Error.errors['#N/A']
+        if a:
+            return 0 if res is None or res == sh.EMPTY or res == '' else res
+
+
+def xifs_get_error(*vals):
+    # Excel 2016 error results.
+    # #N/A errors relating to missing last parameter or no True condition value are detected in xifs processing.
+    try:
+        lv = deque(*vals)
+        while True:
+            a = lv.popleft()
+            if a is None or a == sh.EMPTY:
+                return Error.errors['#N/A']
+            if get_error(a):
+                return a
+            if isinstance(a, str):
+                return Error.errors['#VALUE!']
+            lv.popleft()
+    except IndexError:
+        return
+    except Exception:
+        return Error.errors['#N/A']
+
+
+FUNCTIONS['_XLFN.IFS'] = FUNCTIONS['IFS'] = {
+    'function': wrap_ufunc(
+        xifs, input_parser=lambda *a: a, args_parser=lambda *a: a,
+        return_func=value_return,
+        check_error=lambda *a: xifs_get_error(a)
+    ),
+    'solve_cycle': solve_cycle
+}
+
+
+def single(val):
+    # Refer to Excel 2016 Implicit Intersection help. The '@' symbol and the SINGLE operator cannot be found in Excel Help.
+    # In Excel 2016, syntax: =IFS(@B8:C8,1) is read as =_XLFN.IFS(_XLFN.SINGLE(B8:C8,1)).
+    # The current proposal is to cause any occurrence of SINGLE to generate a #VALUE! error.
+    # If SINGLE were to be supported then '@' should also be supported and these should probably be in the operator submodule.
+    return Error.errors['#VALUE!']
+
+
+FUNCTIONS['_XLFN.SINGLE'] = FUNCTIONS['SINGLE'] = {'function': wrap_func(single, ranges=True)}
 
 
 def xiferror(val, val_if_error):
@@ -81,7 +144,12 @@ FUNCTIONS["_XLFN.SWITCH"] = FUNCTIONS["SWITCH"] = {
 
 def xand(logical, *logicals, func=np.logical_and.reduce):
     check, arr = lambda x: not raise_errors(x) and not isinstance(x, str), []
-    for a in (logical,) + logicals:
+    lv = (logical,) + logicals
+    # Microsoft 365/Excel 2016 returns #REF! if any parameter of And/OR/XOR is #Ref!,
+    # even if there is a #VALUE! parameter error preceding the #REF!
+    if Error.errors['#REF!'] in lv:
+        return Error.errors['#REF!']
+    for a in lv:
         v = list(flatten(a, check=check))
         arr.extend(v)
         if not v and not isinstance(a, np.ndarray):

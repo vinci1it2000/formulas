@@ -186,7 +186,8 @@ class TestCell(unittest.TestCase):
         ('A1', '=XOR(TRUE,TRUE)', {}, '<Ranges>(A1)=[[False]]'),
         ('A1', '=XOR(TRUE(),TRUE())', {}, '<Ranges>(A1)=[[False]]'),
         ('A1', '=OR(TRUE,#REF!,"0")', {}, '<Ranges>(A1)=[[#REF!]]'),
-        ('A1', '=OR(FALSE,"0",#REF!)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        # The following updated result is relevant to Microsoft 365/Excel 2016
+        ('A1', '=OR(FALSE,"0",#REF!)', {}, '<Ranges>(A1)=[[#REF!]]'),
         ('A1', '=INDEX({2,3;4,5},FALSE,"0")', {}, '<Ranges>(A1)=[[2]]'),
         ('A1', '=INDEX({2,3;4,5}, -1)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=INDEX(B1:C1, 1, 1)', {'B1:C1': [[sh.EMPTY, 2]]},
@@ -228,6 +229,13 @@ class TestCell(unittest.TestCase):
         ('A1', '=IF(TRUE, #VALUE!, #N/A)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=IF(FALSE, #VALUE!, #N/A)', {}, '<Ranges>(A1)=[[#N/A]]'),
         ('A1', '=IF(TRUE, "1a", "2b")', {}, '<Ranges>(A1)=[[\'1a\']]'),
+        # Currently, SINGLE only generates an error.
+        ('A1', '=SINGLE(B8:D8)', inp_ranges('B8:D8'), '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=IFS(TRUE, "FIRST")', {}, '<Ranges>(A1)=[[\'FIRST\']]'),
+        ('A1', '=IFS(FALSE, "FIRST", TRUE, "SECOND")', {}, '<Ranges>(A1)=[[\'SECOND\']]'),
+        ('A1', '=IFS(FALSE, "FIRST", FALSE, "SECOND", TRUE, "THIRD")', {}, '<Ranges>(A1)=[[\'THIRD\']]'),
+        ('A1', '=IFS(FALSE, "FIRST", FALSE, "SECOND", TRUE,)', {}, '<Ranges>(A1)=[[0]]'),
+        ('A1', '=IFS(FALSE, "FIRST", FALSE, "SECOND")', {}, '<Ranges>(A1)=[[#N/A]]'),
         ('A1', '=ROW(4:7)', inp_ranges('4:7'), '<Ranges>(A1)=[[4]]'),
         ('A1', '=ROW(B8:D8:F7:H8 D7:E8)',
          inp_ranges('B8:D8', 'F7:H8', 'D7:E8'), '<Ranges>(A1)=[[7]]'),
