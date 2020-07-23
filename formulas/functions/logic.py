@@ -37,6 +37,29 @@ FUNCTIONS['IF'] = {
 }
 
 
+def xifs(*cond_vals):
+    if len(cond_vals) % 2:
+        cond_vals += 0,
+    for b, v in zip(cond_vals[::2], cond_vals[1::2]):
+        err = get_error(b)
+        if err:
+            return err
+        if isinstance(b, str):
+            raise ValueError
+        if b:
+            return v
+    return Error.errors['#N/A']
+
+
+FUNCTIONS['_XLFN.IFS'] = FUNCTIONS['IFS'] = {
+    'function': wrap_ufunc(
+        xifs, input_parser=lambda *a: a, return_func=value_return,
+        check_error=lambda *a: None
+    ),
+    'solve_cycle': lambda *a: not any(a[::2])
+}
+
+
 def xiferror(val, val_if_error):
     from .info import iserror
     return val_if_error if iserror(val) else val
@@ -101,11 +124,14 @@ FUNCTIONS['NOT'] = {'function': wrap_ufunc(
     np.logical_not, input_parser=lambda *a: a, return_func=value_return
 )}
 
+
 def _true():
     return True
 
+
 def _false():
     return False
+
 
 FUNCTIONS['TRUE'] = wrap_func(_true)
 FUNCTIONS['FALSE'] = wrap_func(_false)

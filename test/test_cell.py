@@ -22,7 +22,8 @@ def inp_ranges(*rng):
 
 @ddt.ddt
 class TestCell(unittest.TestCase):
-    @ddt.idata((
+    @ddt.idata([
+        ('A1', '=IFS(-1,A2,1, TRUE)', {'A2': [[sh.EMPTY]]}, "<Ranges>(A1)=[[0]]"),
         ('A1', '=A2 =A3', {'A2': [[1]], 'A3': [[1]]}, "<Ranges>(A1)=[[True]]"),
         ('A1', '=A2 =-A3', {'A2': [[1]], 'A3': [[-1]]},
          "<Ranges>(A1)=[[True]]"),
@@ -247,6 +248,11 @@ class TestCell(unittest.TestCase):
         ('A1', '=IF(TRUE, #VALUE!, #N/A)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=IF(FALSE, #VALUE!, #N/A)', {}, '<Ranges>(A1)=[[#N/A]]'),
         ('A1', '=IF(TRUE, "1a", "2b")', {}, '<Ranges>(A1)=[[\'1a\']]'),
+        ('A1', '=IFS(TRUE, "FIRST")', {}, '<Ranges>(A1)=[[\'FIRST\']]'),
+        ('A1', '=IFS(FALSE, "FIRST", TRUE, "SECOND")', {}, '<Ranges>(A1)=[[\'SECOND\']]'),
+        ('A1', '=IFS(FALSE, "FIRST", FALSE, "SECOND", TRUE, "THIRD")', {}, '<Ranges>(A1)=[[\'THIRD\']]'),
+        ('A1', '=IFS(FALSE, "FIRST", FALSE, "SECOND", TRUE,)', {}, '<Ranges>(A1)=[[0]]'),
+        ('A1', '=IFS(FALSE, "FIRST", FALSE, "SECOND")', {}, '<Ranges>(A1)=[[#N/A]]'),
         ('A1', '=ROW(4:7)', inp_ranges('4:7'), '<Ranges>(A1)=[[4]]'),
         ('A1', '=ROW(B8:D8:F7:H8 D7:E8)',
          inp_ranges('B8:D8', 'F7:H8', 'D7:E8'), '<Ranges>(A1)=[[7]]'),
@@ -357,7 +363,7 @@ class TestCell(unittest.TestCase):
         #  '<Ranges>(A1:D1)=[[1 2 1 #N/A]]'),
         # ('A1:D1', '=IF({0,-2,0},{2,3},{1,4})', {},
         #  '<Ranges>(A1:D1)=[[1 2 #N/A #N/A]]')
-    ))
+    ])
     def test_output(self, case):
         reference, formula, inputs, result = case
         dsp = sh.Dispatcher()
@@ -369,10 +375,10 @@ class TestCell(unittest.TestCase):
             'Formula({}): {} != {}'.format(formula, result, output)
         )
 
-    @ddt.idata((
+    @ddt.idata([
         ('A1:D1', '=IF({0,-0.2,0},{2,3},{1})', {}),  # BroadcastError
         ('A1:D1', '=IF({0,-2,0},{2,3},{1,4})', {}),  # BroadcastError
-    ))
+    ])
     def test_invalid(self, case):
         reference, formula, inputs = case
         with self.assertRaises(sh.DispatcherError):
