@@ -20,6 +20,7 @@ from formulas.functions import wrap_ranges_func
 @ddt.ddt
 class TestParser(unittest.TestCase):
     @ddt.data(
+        ("=SUM('Sheet 1'!A2:'Sheet 1'!A2)", "SUM('SHEET 1'!A2:'SHEET 1'!A2)"),
         ('=SUM(5,5, ,6)', 'SUM(5,5,,6)'),
         ('=5%', '5%'),
         ('=2:3', '2:3'),

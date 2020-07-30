@@ -119,3 +119,43 @@ FUNCTIONS['MIN'] = wrap_func(functools.partial(xfunc, func=min))
 FUNCTIONS['MINA'] = wrap_func(functools.partial(
     xfunc, convert=_convert, check=is_not_empty, func=min
 ))
+
+
+def xstdev(args, ddof=1, func=np.std):
+    if len(args) <= ddof:
+        return Error.errors['#DIV/0!']
+    return func(args, ddof=ddof)
+
+
+FUNCTIONS['_XLFN.STDEV.S'] = FUNCTIONS['STDEV.S'] = wrap_func(functools.partial(
+    xfunc, func=xstdev
+))
+FUNCTIONS['_XLFN.STDEV.P'] = FUNCTIONS['STDEV.P'] = wrap_func(functools.partial(
+    xfunc, func=functools.partial(xstdev, ddof=0), default=None
+))
+FUNCTIONS['STDEVA'] = wrap_func(functools.partial(
+    xfunc, convert=_convert, check=is_not_empty, func=xstdev
+))
+FUNCTIONS['STDEVPA'] = wrap_func(functools.partial(
+    xfunc, convert=_convert, check=is_not_empty, func=functools.partial(
+        xstdev, ddof=0
+    ), default=None
+))
+
+
+FUNCTIONS['_XLFN.VAR.S'] = FUNCTIONS['VAR.S'] = wrap_func(functools.partial(
+    xfunc, func=functools.partial(xstdev, func=np.var)
+))
+FUNCTIONS['_XLFN.VAR.P'] = FUNCTIONS['VAR.P'] = wrap_func(functools.partial(
+    xfunc, func=functools.partial(xstdev, ddof=0, func=np.var), default=None
+))
+FUNCTIONS['VARA'] = wrap_func(functools.partial(
+    xfunc, convert=_convert, check=is_not_empty, func=functools.partial(
+        xstdev, func=np.var
+    )
+))
+FUNCTIONS['VARPA'] = wrap_func(functools.partial(
+    xfunc, convert=_convert, check=is_not_empty, func=functools.partial(
+        xstdev, ddof=0, func=np.var
+    ), default=None
+))

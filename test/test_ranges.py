@@ -11,7 +11,7 @@ import ddt
 import numpy as np
 from formulas.tokens.operand import Error
 from formulas.ranges import Ranges
-from formulas.errors import RangeValueError
+from formulas.errors import InvalidRangeError
 
 
 @ddt.ddt
@@ -74,7 +74,7 @@ class TestOperators(unittest.TestCase):
         )
     def test_invalid_add_ranges(self, case):
         range1, range2 = case
-        with self.assertRaises(RangeValueError):
+        with self.assertRaises(InvalidRangeError):
             Ranges().pushes(range1) + Ranges().pushes(range2)
 
     @ddt.data(
