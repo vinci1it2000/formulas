@@ -20,6 +20,7 @@ from formulas.functions import wrap_ranges_func
 @ddt.ddt
 class TestParser(unittest.TestCase):
     @ddt.data(
+        ('=IF(A1>=-1,1,0)', 'IF(A1>=u-1,1,0)'),
         ("=SUM('Sheet 1'!A2:'Sheet 1'!A2)", "SUM('SHEET 1'!A2:'SHEET 1'!A2)"),
         ('=SUM(5,5, ,6)', 'SUM(5,5,,6)'),
         ('=5%', '5%'),
@@ -61,7 +62,7 @@ class TestParser(unittest.TestCase):
         ('=10  ^  -  2', '10^u-2'),
         ('=10^- + -  + + +2', '10^u+2'),
         ('=ATAN2( 10 , 2)', 'ATAN2(10,2)'),
-        ('=DAYS360( 10 , 2)', 'DAYS360(10,2)'),
+        ('=DAYS360( 10 , 2)', 'DAYS360(10,2)')
     )
     def test_valid_formula(self, case):
         inputs, result = case
@@ -80,16 +81,16 @@ class TestParser(unittest.TestCase):
         ({}, '=CG_TEST', (1,), '1'),
         ({}, '=CG2033_TEST', (1,), '1'),
         ({}, '=(L4:N7 (K5:L6, N5:O6))', (
-            Ranges().pushes(('L5:L6', 'N5:N6'), ([2, 2], [3, 3])),
+                Ranges().pushes(('L5:L6', 'N5:N6'), ([2, 2], [3, 3])),
         ), '[3 3 2 2]'),
         ({}, '=(a (b, c))', (
-            Ranges().push('L4:N6', [(1, 1, 1), (2, 1, 3), (2, 1, 3)]),
-            Ranges().push('K5:L6', [(2, 2), (2, 2)]),
-            Ranges().push('N5:O6', [(3, 3), (3, 3)])
+                Ranges().push('L4:N6', [(1, 1, 1), (2, 1, 3), (2, 1, 3)]),
+                Ranges().push('K5:L6', [(2, 2), (2, 2)]),
+                Ranges().push('N5:O6', [(3, 3), (3, 3)])
         ),
          '[3 3 2 2]'),
         ({'A': 'L4:N7', 'B': 'K5:L6', 'C': 'N5:O6'}, '=(a (b, c))', (
-            Ranges().pushes(('L5:L6', 'N5:N6'), ([2, 2], [3, 3])),
+                Ranges().pushes(('L5:L6', 'N5:N6'), ([2, 2], [3, 3])),
         ),
          '[3 3 2 2]'),
         ({}, '=(-INT(2))', (), '-2.0'),
@@ -100,7 +101,7 @@ class TestParser(unittest.TestCase):
         ({}, '=INT(1)%+3', (), '3.01'),
         ({}, '=SUM({1, 3; 4, 2})', (), '10'),
         ({}, '=" "" a"', (), ' " a'),
-        ({}, '=#NULL!',  (), '#NULL!'),
+        ({}, '=#NULL!', (), '#NULL!'),
         ({}, '=1 + 2', (), '3.0'),
         ({}, '=AVERAGE(((123 + 4 + AVERAGE({1,2}))))', (), '128.5'),
         ({}, '="a" & "b"""', (), 'ab"'),

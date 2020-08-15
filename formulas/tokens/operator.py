@@ -121,7 +121,7 @@ class Separator(Operator):
 
 class OperatorToken(Operator):
     _re = regex.compile(
-        r'^([\*\/\^&<>=](?=\s*[\+\-]+)|[\+\-\*\/\^&<>=\s:]+|[\s%]+)'
+        r'^(([\*\/\^&<>=]|[<>]=|<>)(?=\s*[\+\-]+)|[\+\-\*\/\^&<>=\s:]+|[\s%]+)'
     )
     _re_process = regex.compile(
         r'^(?P<name>(?P<sum_minus>[\+\-]+)|[\*\/\^&\%:]|[<>]?=|[<>]|<>)$'
