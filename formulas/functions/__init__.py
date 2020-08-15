@@ -175,7 +175,7 @@ def raise_errors(*args):
 
 
 def is_number(number):
-    if isinstance(number, bool):
+    if isinstance(number, (bool, np.bool_)):
         return False
     elif not isinstance(number, XlError):
         try:

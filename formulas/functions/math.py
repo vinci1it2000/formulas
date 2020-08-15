@@ -153,7 +153,7 @@ def xfactdouble(number):
         return Error.errors['#VALUE!']
     with np.errstate(divide='ignore', invalid='ignore'):
         # noinspection PyTypeChecker
-        x = xfact(x, _factdouble, -1)
+        x = xfact(float(x), _factdouble, -1)
     return (np.isnan(x) or np.isinf(x)) and Error.errors['#NUM!'] or x
 
 
@@ -209,9 +209,10 @@ FUNCTIONS['MOD'] = wrap_ufunc(xmod)
 
 def xmround(*args):
     raise_errors(args)
-    num, sig = list(flatten(map(replace_empty, args), None))
+    num, sig = tuple(flatten(map(replace_empty, args), None))
     if isinstance(num, bool) or isinstance(sig, bool):
         return Error.errors['#VALUE!']
+    num, sig = float(num), float(sig)
     with np.errstate(divide='ignore', invalid='ignore'):
         x = num < 0 < sig and np.nan or xceiling(num, sig, ceil=np.round)
     return (np.isnan(x) or np.isinf(x)) and Error.errors['#NUM!'] or x
@@ -291,8 +292,10 @@ def xroman(num, form=0):
 
 FUNCTIONS['ROMAN'] = wrap_ufunc(xroman, input_parser=lambda *a: a)
 
+
 def round_up(x):
     return float(Decimal(x).quantize(0, rounding=ROUND_HALF_UP))
+
 
 def xround(x, d, func=round_up):
     d = 10 ** int(d)
@@ -321,7 +324,7 @@ def xsumproduct(*args):
     assert len(set(arg.size for arg in args)) == 1
     inputs = []
     for a in args:
-        a = a.ravel()
+        a = np.asarray(a).ravel()
         x = np.zeros_like(a, float)
         b = np.vectorize(is_number)(a)
         x[b] = a[b]
@@ -349,7 +352,14 @@ FUNCTIONS['SQRTPI'] = wrap_func(xsrqtpi)
 
 def xsum(*args):
     raise_errors(args)
-    return sum(list(flatten(args)))
+    inputs = []
+    for a in args:
+        if isinstance(a, str) and not is_number(a):
+            raise ValueError
+        elif isinstance(a, bool):
+            a = float(a)
+        inputs.append(a)
+    return sum(map(float, flatten(inputs)))
 
 
 FUNCTIONS['SUM'] = wrap_func(xsum)
