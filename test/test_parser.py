@@ -78,6 +78,7 @@ class TestParser(unittest.TestCase):
             Parser().ast(inputs)
 
     @ddt.data(
+        ({}, '=COUNTIF(AA, "NORMAL")', (['NORMAL', 'NORMAL', 'NORMAL'],), '3'),
         ({}, '=CG_TEST', (1,), '1'),
         ({}, '=CG2033_TEST', (1,), '1'),
         ({}, '=(L4:N7 (K5:L6, N5:O6))', (

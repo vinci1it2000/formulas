@@ -204,7 +204,7 @@ _re_condition = re.compile('(?<!~)[?*]')
 
 def _xfilter(accumulator, test_range, condition, operating_range):
     from .operators import LOGIC_OPERATORS
-    operator = '='
+    operator, operating_range = '=', np.asarray(operating_range)
     if isinstance(condition, str):
         for k in LOGIC_OPERATORS:
             if condition.startswith(k) and condition != k:
