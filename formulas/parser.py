@@ -39,7 +39,7 @@ class Parser:
 
     def ast(self, expression, context=None):
         try:
-            match = self.is_formula(expression).groupdict()
+            match = self.is_formula(expression.replace('\n', '')).groupdict()
             expr = match['name']
         except (AttributeError, KeyError):
             raise FormulaError(expression)
