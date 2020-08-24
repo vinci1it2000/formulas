@@ -21,6 +21,8 @@ FUNCTIONS = {}
 def _str(text):
     if isinstance(text, bool):
         return str(text).upper()
+    if isinstance(text, float) and text.is_integer():
+        return '%d' % text
     return str(text)
 
 
