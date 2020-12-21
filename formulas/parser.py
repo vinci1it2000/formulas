@@ -55,6 +55,8 @@ class Parser:
                     break
                 except TokenError:
                     pass
+                except FormulaError:
+                    raise FormulaError(expression)
             else:
                 raise FormulaError(expression)
         Parenthesis(')').ast(tokens, stack, builder)
