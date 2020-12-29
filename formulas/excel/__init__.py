@@ -239,7 +239,8 @@ class ExcelModel:
             try:
                 context = self.add_book(book)[1]
                 worksheet, context = self.add_sheet(rng['sheet'], context)
-            except Exception:  # Missing excel file or sheet.
+            except Exception as ex:  # Missing excel file or sheet.
+                log.warning('Error in loading `{}`:\n{}'.format(n_id, ex))
                 Ref(n_id, '=#REF!').compile().add(self.dsp)
                 continue
 
