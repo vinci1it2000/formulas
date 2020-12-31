@@ -50,3 +50,7 @@ class RangeValueError(BaseError):
 
 class BroadcastError(BaseError):
     msg = 'Broadcast is not implemented!'
+
+
+class InvalidRangeName(ValueError):
+    pass

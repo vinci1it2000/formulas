@@ -14,7 +14,7 @@ import numpy as np
 from .tokens.operand import (
     _re_range, range2parts, _index2col, maxrow, maxcol, Error
 )
-from .errors import RangeValueError, InvalidRangeError
+from .errors import RangeValueError, InvalidRangeError, InvalidRangeName
 from .functions import Array, _init_reshape
 import schedula as sh
 
@@ -159,7 +159,7 @@ class Ranges:
         for k, v in _re_range.match(ref).groupdict().items():
             if v is not None:
                 if k == 'ref':
-                    raise ValueError
+                    raise InvalidRangeName
                 ctx[k] = v
         return dict(format_range(('name', 'n1', 'n2'), **ctx))
 

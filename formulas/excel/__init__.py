@@ -28,7 +28,8 @@ import os.path as osp
 import schedula as sh
 from ..ranges import Ranges
 from ..functions import flatten
-from ..tokens.operand import XlError, Error
+from ..tokens.operand import XlError
+from ..errors import InvalidRangeName
 from ..cell import Cell, RangesAssembler, Ref, CellWrapper
 
 log = logging.getLogger(__name__)
@@ -231,8 +232,13 @@ class ExcelModel:
             n_id = stack.pop()
             if isinstance(n_id, sh.Token):
                 continue
+            try:
+                rng = Ranges().push(n_id).ranges[0]
+            except InvalidRangeName: # Missing Reference.
+                log.warning('Missing Reference `{}`!'.format(n_id))
+                Ref(n_id, '=#REF!').compile().add(self.dsp)
+                continue
 
-            rng = Ranges().push(n_id).ranges[0]
             book = osp.abspath(
                 osp.join(nodes[n_id].get('directory', '.'), rng['excel'])
             )
