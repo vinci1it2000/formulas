@@ -120,16 +120,16 @@ class ExcelModel:
         return self
 
     def add_book(self, book=None, context=None, data_only=False):
-        context = (context or {}).copy()
+        ctx = (context or {}).copy()
         are_in, get_in = sh.are_in_nested_dicts, sh.get_nested_dicts
         if isinstance(book, str):
-            context['excel'] = book
-        if 'directory' not in context:
-            context['directory'] = osp.dirname(osp.abspath(context['excel']))
-        context['excel'] = osp.basename(context['excel'])
-        fpath = osp.join(context['directory'], context['excel'])
-        context['excel'] = context['excel'].upper()
-        data = get_in(self.books, context['excel'])
+            ctx['excel'] = book
+        if 'directory' not in ctx:
+            ctx['directory'] = osp.dirname(osp.abspath(ctx['excel']))
+        ctx['excel'] = osp.basename(ctx['excel'])
+        fpath = osp.join(ctx['directory'], ctx['excel'])
+        ctx['excel'] = ctx['excel'].upper()
+        data = get_in(self.books, ctx['excel'])
         book = data.get(BOOK)
         if not book:
             from .xlreader import load_workbook
@@ -137,15 +137,14 @@ class ExcelModel:
 
         if 'external_links' not in data:
             data['external_links'] = {
-                str(el.file_link.idx_base + 1): el.file_link.Target
-                for el in book._external_links
-                if el.file_link.Target.endswith('.xlsx')
+                str(i + 1): osp.relpath(el.file_link.Target, ctx['directory'])
+                for i, el in enumerate(book._external_links)
             }
 
         if 'references' not in data:
-            data['references'] = self.add_references(book, context=context)
+            data['references'] = self.add_references(book, context=ctx)
 
-        return book, context
+        return book, ctx
 
     def add_sheet(self, worksheet, context):
         get_in = sh.get_nested_dicts
