@@ -21,7 +21,7 @@ import schedula as sh
 
 def _has_same_sheet(x, y):
     try:
-        return x['excel'] == y['excel'] and x['sheet'] == y['sheet']
+        return x['sheet_id'] == y['sheet_id']
     except KeyError:
         return False
 
@@ -34,8 +34,8 @@ def _intersect(x, y):
             r2 = min(int(y['r2']), int(x['r2']))
             if r1 <= r2:
                 return {
-                    'excel': x['excel'], 'sheet': x['sheet'], 'n1': n1,
-                    'r1': str(r1), 'n2': n2, 'r2': str(r2)
+                    'sheet_id': x['sheet_id'], 'n1': n1, 'r1': str(r1),
+                    'n2': n2, 'r2': str(r2)
                 }
     return {}
 
@@ -49,7 +49,7 @@ def _split(base, rng, intersect=None, format_range=range2parts):
         intersect.update(z)
 
     ranges = []
-    rng = sh.selector(('excel', 'sheet', 'n1', 'n2', 'r1', 'r2'), rng)
+    rng = sh.selector(('sheet_id', 'n1', 'n2', 'r1', 'r2'), rng)
     it = ('n1', 'n2', 1), ('n2', 'n1', -1), ('r1', 'r2', 1), ('r2', 'r1', -1)
     for i, j, n in it:
         if z[i] != rng[i]:
@@ -118,7 +118,7 @@ def _reshape_array_as_excel(value, base_shape):
 
 
 class Ranges:
-    input_fields = 'excel', 'sheet', 'n1', 'n2', 'r1', 'r2'
+    input_fields = 'sheet_id', 'n1', 'n2', 'r1', 'r2'
     __slots__ = 'ranges', 'values', '_value'
 
     def __init__(self, ranges=(), values=None):
@@ -182,7 +182,7 @@ class Ranges:
                 rng['r2'] = max(rng['r2'], int(r['r2']))
                 rng['n2'] = max(rng['n2'], r['n2'])
 
-        rng = dict(self.format_range(('name', 'n1', 'n2'), **rng))
+        rng = self.format_range(('name', 'n1', 'n2'), **rng)
         if self.values and other.values:
             values = self.values.copy()
             values.update(other.values)
@@ -203,7 +203,7 @@ class Ranges:
                     yield z
 
     def __and__(self, other):  # Intersection.
-        r = tuple(dict(self.format_range(('name', 'n1', 'n2'), **i))
+        r = tuple(self.format_range(('name', 'n1', 'n2'), **i)
                   for i in self.intersect(other))
         values = self.values.copy()
         values.update(other.values)
@@ -244,7 +244,7 @@ class Ranges:
                     if select:
                         r = sh.selector(self.input_fields, r)
                     rng.append(r)
-        rng = [dict(self.format_range(['name'], **r)) for r in rng]
+        rng = [self.format_range(['name'], **r) for r in rng]
         return Ranges(tuple(rng), self.values)
 
     def __repr__(self):

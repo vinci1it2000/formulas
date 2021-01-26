@@ -100,7 +100,7 @@ class AstBuilder:
         for token in list(self.missing_operands):
             self.get_node_id(token)
 
-    def compile(self, references=None, **inputs):
+    def compile(self, references=None, context=None, **inputs):
         dsp, inp = self.dsp, inputs.copy()
         for k in set(dsp.data_nodes).intersection(references or {}):
             ref = references[k]
@@ -124,7 +124,7 @@ class AstBuilder:
                         dsp.add_data(data_id=k, default_value=v)
                 else:
                     try:
-                        i[k] = Ranges().push(k)
+                        i[k] = Ranges().push(k, context=context)
                     except ValueError:
                         i[k] = None
         dsp.raises = True

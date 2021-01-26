@@ -42,10 +42,10 @@ def _res2books(res):
 
 
 def _file2books(*fpaths):
-    return {
-        osp.basename(fp).upper(): _book2dict(load_workbook(fp, data_only=True))
-        for fp in fpaths
-    }
+    d = osp.dirname(fpaths[0])
+    return {osp.relpath(fp, d).upper(): _book2dict(
+        load_workbook(fp, data_only=True)
+    ) for fp in fpaths}
 
 
 @unittest.skipIf(EXTRAS not in ('all', 'excel'), 'Not for extra %s.' % EXTRAS)
@@ -175,7 +175,7 @@ class TestExcelModel(unittest.TestCase):
         dirpath = osp.join(mydir, 'tmp')
         xl_mdl.write(dirpath=dirpath)
 
-        msg = '%sSaved excel-model exls in %.2fs.\n%sComparing saved results.'
+        msg = '%sSaved excel-model xlsx in %.2fs.\n%sComparing saved results.'
         print(msg % (_msg, time.time() - s, _msg))
         s = time.time()
 
@@ -188,22 +188,21 @@ class TestExcelModel(unittest.TestCase):
 
     def test_excel_model_compile(self):
         xl_model = ExcelModel().loads(self.filename_compile).finish()
-
         inputs = ["A%d" % i for i in range(2, 5)]
         outputs = ["C%d" % i for i in range(2, 5)]
         func = xl_model.compile(
-            ["'[EXCEL.XLSX]DATA'!%s" % i for i in inputs],
-            ["'[EXCEL.XLSX]DATA'!%s" % i for i in outputs]
+            ["'[excel.xlsx]DATA'!%s" % i for i in inputs],
+            ["'[excel.xlsx]DATA'!%s" % i for i in outputs]
         )
         i = sh.selector(inputs, self.results_compile, output_type='list')
         res = sh.selector(outputs, self.results_compile, output_type='list')
         self.assertEqual([x.value[0, 0] for x in func(*i)], res)
         self.assertIsNot(xl_model, copy.deepcopy(xl_model))
         self.assertIsNot(func, copy.deepcopy(func))
-
         xl_model = ExcelModel().loads(self.filename_circular).finish(circular=1)
         func = xl_model.compile(
-            ["'[CIRCULAR.XLSX]DATA'!A10"], ["'[CIRCULAR.XLSX]DATA'!E10"]
+            ["'[circular.xlsx]DATA'!A10"],
+            ["'[circular.xlsx]DATA'!E10"]
         )
         self.assertEqual(func(False).value[0, 0], 2.0)
         self.assertIs(func(True).value[0, 0], ERR_CIRCULAR)
@@ -213,8 +212,8 @@ class TestExcelModel(unittest.TestCase):
     def test_excel_model_cycles(self):
         xl_model = ExcelModel().loads(self.filename_circular).finish(circular=1)
         xl_model.calculate()
-        books = xl_model.books
-        books = {k: _book2dict(v[BOOK])
-                 for k, v in xl_model.write(books).items()}
+        books = {
+            k: _book2dict(v[BOOK]) for k, v in xl_model.write(xl_model.books).items()
+        }
 
         self._compare(books, self.results_circular)

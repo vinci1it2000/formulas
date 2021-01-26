@@ -146,22 +146,22 @@ some value to a specific cell:
 
     >>> xl_model.calculate(
     ...     inputs={
-    ...         "'[EXCEL.XLSX]DATA'!A2": 3,  # To overwrite the default value.
-    ...         "'[EXCEL.XLSX]DATA'!B3": 1  # To impose a value to B3 cell.
+    ...         "'[excel.xlsx]DATA'!A2": 3,  # To overwrite the default value.
+    ...         "'[excel.xlsx]DATA'!B3": 1  # To impose a value to B3 cell.
     ...     },
     ...     outputs=[
-    ...        "'[EXCEL.XLSX]DATA'!C2", "'[EXCEL.XLSX]DATA'!C4"
+    ...        "'[excel.xlsx]DATA'!C2", "'[excel.xlsx]DATA'!C4"
     ...     ] # To define the outputs that you want to calculate.
     ... )
-    Solution([("'[EXCEL.XLSX]DATA'!A2", <Ranges>('[EXCEL.XLSX]DATA'!A2)=[[3]]),
-              ("'[EXCEL.XLSX]DATA'!A3", <Ranges>('[EXCEL.XLSX]DATA'!A3)=[[6]]),
-              ("'[EXCEL.XLSX]DATA'!B3", <Ranges>('[EXCEL.XLSX]DATA'!B3)=[[1]]),
-              ("'[EXCEL.XLSX]DATA'!D2", <Ranges>('[EXCEL.XLSX]DATA'!D2)=[[1]]),
-              ("'[EXCEL.XLSX]DATA'!B2", <Ranges>('[EXCEL.XLSX]DATA'!B2)=[[9.0]]),
-              ("'[EXCEL.XLSX]DATA'!D3", <Ranges>('[EXCEL.XLSX]DATA'!D3)=[[2.0]]),
-              ("'[EXCEL.XLSX]DATA'!C2", <Ranges>('[EXCEL.XLSX]DATA'!C2)=[[10.0]]),
-              ("'[EXCEL.XLSX]DATA'!D4", <Ranges>('[EXCEL.XLSX]DATA'!D4)=[[3.0]]),
-              ("'[EXCEL.XLSX]DATA'!C4", <Ranges>('[EXCEL.XLSX]DATA'!C4)=[[4.0]])])
+    Solution([("'[excel.xlsx]DATA'!A2", <Ranges>('[excel.xlsx]DATA'!A2)=[[3]]),
+              ("'[excel.xlsx]DATA'!A3", <Ranges>('[excel.xlsx]DATA'!A3)=[[6]]),
+              ("'[excel.xlsx]DATA'!B3", <Ranges>('[excel.xlsx]DATA'!B3)=[[1]]),
+              ("'[excel.xlsx]DATA'!D2", <Ranges>('[excel.xlsx]DATA'!D2)=[[1]]),
+              ("'[excel.xlsx]DATA'!B2", <Ranges>('[excel.xlsx]DATA'!B2)=[[9.0]]),
+              ("'[excel.xlsx]DATA'!D3", <Ranges>('[excel.xlsx]DATA'!D3)=[[2.0]]),
+              ("'[excel.xlsx]DATA'!C2", <Ranges>('[excel.xlsx]DATA'!C2)=[[10.0]]),
+              ("'[excel.xlsx]DATA'!D4", <Ranges>('[excel.xlsx]DATA'!D4)=[[3.0]]),
+              ("'[excel.xlsx]DATA'!C4", <Ranges>('[excel.xlsx]DATA'!C4)=[[4.0]])])
 
 To build a single function out of an excel model with fixed inputs and outputs,
 you can use the `compile` method of the `ExcelModel` that returns a
@@ -173,11 +173,11 @@ the data node ids (i.e., cell references).
 
     >>> func = xl_model.compile(
     ...     inputs=[
-    ...         "'[EXCEL.XLSX]DATA'!A2",  # First argument of the function.
-    ...         "'[EXCEL.XLSX]DATA'!B3"   # Second argument of the function.
+    ...         "'[excel.xlsx]DATA'!A2",  # First argument of the function.
+    ...         "'[excel.xlsx]DATA'!B3"   # Second argument of the function.
     ...     ], # To define function inputs.
     ...     outputs=[
-    ...         "'[EXCEL.XLSX]DATA'!C2", "'[EXCEL.XLSX]DATA'!C4"
+    ...         "'[excel.xlsx]DATA'!C2", "'[excel.xlsx]DATA'!C4"
     ...     ] # To define function outputs.
     ... )
     >>> func
@@ -211,22 +211,22 @@ export/import to/from JSON an `ExcelModel`:
     >>> xl_dict = xl_model.to_dict()  # To JSON-able dict.
     >>> xl_dict  # Exported format. # doctest: +SKIP
     {
-     "'[EXCEL.XLSX]DATA'!A1": "inputs",
-     "'[EXCEL.XLSX]DATA'!B1": "Intermediate",
-     "'[EXCEL.XLSX]DATA'!C1": "outputs",
-     "'[EXCEL.XLSX]DATA'!D1": "defaults",
-     "'[EXCEL.XLSX]DATA'!A2": 2,
-     "'[EXCEL.XLSX]DATA'!D2": 1,
-     "'[EXCEL.XLSX]DATA'!A3": 6,
-     "'[EXCEL.XLSX]DATA'!A4": 5,
-     "'[EXCEL.XLSX]DATA'!B2": "=('[EXCEL.XLSX]DATA'!A2 + '[EXCEL.XLSX]DATA'!A3)",
-     "'[EXCEL.XLSX]DATA'!C2": "=(('[EXCEL.XLSX]DATA'!B2 / '[EXCEL.XLSX]DATA'!B3) + '[EXCEL.XLSX]DATA'!D2)",
-     "'[EXCEL.XLSX]DATA'!B3": "=('[EXCEL.XLSX]DATA'!B2 - '[EXCEL.XLSX]DATA'!A3)",
-     "'[EXCEL.XLSX]DATA'!C3": "=(('[EXCEL.XLSX]DATA'!C2 * '[EXCEL.XLSX]DATA'!A2) + '[EXCEL.XLSX]DATA'!D3)",
-     "'[EXCEL.XLSX]DATA'!D3": "=(1 + '[EXCEL.XLSX]DATA'!D2)",
-     "'[EXCEL.XLSX]DATA'!B4": "=MAX('[EXCEL.XLSX]DATA'!A3:A4, '[EXCEL.XLSX]DATA'!B2)",
-     "'[EXCEL.XLSX]DATA'!C4": "=(('[EXCEL.XLSX]DATA'!B3 ^ '[EXCEL.XLSX]DATA'!C2) + '[EXCEL.XLSX]DATA'!D4)",
-     "'[EXCEL.XLSX]DATA'!D4": "=(1 + '[EXCEL.XLSX]DATA'!D3)"
+     "'[excel.xlsx]DATA'!A1": "inputs",
+     "'[excel.xlsx]DATA'!B1": "Intermediate",
+     "'[excel.xlsx]DATA'!C1": "outputs",
+     "'[excel.xlsx]DATA'!D1": "defaults",
+     "'[excel.xlsx]DATA'!A2": 2,
+     "'[excel.xlsx]DATA'!D2": 1,
+     "'[excel.xlsx]DATA'!A3": 6,
+     "'[excel.xlsx]DATA'!A4": 5,
+     "'[excel.xlsx]DATA'!B2": "=('[excel.xlsx]DATA'!A2 + '[excel.xlsx]DATA'!A3)",
+     "'[excel.xlsx]DATA'!C2": "=(('[excel.xlsx]DATA'!B2 / '[excel.xlsx]DATA'!B3) + '[excel.xlsx]DATA'!D2)",
+     "'[excel.xlsx]DATA'!B3": "=('[excel.xlsx]DATA'!B2 - '[excel.xlsx]DATA'!A3)",
+     "'[excel.xlsx]DATA'!C3": "=(('[excel.xlsx]DATA'!C2 * '[excel.xlsx]DATA'!A2) + '[excel.xlsx]DATA'!D3)",
+     "'[excel.xlsx]DATA'!D3": "=(1 + '[excel.xlsx]DATA'!D2)",
+     "'[excel.xlsx]DATA'!B4": "=MAX('[excel.xlsx]DATA'!A3:A4, '[excel.xlsx]DATA'!B2)",
+     "'[excel.xlsx]DATA'!C4": "=(('[excel.xlsx]DATA'!B3 ^ '[excel.xlsx]DATA'!C2) + '[excel.xlsx]DATA'!D4)",
+     "'[excel.xlsx]DATA'!D4": "=(1 + '[excel.xlsx]DATA'!D3)"
     }
     >>> xl_json = json.dumps(xl_dict, indent=True)  # To JSON.
     >>> xl_model = formulas.ExcelModel().from_dict(json.loads(xl_json))  # From JSON.

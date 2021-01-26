@@ -15,7 +15,7 @@ import functools
 import numpy as np
 import schedula as sh
 from .parser import Parser
-from .tokens.operand import Error, XlError, range2parts
+from .tokens.operand import Error, XlError, range2parts, _re_ref
 from .ranges import Ranges, _assemble_values, _shape, _get_indices_intersection
 
 CELL = sh.Token('Cell')
@@ -83,17 +83,19 @@ class Cell:
             return self.func.__name__
         return self.output
 
-    def compile(self, references=None):
+    def compile(self, references=None, context=None):
         if self.builder:
             func = self.builder.compile(
-                references=references, **{CELL: self.range}
+                references=references, context=context, **{CELL: self.range}
             )
             self.func = wrap_cell_func(func, self._args)
             self.update_inputs(references=references)
         return self
 
     def _missing_ref(self, inp, k):
-        sh.get_nested_dicts(inp, Error.errors['#REF!'], default=list).append(k)
+        m = _re_ref.match(k)
+        i = m and m.groupdict()['excel_id'] and '#NAME?' or '#REF!'
+        sh.get_nested_dicts(inp, Error.errors[i], default=list).append(k)
 
     def update_inputs(self, references=None):
         if not self.builder:
@@ -127,11 +129,9 @@ class Cell:
     def add(self, dsp, context=None):
         nodes = set()
         if self.func or self.value is not sh.EMPTY:
-            directory = context and context.get('directory') or '.'
-            output = self.output
+            output, ctx = self.output, context or {}
             nodes.add(dsp.add_data(
-                output, filters=self._output_filters(),
-                default_value=self.value, directory=directory
+                output, filters=self._output_filters(), default_value=self.value
             ))
             if self.func:
                 inputs = self.inputs
@@ -142,7 +142,7 @@ class Cell:
                             val = Ranges().push(
                                 'A1:', np.asarray([[k]], object)
                             )
-                            dsp.add_data(k, val, directory=directory)
+                            dsp.add_data(k, val)
                         else:
                             try:
                                 rng = Ranges.get_range(
@@ -151,7 +151,7 @@ class Cell:
                                 f = functools.partial(format_output, rng),
                             except ValueError:
                                 f = ()
-                            dsp.add_data(k, filters=f, directory=directory)
+                            dsp.add_data(k, filters=f)
                 nodes.add(dsp.add_function(
                     self.__name__, self.func, inputs or None, [output]
                 ))
@@ -160,9 +160,14 @@ class Cell:
 
 class Ref(Cell):
     def __init__(self, reference, value, context=None, check_formula=True):
-        context = context or {}
+        context = (context or {}).copy()
+        context.update({
+            k: v for k, v in _re_ref.match(reference).groupdict().items()
+            if v is not None
+        })
+        ref = context.pop('ref')
         super(Ref, self).__init__(None, value, context, check_formula)
-        self.output = range2parts(None, ref=reference, **context)['name']
+        self.output = range2parts(['name'], ref=ref, **context)['name']
 
     def _missing_ref(self, inp, k):
         sh.get_nested_dicts(inp, k, default=list).append(k)
@@ -170,8 +175,8 @@ class Ref(Cell):
     def _output_filters(self):
         return ()
 
-    def compile(self, references=None):
-        super(Ref, self).compile()
+    def compile(self, references=None, context=None):
+        super(Ref, self).compile(references=references, context=context)
         if self.inputs:
             self.func.dsp.nodes[self.func.outputs[0]].pop('filters', None)
         elif self.value is not sh.EMPTY:
@@ -180,8 +185,18 @@ class Ref(Cell):
 
 
 class RangesAssembler:
+    @staticmethod
+    def _range_indices(rng):
+        return {
+            (i, j)
+            for r in rng.ranges
+            for i in range(int(r['r1']), int(r['r2']) + 1)
+            for j in range(r['n1'], r['n2'] + 1)
+        }
+
     def __init__(self, ref, context=None):
-        self.missing = self.range = Ranges().push(ref, context=context)
+        self.range = Ranges().push(ref, context=context)
+        self.missing = self._range_indices(self.range)
         self.inputs = collections.OrderedDict()
 
     @property
@@ -189,25 +204,23 @@ class RangesAssembler:
         return self.range.ranges[0]['name']
 
     def push(self, cell):
-        for b in self.missing.intersect(cell.range):
-            if b:
-                self.missing = self.missing - cell.range
+        if cell.range.ranges[0]['sheet_id'] == self.range.ranges[0]['sheet_id']:
+            indices = self._range_indices(cell.range)
+            if not self.missing.isdisjoint(indices):
+                self.missing = self.missing - indices
                 self.inputs[cell.output] = None
-                break
 
     def add(self, dsp):
         base = self.range.ranges[0]
-        for rng in self.missing.ranges:
-            ctx = sh.selector(('excel', 'sheet'), rng)
-            for r in range(int(rng['r1']), int(rng['r2']) + 1):
-                for n in range(rng['n1'], rng['n2'] + 1):
-                    ist = Ranges.format_range(
-                        ('name', 'n1', 'n2'), n1=n, r1=r, **ctx
-                    )
-                    k = ist['name']
-                    self.inputs[k] = _get_indices_intersection(base, ist)
-                    f = functools.partial(format_output, ist),
-                    dsp.add_data(k, [[sh.EMPTY]], filters=f)
+        ctx = sh.selector(('sheet_id',), base)
+        for r, n in self.missing:
+            ist = Ranges.format_range(
+                ('name', 'n1', 'n2'), n1=n, r1=r, **ctx
+            )
+            k = ist['name']
+            self.inputs[k] = _get_indices_intersection(base, ist)
+            f = functools.partial(format_output, ist),
+            dsp.add_data(k, [[sh.EMPTY]], filters=f)
         if list(self.inputs) != [self.output]:
             dsp.add_function(None, self, self.inputs or None, [self.output])
 

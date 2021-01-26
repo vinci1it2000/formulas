@@ -54,7 +54,7 @@ class TestOperators(unittest.TestCase):
         ((('D7:F14',), ('C:E',)), '<Ranges>(C:F)'),
         ((('D7:F14',), ('C4:E9',)), '<Ranges>(C4:F14)'),
         ((("'[xl.xls]s1'!I7:L14",), ("'[xl.xls]s1'!H9:M12",)),
-         "<Ranges>('[XL.XLS]S1'!H7:M14)"),
+         "<Ranges>('[xl.xls]S1'!H7:M14)"),
         ((('I7:L14',), ('J5:K16',)), '<Ranges>(I5:L16)'),
         ((('F24:I32',), ('G20:H26',)), '<Ranges>(F20:I32)'),
         ((('M23:P30',), ('L20:Q25',)), '<Ranges>(L20:Q30)'),

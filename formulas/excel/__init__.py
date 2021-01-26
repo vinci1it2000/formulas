@@ -28,9 +28,9 @@ import os.path as osp
 import schedula as sh
 from ..ranges import Ranges
 from ..functions import flatten
-from ..tokens.operand import XlError
 from ..errors import InvalidRangeName
 from ..cell import Cell, RangesAssembler, Ref, CellWrapper
+from ..tokens.operand import XlError, _re_sheet_id, _re_build_id
 
 log = logging.getLogger(__name__)
 BOOK = sh.Token('Book')
@@ -62,6 +62,7 @@ class ExcelModel:
         self.dsp = sh.Dispatcher(name='ExcelModel')
         self.cells = {}
         self.books = {}
+        self.basedir = None
 
     def calculate(self, *args, **kwargs):
         return self.dsp.dispatch(*args, **kwargs)
@@ -80,7 +81,9 @@ class ExcelModel:
     def add_references(self, book, context=None):
         refs, nodes = {}, set()
         for n in book.defined_names.definedName:
-            ref = Ref(n.name.upper(), '=%s' % n.value, context).compile()
+            ref = Ref(n.name.upper(), '=%s' % n.value, context).compile(
+                context=context
+            )
             nodes.update(ref.add(self.dsp, context=context))
             refs[ref.output] = None
         self._update_refs(nodes, refs)
@@ -123,22 +126,31 @@ class ExcelModel:
         ctx = (context or {}).copy()
         are_in, get_in = sh.are_in_nested_dicts, sh.get_nested_dicts
         if isinstance(book, str):
-            ctx['excel'] = book
-        if 'directory' not in ctx:
-            ctx['directory'] = osp.dirname(osp.abspath(ctx['excel']))
-        ctx['excel'] = osp.basename(ctx['excel'])
-        fpath = osp.join(ctx['directory'], ctx['excel'])
-        ctx['excel'] = ctx['excel'].upper()
+            ctx['directory'], ctx['filename'] = osp.split(book)
+        if self.basedir is None:
+            self.basedir = osp.abspath(ctx['directory'] or '.')
+        if ctx['directory']:
+            ctx['directory'] = osp.relpath(ctx['directory'], self.basedir)
+        if ctx['directory'] == '.':
+            ctx['directory'] = ''
+        fpath = osp.join(ctx['directory'], ctx['filename'])
+        ctx['excel'] = fpath.upper()
         data = get_in(self.books, ctx['excel'])
         book = data.get(BOOK)
         if not book:
             from .xlreader import load_workbook
-            data[BOOK] = book = load_workbook(fpath, data_only=data_only)
+            data[BOOK] = book = load_workbook(
+                osp.join(self.basedir, fpath), data_only=data_only
+            )
 
         if 'external_links' not in data:
+            fdir = osp.join(self.basedir, ctx['directory'])
             data['external_links'] = {
-                str(i + 1): osp.relpath(el.file_link.Target, ctx['directory'])
+                str(i + 1): osp.split(osp.relpath(osp.realpath(osp.join(
+                    fdir, el.file_link.Target
+                )), self.basedir))
                 for i, el in enumerate(book._external_links)
+                if el.file_link.Target.endswith('.xlsx')
             }
 
         if 'references' not in data:
@@ -212,7 +224,7 @@ class ExcelModel:
         val = cell.data_type == 'f' and val[:2] == '==' and val[1:] or val
         check_formula = cell.data_type != 's'
         cell = Cell(crd, val, context=ctx, check_formula=check_formula).compile(
-            references=references
+            references=references, context=ctx
         )
         if cell.output in self.cells:
             return
@@ -233,20 +245,20 @@ class ExcelModel:
                 continue
             try:
                 rng = Ranges().push(n_id).ranges[0]
-            except InvalidRangeName: # Missing Reference.
+            except InvalidRangeName:  # Missing Reference.
                 log.warning('Missing Reference `{}`!'.format(n_id))
                 Ref(n_id, '=#REF!').compile().add(self.dsp)
                 continue
+            book = osp.join(rng.get('directory', ''),
+                            rng.get('filename', rng.get('excel_id', '')))
 
-            book = osp.abspath(
-                osp.join(nodes[n_id].get('directory', '.'), rng['excel'])
-            )
             try:
                 context = self.add_book(book)[1]
                 worksheet, context = self.add_sheet(rng['sheet'], context)
             except Exception as ex:  # Missing excel file or sheet.
                 log.warning('Error in loading `{}`:\n{}'.format(n_id, ex))
-                Ref(n_id, '=#REF!').compile().add(self.dsp)
+                Cell(n_id, '=#REF!').compile().add(self.dsp)
+                self.books.pop(book)
                 continue
 
             rng = '{c1}{r1}:{c2}{r2}'.format(**rng)
@@ -273,9 +285,9 @@ class ExcelModel:
             except ValueError:
                 continue
             rng = ra.range.ranges[0]
-            for c in get(cells, rng['excel'], rng['sheet'], default=list):
+            for c in get(cells, rng['sheet_id'], default=list):
                 ra.push(c)
-                if not ra.missing.ranges:
+                if not ra.missing:
                     break
             ra.add(self.dsp)
 
@@ -283,7 +295,7 @@ class ExcelModel:
         cells, get = {}, sh.get_nested_dicts
         for c in self.cells.values():
             rng = c.range.ranges[0]
-            get(cells, rng['excel'], rng['sheet'], default=list).append(c)
+            get(cells, rng['sheet_id'], default=list).append(c)
         self._assemble_ranges(cells)
 
     def finish(self, complete=True, circular=False, assemble=True):
@@ -314,11 +326,10 @@ class ExcelModel:
     def from_dict(self, adict, context=None, assemble=True):
         refs, cells, nodes, get = {}, {}, set(), sh.get_nested_dicts
         for k, v in adict.items():
-            k = k.upper()
             try:
                 cell = Cell(k, v, context=context)
             except ValueError:
-                ref = Ref(k, v, context=context).compile()
+                ref = Ref(k, v, context=context).compile(context=context)
                 nodes.update(ref.add(self.dsp))
                 refs[ref.output] = None
                 continue
@@ -339,25 +350,31 @@ class ExcelModel:
             if isinstance(k, sh.Token):
                 continue
             if isinstance(r, Ranges):
-                rng = r.ranges[0]
+                rng = {k: v for k, v in _re_sheet_id.match(
+                    r.ranges[0]['sheet_id']
+                ).groupdict().items() if v is not None}
+                rng.update(r.ranges[0])
             else:
                 try:
                     r = Ranges().push(k, r)
                     rng = r.ranges[0]
-                except ValueError:
-                    rng = {'excel': '', 'sheet': ''}
-            filename, sheet_name = _get_name(rng['excel'], books), rng['sheet']
-            if not (filename and sheet_name):
+                except ValueError:  # Reference.
+                    rng = {'sheet': ''}
+            fpath = osp.join(rng.get('directory', ''), rng.get('filename', ''))
+            fpath, sheet_name = _get_name(fpath, books), rng.get('sheet')
+            if not (fpath and sheet_name):
                 log.info('Node `%s` cannot be saved '
                          '(missing filename and/or sheet_name).' % k)
                 continue
-            if not are_in(books, filename, BOOK):
+            elif _re_build_id.match(fpath):
+                continue
+            if not are_in(books, fpath, BOOK):
                 from openpyxl import Workbook
-                book = get_in(books, filename, BOOK, default=Workbook)
+                book = get_in(books, fpath, BOOK, default=Workbook)
                 for ws in book.worksheets:
                     book.remove(ws)
             else:
-                book = books[filename][BOOK]
+                book = books[fpath][BOOK]
 
             sheet_names = book.sheetnames
             sheet_name = _get_name(sheet_name, sheet_names)
@@ -381,8 +398,8 @@ class ExcelModel:
                     pass
         if dirpath:
             os.makedirs(dirpath, exist_ok=True)
-            for fname, d in books.items():
-                d[BOOK].save(osp.join(dirpath, fname))
+            for fpath, d in books.items():
+                d[BOOK].save(osp.join(dirpath, fpath))
         return books
 
     def compile(self, inputs, outputs):

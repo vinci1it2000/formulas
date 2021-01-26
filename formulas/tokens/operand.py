@@ -99,19 +99,23 @@ class Number(Operand):
         return eval(self.name.capitalize())
 
 
+_re_ref = r'(?P<ref>[[:alpha:]_\\]+[[:alnum:]\.\_]*)'
+_re_sheet_id = r"""
+    (?>
+        '((?P<directory>[^\[]+)?\/?\[(?P<filename>[^\[\]]+)\])?
+         (?P<sheet>(?>''|[^\?!*\/\[\]':"])+)?'
+    |
+        (\[(?P<excel_id>[0-9]+)\])(?P<sheet>(?>''|[^\?!*\/\[\]':"])+)?
+    |
+        (?P<sheet>[^\W\d][\w\.]*)
+    |
+        '(?P<sheet>(?>''|[^\?!*\/\[\]':"])+)'
+    )
+"""
 _re_range = r"""
     (?>
         (?>
-            (?>
-                '(\[(?P<excel>[^\[\]]+)\])?
-                 (?P<sheet>(?>''|[^\?!*\/\[\]':"])+)?'
-            |
-                (\[(?P<excel_id>[0-9]+)\])(?P<sheet>(?>''|[^\?!*\/\[\]':"])+)?
-            |
-                (?P<sheet>[^\W\d][\w\.]*)
-            |
-                '(?P<sheet>(?>''|[^\?!*\/\[\]':"])+)'
-            )!
+            %s!
         )?
         (?>
             (?>
@@ -140,7 +144,7 @@ _re_range = r"""
                 C(?P<n1>[1-9]\d*):C(?P<n2>[1-9]\d*)
             )(?![_\.\w])
         |
-            (?P<ref>[[:alpha:]_\\]+[[:alnum:]\.\_]*)
+            %s
         )
     |
         (?>
@@ -157,10 +161,17 @@ _re_range = r"""
         )
     )
     (?![\(\w])
-"""
+""" % (_re_sheet_id, _re_ref)
 _re_range = regex.compile(
     r'^(?>(?P<indirect>INDIRECT\("{0}?"\))|{0})'.format(_re_range),
     regex.IGNORECASE | regex.X | regex.DOTALL
+)
+_re_ref = regex.compile(
+    r'^(?>{0}!)?{1}'.format(_re_sheet_id, _re_ref),
+    regex.IGNORECASE | regex.X | regex.DOTALL
+)
+_re_sheet_id = regex.compile(
+    r'^{0}'.format(_re_sheet_id), regex.IGNORECASE | regex.X | regex.DOTALL
 )
 
 
@@ -209,15 +220,24 @@ def _build_ref(c1, r1, c2, r2):
 _re_build_id = regex.compile(r'^[0-9]+$')
 
 
-def _build_id(ref, sheet='', excel=''):
-    sheet = sheet.replace("''", "'")
-    if excel:
-        sheet = "[%s]%s" % (excel, sheet)
-        if not _re_build_id.match(excel):
-            sheet = "'%s'" % sheet
+def _build_sheet_id(sheet='', directory='', filename='', **kw):
+    sheet = sheet.replace("''", "'").upper()
+    if filename:
+        if _re_build_id.match(filename):
+            sheet = "[%s]%s" % (filename, sheet)
+        else:
+            if directory and not directory.endswith('/'):
+                directory += '/'
+            sheet = "'%s[%s]%s'" % (directory, filename, sheet)
     elif ' ' in sheet:
         sheet = "'%s'" % sheet
-    return '!'.join(s for s in (sheet, ref) if s)
+    return sheet
+
+
+def _build_id(ref, sheet_id):
+    if sheet_id:
+        return '{}!{}'.format(sheet_id, ref)
+    return ref
 
 
 def _sum(*args):
@@ -239,33 +259,26 @@ def _range2parts(inputs, outputs):
     dsp.add_function(function=_col2index, inputs=['c2'], outputs=['n2'])
     dsp.add_function(function=sh.bypass, inputs=['c1'], outputs=['c2'])
     dsp.add_function(function=sh.bypass, inputs=['r1'], outputs=['r2'])
-    dsp.add_function(function=lambda x, y: x[y],
-                     inputs=['external_links', 'excel_id'], outputs=['excel'])
-    dsp.add_function(function=sh.bypass, weight=1,
-                     inputs=['excel_id'], outputs=['excel'])
-    dsp.add_data(data_id='excel', filters=(str.upper,))
-    dsp.add_data(data_id='sheet', default_value='', filters=(str.upper,))
     dsp.add_data(data_id='ref', filters=(str.upper,))
-    dsp.add_data(data_id='name', filters=(str.upper,))
     dsp.add_data(data_id='n1', default_value=0, initial_dist=100)
     dsp.add_data(data_id='r1', default_value='0', initial_dist=100)
     dsp.add_data(data_id='c2', default_value=_maxcol(), initial_dist=100)
     dsp.add_data(data_id='r2', default_value=_maxrow(), initial_dist=100)
     dsp.add_function(None, _build_ref, ['c1', 'r1', 'c2', 'r2'], ['ref'])
-    dsp.add_function(None, _build_id, ['ref', 'sheet', 'excel'], ['name'])
+    dsp.add_function(None, _build_id, ['ref', 'sheet_id'], ['name'])
     func = sh.DispatchPipe(dsp, '', inputs, outputs)
     func.output_type = 'all'
     return func
 
 
-_keys = {'r1', 'r2', 'excel', 'c1', 'c2', 'n1', 'n2', 'sheet', 'ref', 'name'}
+_keys = {'r1', 'r2', 'c1', 'c2', 'n1', 'n2', 'ref', 'name', 'sheet_id'}
 
 
 def fast_range2parts(**kw):
     inputs = sh.selector(_keys, kw, allow_miss=True)
 
     for func in (fast_range2parts_v1, fast_range2parts_v2, fast_range2parts_v3,
-                 fast_range2parts_v4):
+                 fast_range2parts_v4, fast_range2parts_v5):
         try:
             parts = func(**inputs)
             parts.update(kw)
@@ -276,49 +289,56 @@ def fast_range2parts(**kw):
         raise ValueError
 
 
-def fast_range2parts_v1(r1, c1, excel, sheet=''):
-    n1, sheet = _col2index(c1), sheet.upper()
-    ref, excel = '{}{}'.format(*_build_cel(c1, r1)).upper(), excel.upper()
+def fast_range2parts_v1(r1, c1, sheet_id):
+    n1 = _col2index(c1)
+    ref = '{}{}'.format(*_build_cel(c1, r1)).upper()
     return {
         'r1': r1, 'r2': r1, 'c1': c1, 'c2': c1, 'n1': n1, 'n2': n1, 'ref': ref,
-        'sheet': sheet, 'name': _build_id(ref, sheet, excel), 'excel': excel
+        'name': _build_id(ref, sheet_id)
     }
 
 
-def fast_range2parts_v2(r1, c1, r2, c2, excel, sheet=''):
-    sheet = sheet.upper()
-    ref, excel = _build_ref(c1, r1, c2, r2).upper(), excel.upper()
+def fast_range2parts_v2(r1, n1, sheet_id):
+    c1 = _index2col(n1)
+    ref = '{}{}'.format(*_build_cel(c1, r1)).upper()
+    return {
+        'r1': r1, 'r2': r1, 'c1': c1, 'c2': c1, 'n1': n1, 'n2': n1, 'ref': ref,
+        'name': _build_id(ref, sheet_id)
+    }
+
+
+def fast_range2parts_v3(r1, c1, r2, c2, sheet_id):
+    ref = _build_ref(c1, r1, c2, r2).upper()
     return {
         'r1': r1, 'r2': r2, 'c1': c1, 'c2': c2, 'n1': _col2index(c1),
-        'n2': _col2index(c2), 'ref': ref, 'sheet': sheet,
-        'name': _build_id(ref, sheet, excel), 'excel': excel
+        'n2': _col2index(c2), 'ref': ref, 'name': _build_id(ref, sheet_id)
     }
 
 
-def fast_range2parts_v3(r1, n1, r2, n2, excel, sheet=''):
-    sheet = sheet.upper()
+def fast_range2parts_v4(r1, n1, r2, n2, sheet_id):
     c1, c2 = _index2col(n1), _index2col(n2)
-    ref, excel = _build_ref(c1, r1, c2, r2).upper(), excel.upper()
+    ref = _build_ref(c1, r1, c2, r2).upper()
     return {
         'r1': r1, 'r2': r2, 'c1': c1, 'c2': c2, 'n1': n1, 'n2': n2, 'ref': ref,
-        'sheet': sheet, 'name': _build_id(ref, sheet, excel), 'excel': excel
+        'name': _build_id(ref, sheet_id)
     }
 
 
 # noinspection PyUnusedLocal
-def fast_range2parts_v4(ref, excel, sheet=''):
-    excel, ref = excel.upper(), ref.upper()
-    return {'ref': ref, 'name': _build_id(ref, excel=excel), 'excel': excel}
+def fast_range2parts_v5(ref, sheet_id):
+    ref = ref.upper()
+    return {'ref': ref, 'name': _build_id(ref, sheet_id)}
 
 
 def range2parts(outputs, **inputs):
-    if inputs.get('excel_id', '0') != '0':
-        if inputs['excel_id'] in inputs.get('external_links', {}):
-            inputs.pop('excel', None)
-        else:
-            inputs.pop('external_links', None)
-    elif 'excel' not in inputs:
-        inputs['excel'] = ''
+    excel_id = inputs.get('excel_id')
+    if excel_id and excel_id != '0':
+        inputs['directory'], inputs['filename'] = inputs.get(
+            'external_links', {}
+        ).get(excel_id, ('', excel_id))
+
+    if 'sheet_id' not in inputs:
+        inputs['sheet_id'] = _build_sheet_id(**inputs)
     try:
         return fast_range2parts(**inputs)
     except ValueError:
@@ -339,10 +359,12 @@ class Range(Operand):
                     return {}
             except TokenError:
                 pass
-        if 'ref' in d:
-            self.attr['is_reference'] = True
         ctx = (context or {}).copy()
         ctx.update(d)
+        if 'ref' in d:
+            ctx.pop('sheet', None)
+            self.attr['is_reference'] = True
+
         return range2parts(None, **ctx)
 
     def __repr__(self):
