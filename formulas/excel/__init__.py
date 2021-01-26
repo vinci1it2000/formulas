@@ -99,6 +99,9 @@ class ExcelModel:
         self.pushes(*book.worksheets, context=context)
         return self
 
+    def load_from_range(self, *ranges):
+        return self.complete(ranges)
+
     def pushes(self, *worksheets, context=None):
         for ws in worksheets:
             self.push(ws, context=context)
@@ -278,6 +281,7 @@ class ExcelModel:
                     )
                     if cell:
                         stack.extend(cell.inputs or ())
+        return self
 
     def _assemble_ranges(self, cells, nodes=None):
         get = sh.get_nested_dicts
@@ -309,6 +313,7 @@ class ExcelModel:
                 c.output, RangesAssembler._range_indices(c.range)
             ))
         self._assemble_ranges(cells)
+        return self
 
     def finish(self, complete=True, circular=False, assemble=True):
         if complete:
