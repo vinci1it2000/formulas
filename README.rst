@@ -189,6 +189,28 @@ the data node ids (i.e., cell references).
 
 .. _DispatchPipe: https://schedula.readthedocs.io/en/master/_build/schedula/utils/dsp/schedula.utils.dsp.DispatchPipe.html#schedula.utils.dsp.DispatchPipe
 
+Alternatively, to load a partial excel model from the output cells, you can use
+the `from_ranges` method of the `ExcelModel`:
+
+.. dispatcher:: dsp
+   :code:
+
+    >>> xl = formulas.ExcelModel().from_ranges(
+    ...     "'[%s]DATA'!C2:D2" % fpath,  # Output range.
+    ...     "'[%s]DATA'!B4" % fpath,  # Output cell.
+    ... )
+    >>> dsp = xl.dsp
+    >>> sorted(dsp.data_nodes)
+    ["'[excel.xlsx]DATA'!A2",
+     "'[excel.xlsx]DATA'!A3",
+     "'[excel.xlsx]DATA'!A3:A4",
+     "'[excel.xlsx]DATA'!A4",
+     "'[excel.xlsx]DATA'!B2",
+     "'[excel.xlsx]DATA'!B3",
+     "'[excel.xlsx]DATA'!B4",
+     "'[excel.xlsx]DATA'!C2",
+     "'[excel.xlsx]DATA'!D2"]
+
 
 JSON export/import
 ~~~~~~~~~~~~~~~~~~

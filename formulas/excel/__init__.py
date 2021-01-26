@@ -99,7 +99,7 @@ class ExcelModel:
         self.pushes(*book.worksheets, context=context)
         return self
 
-    def load_from_range(self, *ranges):
+    def from_ranges(self, *ranges):
         return self.complete(ranges)
 
     def pushes(self, *worksheets, context=None):
