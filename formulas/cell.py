@@ -203,12 +203,12 @@ class RangesAssembler:
     def output(self):
         return self.range.ranges[0]['name']
 
-    def push(self, cell):
-        if cell.range.ranges[0]['sheet_id'] == self.range.ranges[0]['sheet_id']:
-            indices = self._range_indices(cell.range)
-            if not self.missing.isdisjoint(indices):
-                self.missing = self.missing - indices
-                self.inputs[cell.output] = None
+    def push(self, output, indices):
+        missing = self.missing
+        if not missing.isdisjoint(indices):
+            self.missing = missing = missing - indices
+            self.inputs[output] = None
+        return missing
 
     def add(self, dsp):
         base = self.range.ranges[0]

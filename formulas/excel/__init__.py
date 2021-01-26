@@ -263,10 +263,19 @@ class ExcelModel:
                 self.books.pop(book)
                 continue
 
+            references = self.references
+            formula_references = self.formula_references(context)
+            formula_ranges = self.formula_ranges(context)
+            external_links = self.external_links(context)
             rng = '{c1}{r1}:{c2}{r2}'.format(**rng)
             for c in flatten(worksheet[rng], None):
                 if hasattr(c, 'value'):
-                    cell = self.add_cell(c, context)
+                    cell = self.add_cell(
+                        c, context, references=references,
+                        formula_references=formula_references,
+                        formula_ranges=formula_ranges,
+                        external_links=external_links
+                    )
                     if cell:
                         stack.extend(cell.inputs or ())
 
@@ -287,9 +296,8 @@ class ExcelModel:
             except ValueError:
                 continue
             rng = ra.range.ranges[0]
-            for c in get(cells, rng['sheet_id'], default=list):
-                ra.push(c)
-                if not ra.missing:
+            for output, indices in get(cells, rng['sheet_id'], default=list):
+                if not ra.push(output, indices):
                     break
             ra.add(self.dsp)
 
@@ -297,7 +305,9 @@ class ExcelModel:
         cells, get = {}, sh.get_nested_dicts
         for c in self.cells.values():
             rng = c.range.ranges[0]
-            get(cells, rng['sheet_id'], default=list).append(c)
+            get(cells, rng['sheet_id'], default=list).append((
+                c.output, RangesAssembler._range_indices(c.range)
+            ))
         self._assemble_ranges(cells)
 
     def finish(self, complete=True, circular=False, assemble=True):
