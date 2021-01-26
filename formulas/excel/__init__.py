@@ -236,9 +236,11 @@ class ExcelModel:
             self.cells[cell.output] = cell
             return cell
 
-    def complete(self):
-        nodes, data_nodes = self.dsp.nodes, self.dsp.data_nodes
-        stack = sorted(set(data_nodes) - set(self.cells) - set(self.references))
+    def complete(self, stack=None):
+        if stack is None:
+            stack = set(self.dsp.data_nodes) - set(self.cells)
+            stack -= set(self.references)
+        stack = sorted(stack)
         while stack:
             n_id = stack.pop()
             if isinstance(n_id, sh.Token):
