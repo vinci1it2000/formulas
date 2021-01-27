@@ -10,6 +10,7 @@ import copy
 import dill
 import time
 import json
+import shutil
 import unittest
 import os.path as osp
 import schedula as sh
@@ -213,7 +214,11 @@ class TestExcelModel(unittest.TestCase):
         xl_model = ExcelModel().loads(self.filename_circular).finish(circular=1)
         xl_model.calculate()
         books = {
-            k: _book2dict(v[BOOK]) for k, v in xl_model.write(xl_model.books).items()
+            k: _book2dict(v[BOOK]) for k, v in
+            xl_model.write(xl_model.books).items()
         }
 
         self._compare(books, self.results_circular)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(osp.join(mydir, 'tmp'), ignore_errors=True)
