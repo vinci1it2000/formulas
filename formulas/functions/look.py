@@ -158,6 +158,7 @@ def xmatch(lookup_value, lookup_array, match_type=1):
         def check(j, x, val, r):
             if match(x):
                 r[0] = j
+                return True
 
     convert = lambda x: x
     if t_id == 1:
