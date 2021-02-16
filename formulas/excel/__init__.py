@@ -157,7 +157,11 @@ class ExcelModel:
             }
 
         if 'references' not in data:
-            data['references'] = self.add_references(book, context=ctx)
+            data['references'] = self.add_references(
+                book, context=sh.combine_dicts(ctx, base=sh.selector(
+                    ('external_links',), data, allow_miss=True
+                ))
+            )
 
         return book, ctx
 

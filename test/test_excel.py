@@ -145,7 +145,6 @@ class TestExcelModel(unittest.TestCase):
 
                 msg = '%sLoaded excel-model dill in %.2fs.'
                 print(msg % (_msg, time.time() - s))
-
             elif i == 1:
                 print('%sDeep-copying excel-model.' % _msg)
                 s = time.time()
