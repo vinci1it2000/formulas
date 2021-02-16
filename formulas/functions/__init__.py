@@ -41,6 +41,8 @@ from formulas.errors import (
 )
 from formulas.tokens.operand import Error, XlError
 
+COMPILING = sh.Token('Run')
+
 
 def _init_reshape(base_shape, value):
     res, (r, c) = np.empty(base_shape, object), value.shape
@@ -110,6 +112,13 @@ def replace_empty(x, empty=0):
 
 def is_not_empty(v):
     return v is not sh.EMPTY
+
+
+def wrap_impure_func(func):
+    def wrapper(compiling, *args, **kwargs):
+        return sh.NONE if compiling else func(*args, **kwargs)
+
+    return functools.update_wrapper(wrapper, func)
 
 
 # noinspection PyUnusedLocal
@@ -198,7 +207,15 @@ def _text2num(value):
     return value
 
 
-text2num = np.vectorize(_text2num, otypes=[object])
+@functools.lru_cache(None)
+def _text2num_vectorize():
+    return np.vectorize(_text2num, otypes=[object])
+
+
+def text2num(*args, **kwargs):
+    return _text2num_vectorize()(*args, **kwargs)
+
+
 _re_condition = re.compile('(?<!~)[?*]')
 
 

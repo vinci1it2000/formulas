@@ -5,7 +5,7 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
+import time
 import unittest
 import ddt
 import schedula as sh
@@ -389,3 +389,17 @@ class TestCell(unittest.TestCase):
             cell = Cell(reference, formula).compile()
             assert cell.add(dsp)
             dsp(inputs)
+
+    @ddt.idata([
+        ('A1', '=NOW()', 1),
+        ('A1', '=RAND()', 0),
+        # ('A1', '=TODAY()'),
+    ])
+    def test_impure(self, case):
+        reference, formula, dt = case
+        dsp = sh.Dispatcher()
+        cell = Cell(reference, formula).compile()
+        assert cell.add(dsp)
+        out = str(dsp()[cell.output])
+        time.sleep(dt)
+        self.assertNotEqual(out, str(dsp()[cell.output]))

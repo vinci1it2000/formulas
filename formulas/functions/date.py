@@ -13,10 +13,11 @@ import math
 import calendar
 import datetime
 import functools
+import collections
 import schedula as sh
 from . import (
     wrap_ufunc, Error, FoundError, get_error, wrap_func, raise_errors, flatten,
-    is_number,
+    is_number, COMPILING, wrap_impure_func
 )
 
 FUNCTIONS = {}
@@ -119,7 +120,10 @@ def xtoday():
     return xdate(date.year, date.month, date.day)
 
 
-FUNCTIONS['TODAY'] = wrap_func(xtoday)
+FUNCTIONS['TODAY'] = {
+    'extra_inputs': collections.OrderedDict([(COMPILING, False)]),
+    'function': wrap_impure_func(wrap_func(xtoday))
+}
 
 
 def xtime(hour, minute, second):
@@ -178,7 +182,10 @@ def xnow():
     return xdate(d.year, d.month, d.day) + xtime(d.hour, d.minute, d.second)
 
 
-FUNCTIONS['NOW'] = wrap_func(xnow)
+FUNCTIONS['NOW'] = {
+    'extra_inputs': collections.OrderedDict([(COMPILING, False)]),
+    'function': wrap_impure_func(wrap_func(xnow))
+}
 
 
 def xyearfrac(start_date, end_date, basis=0):

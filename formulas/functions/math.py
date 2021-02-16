@@ -11,11 +11,12 @@ Python equivalents of math and trigonometry Excel functions.
 """
 import math
 import functools
+import collections
 import numpy as np
 from decimal import Decimal, ROUND_HALF_UP
 from . import (
     get_error, raise_errors, is_number, flatten, wrap_ufunc, wrap_func,
-    replace_empty, Error, xfilter
+    replace_empty, Error, xfilter, wrap_impure_func, COMPILING
 )
 
 # noinspection PyDictCreation
@@ -241,7 +242,10 @@ def xpower(number, power):
 
 FUNCTIONS['POWER'] = wrap_ufunc(xpower)
 FUNCTIONS['RADIANS'] = wrap_ufunc(np.radians)
-FUNCTIONS['RAND'] = wrap_func(np.random.rand)
+FUNCTIONS['RAND'] = {
+    'extra_inputs': collections.OrderedDict([(COMPILING, False)]),
+    'function': wrap_impure_func(wrap_func(np.random.rand))
+}
 
 
 def xrandbetween(bottom, top):

@@ -17,7 +17,7 @@ from .errors import FormulaError, RangeValueError, InvalidRangeError
 from .tokens.operator import Operator
 from .tokens.function import Function
 from .tokens.operand import Operand
-from .functions import wrap_ranges_func
+from .functions import wrap_ranges_func, COMPILING
 from .ranges import Ranges
 from schedula.utils.alg import get_unused_node_id
 
@@ -106,11 +106,13 @@ class AstBuilder:
             ref = references[k]
             if ref is not None:
                 inp[k] = ref if isinstance(ref, Ranges) else Ranges().push(ref)
+        inp[COMPILING] = True
         res, o = dsp(inp), self.get_node_id(self[-1])
         dsp = dsp.get_sub_dsp_from_workflow(
             [o], graph=dsp.dmap, reverse=True, blockers=res,
             wildcard=False
         )
+        res[COMPILING] = False
         dsp.nodes.update({k: v.copy() for k, v in dsp.nodes.items()})
 
         i = collections.OrderedDict()
