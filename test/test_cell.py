@@ -23,6 +23,14 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
+        ('A3', '=SINGLE(F1:F3)', {'F1:F3':[[1], [2], [3]]},
+         '<Ranges>(A3)=[[3]]'),
+        ('A3', '=COLUMN(SINGLE(F1:F3))', {'F1:F3':[[1], [2], [3]]},
+         '<Ranges>(A3)=[[6]]'),
+        ('A4', '=COLUMN(SINGLE(F1:F3))', {'F1:F3':[[1], [2], [3]]},
+         '<Ranges>(A4)=[[#VALUE!]]'),
+        ('A4', '=SINGLE(F1:F3)', {'F1:F3':[[1], [2], [3]]},
+         '<Ranges>(A4)=[[#VALUE!]]'),
         ('A1', '=__xludf.DUMMYFUNCTION("(GOOGLEFINANCE($A1,""Name""))")', {},
          "<Ranges>(A1)=[[#NAME?]]"),
         ('A1', '=IFS(-1,A2,1, TRUE)', {'A2': [[sh.EMPTY]]},
