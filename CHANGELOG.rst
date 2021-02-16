@@ -2,6 +2,88 @@ Changelog
 =========
 
 
+v1.1.0 (2020-02-16)
+-------------------
+
+Feat
+~~~~
+- (look) :gh:`57`: Add `SINGLE` function.
+
+- (function) :gh:`51`: Add google Excel functions.
+
+- (logic) :gh:`55`, :gh:`57`: Add IFS function.
+
+- (excel) :gh:`65`: Add documentation and rename method to load models
+  from ranges.
+
+- (excel) :gh:`65`: Add method to load sub-models from range.
+
+- (doc): Update Copyright.
+
+- (excel): Improve performances.
+
+- (excel) :gh:`64`: Read model from outputs.
+
+- (core): Update range definition with path file.
+
+- (excel) :gh:`64`: Add warning for missing reference.
+
+- (excel) :gh:`64`: Add warning message when book loading fails.
+
+- (readme) :gh:`44`: Add example to export and import the model to JSON
+  format.
+
+- (readme) :gh:`53`: Add instructions to install the development
+  version.
+
+- (excel) :gh:`44`: Add feature to export and import the model to JSON-
+  able dict.
+
+- (stat, comp) :gh:`43`: Add `STDEV`, `STDEV.S`, `STDEV.P`, `STDEVA`,
+  `STDEVPA`, `VAR`, `VAR.S`, `VAR.P`, `VARA`, and `VARPA` functions.
+
+
+Fix
+~~~
+- (financial): Correct requirements for `irr` function.
+
+- (excel) :gh:`48`: Correct reference pointing to different workbooks.
+
+- (function) :gh:`67`: Correct compilation of impure functions (e.g.,
+  `rand`, `now`, etc.).
+
+- (look) :gh:`66`: Correct `check` function did not return value.
+
+- (test): Remove `temp` dir.
+
+- (excel): Correct external link reading.
+
+- (operator) :gh:`63`: Correct operator parser when starts with spaces.
+
+- (text) :gh:`61`: Convert float as int when stringify if it is an
+  integer.
+
+- (math) :gh:`59`: Convert string to number in math operations.
+
+- (functions): Correct `_xfilter` operating range type.
+
+- (parser) :gh:`61`: Skip `\n` in formula expression.
+
+- (operator) :gh:`58`: Correct operator parser for composed operators.
+
+- (excel): Correct invalid range definition and missing sheet or files.
+
+- (operand) :gh:`52`: Correct range parser.
+
+- (operand) :gh:`50`: Correct sheet name parser with space.
+
+- (tokens): Correct closure parenthesis parser.
+
+- (excel): Skip function compilation for string cells.
+
+- (tokens): Correct error parsing when sheet name is defined.
+
+
 v1.0.0 (2020-03-12)
 -------------------
 
