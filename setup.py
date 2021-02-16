@@ -138,7 +138,8 @@ if __name__ == '__main__':
             'regex',
             'schedula>=1.1.1',
             'numpy>=1.15',
-            'python-dateutil'
+            'python-dateutil',
+            'numpy-financial'
         ],
         extras_require=extras,
         tests_require=['nose>=1.0', 'ddt', 'dill', 'openpyxl'],

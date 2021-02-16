@@ -83,7 +83,8 @@ FUNCTIONS['XNPV'] = wrap_func(xxnpv)
 
 def xirr(values, guess=0.1):
     with np.errstate(divide='ignore', invalid='ignore'):
-        res = np.irr(tuple(flatten(text2num(replace_empty(values)).ravel())))
+        import numpy_financial as npf
+        res = npf.irr(tuple(flatten(text2num(replace_empty(values)).ravel())))
         res = (not np.isfinite(res)) and Error.errors['#NUM!'] or res
 
         def _(g):
