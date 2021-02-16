@@ -12,6 +12,7 @@ import time
 import json
 import shutil
 import unittest
+import platform
 import os.path as osp
 import schedula as sh
 from formulas.excel import ExcelModel, BOOK, ERR_CIRCULAR
@@ -104,32 +105,35 @@ class TestExcelModel(unittest.TestCase):
 
         print('%sFinished excel-model in %.2fs.' % (_msg, time.time() - s))
 
-        n_test = 0
+        n_test, calculate = 0, True
+
         for i in range(4):
-            print('%sCalculate excel-model.' % _msg)
-            s = time.time()
+            if calculate:
+                print('%sCalculate excel-model.' % _msg)
+                s = time.time()
 
-            xl_mdl.calculate({"'[EXTRA.XLSX]EXTRA'!A1:B1": [[1, 1]]})
+                xl_mdl.calculate({"'[EXTRA.XLSX]EXTRA'!A1:B1": [[1, 1]]})
 
-            msg = '%sCalculated excel-model in %.2fs.\n%s' \
-                  'Comparing overwritten results.'
-            print(msg % (_msg, time.time() - s, _msg))
-            s = time.time()
+                msg = '%sCalculated excel-model in %.2fs.\n%s' \
+                      'Comparing overwritten results.'
+                print(msg % (_msg, time.time() - s, _msg))
+                s = time.time()
 
-            books = _res2books(xl_mdl.write(xl_mdl.books))
-            n_test += self._compare(books, self.results)
+                books = _res2books(xl_mdl.write(xl_mdl.books))
+                n_test += self._compare(books, self.results)
 
-            msg = '%sCompared overwritten results in %.2fs.\n' \
-                  '%sComparing fresh written results.'
-            print(msg % (_msg, time.time() - s, _msg))
-            s = time.time()
+                msg = '%sCompared overwritten results in %.2fs.\n' \
+                      '%sComparing fresh written results.'
+                print(msg % (_msg, time.time() - s, _msg))
+                s = time.time()
 
-            n_test += self._compare(_res2books(xl_mdl.write()), self.results)
+                n_test += self._compare(_res2books(xl_mdl.write()), self.results)
 
-            msg = '%sCompared fresh written results in %.2fs.'
-            print(msg % (_msg, time.time() - s))
+                msg = '%sCompared fresh written results in %.2fs.'
+                print(msg % (_msg, time.time() - s))
+                calculate = False
 
-            if i == 2:
+            if i == 2 and platform.python_version() >= '3.8':
                 print('%sSaving excel-model dill.' % _msg)
                 s = time.time()
 
@@ -145,6 +149,7 @@ class TestExcelModel(unittest.TestCase):
 
                 msg = '%sLoaded excel-model dill in %.2fs.'
                 print(msg % (_msg, time.time() - s))
+                calculate = True
             elif i == 1:
                 print('%sDeep-copying excel-model.' % _msg)
                 s = time.time()
@@ -153,6 +158,7 @@ class TestExcelModel(unittest.TestCase):
 
                 msg = '%sDeep-copied excel-model in %.2fs.'
                 print(msg % (_msg, time.time() - s))
+                calculate = True
             elif i == 0:
                 print('%sSaving JSON excel-model.' % _msg)
                 s = time.time()
@@ -168,6 +174,7 @@ class TestExcelModel(unittest.TestCase):
 
                 msg = '%sLoaded JSON excel-model in %.2fs.'
                 print(msg % (_msg, time.time() - s))
+                calculate = True
 
         print('%sSaving excel-model xlsx.' % _msg)
         s = time.time()
