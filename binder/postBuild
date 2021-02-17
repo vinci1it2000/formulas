@@ -1,2 +1,14 @@
 #!/usr/bin/env bash
-python -m pip install -e . --ignore-installed --no-dependencies
+set -eux
+
+# force installing over the conda version
+python -m pip install -e . --ignore-installed --no-deps
+
+# install the rest of the stuff: don't reinstall if versions are ok
+python -m pip install -e .[all,dev]
+
+# not compatible with lab 3
+jupyter labextension uninstall --no-build jupyter-offlinenotebook || echo "ok"
+
+# this is optional, everything will _probably_ work, even if pip does bad things
+python -m pip check

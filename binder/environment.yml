@@ -1,18 +1,20 @@
 name: formulas
 channels:
   - conda-forge
-  - defaults
+  - nodefaults
 dependencies:
-  - docutils
-  - flask
-  - jupyterlab >=0.35.5,<0.36
+  # pull in all non-dev `extra` dependencies as of last release
+  - formulas-all
+  # a useful extra from schedula
   - multiprocess
-  - numpy >=1.15
-  - openpyxl
+  # baseline interactive environment
+  - jupyterlab >=3,<4
+  - ipython >=7.20,<8
+  # runtime
+  - python >=3.9,<3.10
   - pip
-  - python >=3.7,<3.8.0a0
-  - python-graphviz
-  - regex
-  - tornado<6
+  # icky pins
+  - parso ==0.8.*
   - pip:
-    - schedula >=1.1.1
+    # gah, don't even want, but `pip check` complains otherwise :(
+    - jupyter-telemetry >=0.1.0
