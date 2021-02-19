@@ -21,6 +21,7 @@ Sub-Modules:
     ~date
     ~eng
     ~financial
+    ~google
     ~info
     ~logic
     ~look
