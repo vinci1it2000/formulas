@@ -291,7 +291,7 @@ def flatten(v, check=is_number):
             yield from v.ravel()
         else:
             yield from filter(check, v.ravel())
-    elif not isinstance(v, str) and isinstance(v, collections.Iterable):
+    elif not isinstance(v, str) and isinstance(v, collections.abc.Iterable):
         for el in v:
             yield from flatten(el, check)
     elif not check or check(v):
