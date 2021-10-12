@@ -15,9 +15,10 @@ import datetime
 import functools
 import collections
 import schedula as sh
+from dateutil.relativedelta import relativedelta
 from . import (
     wrap_ufunc, Error, FoundError, get_error, wrap_func, raise_errors, flatten,
-    is_number, COMPILING, wrap_impure_func
+    is_number, COMPILING, wrap_impure_func, text2num
 )
 
 FUNCTIONS = {}
@@ -43,8 +44,10 @@ def _date(y, m, d):
 
 
 def xdate(year, month, day):
+    if year == 1900 and (month, day) in ((2, 29), (3, 0)):
+        return 60
     d = _date(year + 1900 if year < 1900 else year, month, day)
-    return (datetime.datetime(*d) - DATE_ZERO).days + int(d > (1900, 3, 1))
+    return (datetime.datetime(*d) - DATE_ZERO).days + int(d >= (1900, 3, 1))
 
 
 FUNCTIONS['DATE'] = wrap_ufunc(
@@ -113,6 +116,33 @@ FUNCTIONS['MONTH'] = wrap_ufunc(
 FUNCTIONS['YEAR'] = wrap_ufunc(
     functools.partial(xday, n=0), input_parser=lambda *a: a
 )
+
+
+def xedate(start_date, months):
+    raise_errors(start_date, months)
+    args = [start_date, text2num(months)]
+    for i, v in enumerate(args):
+        v = tuple(flatten(v, None))
+        if len(v) != 1 or isinstance(v[0], bool):
+            return Error.errors['#VALUE!']
+        args[i] = v[0]
+    start_date, months = [0 if v is sh.EMPTY else v for v in args]
+    if not is_number(months):
+        raise FoundError(err=Error.errors['#VALUE!'])
+    months = math.trunc(float(months))
+    if isinstance(start_date, str):
+        date = _text2datetime(start_date)[:3]
+    else:
+        date = _int2date(int(start_date))
+    dt = 0
+    if date == (1900, 1, 0):
+        date = 1900, 1, 1
+        dt = 1
+    date = datetime.datetime(*date) + relativedelta(months=months)
+    return xdate(date.year, date.month, date.day) - dt
+
+
+FUNCTIONS['EDATE'] = wrap_func(xedate)
 
 
 def xtoday():

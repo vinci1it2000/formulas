@@ -23,6 +23,20 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
+        ('A1', '=SEARCH(5,45)', {}, '<Ranges>(A1)=[[2]]'),
+        ('A1', '=SEARCH("n", "printer")', {}, '<Ranges>(A1)=[[4]]'),
+        ('A1', '=SEARCH("BASE","database",5.8)', {}, '<Ranges>(A1)=[[5]]'),
+        ('A1', '=SEARCH("BASE","database",6.1)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=SEARCH("BASE","database",FALSE)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=SEARCH("BASE","database",TRUE)', {}, '<Ranges>(A1)=[[5]]'),
+        ('A1', '=SEARCH("x","database")', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=EDATE(0, 0)', {}, '<Ranges>(A1)=[[0]]'),
+        ('A1', '=EDATE(0.7, "15-Jan-11")', {}, '<Ranges>(A1)=[[1234460]]'),
+        ('A1', '=EDATE(2.8, ".7")', {}, '<Ranges>(A1)=[[2]]'),
+        ('A1', '=EDATE(2.4, TRUE)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=EDATE("15-Jan-11", 1)', {}, '<Ranges>(A1)=[[40589]]'),
+        ('A1', '=EDATE(1, "2")', {}, '<Ranges>(A1)=[[61]]'),
+        ('A1', '=EDATE(2.4, 1)', {}, '<Ranges>(A1)=[[33]]'),
         ('A1', '=A2 %', {'A2':[[20]]}, '<Ranges>(A1)=[[0.2]]'),
         ('A3', '=SINGLE(F1:F3)', {'F1:F3':[[1], [2], [3]]},
          '<Ranges>(A3)=[[3]]'),

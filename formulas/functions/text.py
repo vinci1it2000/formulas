@@ -89,6 +89,17 @@ FUNCTIONS['TRIM'] = wrap_ufunc(str.strip, **_kw1)
 FUNCTIONS['UPPER'] = wrap_ufunc(str.upper, **_kw1)
 
 
+def xsearch(find_text, within_text, start_num=1):
+    n = int(start_num - 1)
+    n = str(within_text).lower().find(str(find_text).lower(), n)
+    if n < 0:
+        return Error.errors['#VALUE!']
+    return n + 1
+
+
+FUNCTIONS['SEARCH'] = wrap_ufunc(xsearch, **_kw0)
+
+
 def xconcat(text, *args):
     it = list(flatten((text,) + args, is_not_empty))
     raise_errors(it)

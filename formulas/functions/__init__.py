@@ -184,10 +184,12 @@ def raise_errors(*args):
         raise FoundError(err=v)
 
 
-def is_number(number):
+def is_number(number, xl_return=True):
     if isinstance(number, (bool, np.bool_)):
         return False
-    elif not isinstance(number, XlError):
+    elif isinstance(number, XlError):
+        return xl_return
+    else:
         try:
             float(number)
         except (ValueError, TypeError):

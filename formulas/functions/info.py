@@ -9,8 +9,9 @@
 """
 Python equivalents of information Excel functions.
 """
+import functools
 import numpy as np
-from . import wrap_ranges_func, Error, Array, XlError, wrap_func
+from . import wrap_ranges_func, Error, Array, XlError, wrap_func, is_number
 
 FUNCTIONS = {}
 
@@ -48,6 +49,25 @@ def iserror(val):
 
 
 FUNCTIONS['ISERROR'] = wrap_ranges_func(iserror)
+
+
+class IsNumberArray(IsErrArray):
+    _collapse_value = False
+
+
+def xisnumber(val):
+    try:
+        b = np.asarray(list(map(
+            functools.partial(is_number, xl_return=False),
+            val.ravel().tolist()
+        )), bool)
+        b.resize(val.shape)
+        return b.view(IsNumberArray)
+    except AttributeError:  # val is not an array.
+        return xisnumber(np.asarray([[val]], object))[0][0].view(IsNumberArray)
+
+
+FUNCTIONS['ISNUMBER'] = wrap_ranges_func(xisnumber)
 
 
 def xna():
