@@ -2,6 +2,29 @@ Changelog
 =========
 
 
+v1.1.1 (2021-10-13)
+-------------------
+
+Feat
+~~~~
+- (excel): Improve performances of `complete` method.
+
+- (setup): Add add python 3.9 in setup.py.
+
+- (functions): Add `SEARCH`, `ISNUMBER`, and `EDATE` functions.
+
+- (travis): Update python version for coveralls.
+
+
+Fix
+~~~
+- (doc): Correct missing documentation link.
+
+- (doc): Correct typo.
+
+- (operator) :gh:`70`: Correct `%` operator preceded by space.
+
+
 v1.1.0 (2021-02-16)
 -------------------
 
