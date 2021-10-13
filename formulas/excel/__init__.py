@@ -86,6 +86,7 @@ class ExcelModel:
             )
             nodes.update(ref.add(self.dsp, context=context))
             refs[ref.output] = None
+            self.cells[ref.output] = ref
         self._update_refs(nodes, refs)
         return refs
 
@@ -244,13 +245,17 @@ class ExcelModel:
             return cell
 
     def complete(self, stack=None):
+        done = set(self.cells)
         if stack is None:
-            stack = set(self.dsp.data_nodes) - set(self.cells)
-            stack -= set(self.references)
+            stack = set(self.dsp.data_nodes) - done - set(self.references)
         stack = sorted(stack)
         while stack:
             n_id = stack.pop()
-            if isinstance(n_id, sh.Token):
+            if isinstance(n_id, sh.Token) or n_id in done:
+                continue
+            done.add(n_id)
+            if n_id in self.references:
+                stack.extend(self.cells[n_id].inputs or ())
                 continue
             try:
                 rng = Ranges().push(n_id).ranges[0]
@@ -312,6 +317,8 @@ class ExcelModel:
     def assemble(self):
         cells, get = {}, sh.get_nested_dicts
         for c in self.cells.values():
+            if isinstance(c, Ref):
+                continue
             rng = c.range.ranges[0]
             get(cells, rng['sheet_id'], default=list).append((
                 c.output, RangesAssembler._range_indices(c.range)
@@ -353,6 +360,7 @@ class ExcelModel:
                 ref = Ref(k, v, context=context).compile(context=context)
                 nodes.update(ref.add(self.dsp))
                 refs[ref.output] = None
+                cells[ref.output] = ref
                 continue
             cells[cell.output] = cell
         self._update_refs(nodes, refs)
