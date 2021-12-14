@@ -37,6 +37,7 @@ import functools
 import collections
 import numpy as np
 import schedula as sh
+from collections.abc import Iterable
 from formulas.errors import (
     RangeValueError, FoundError, BaseError, BroadcastError, InvalidRangeError
 )
@@ -294,7 +295,7 @@ def flatten(v, check=is_number):
             yield from v.ravel()
         else:
             yield from filter(check, v.ravel())
-    elif not isinstance(v, str) and isinstance(v, collections.Iterable):
+    elif not isinstance(v, str) and isinstance(v, Iterable):
         for el in v:
             yield from flatten(el, check)
     elif not check or check(v):
