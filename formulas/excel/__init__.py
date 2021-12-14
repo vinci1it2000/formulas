@@ -326,6 +326,26 @@ class ExcelModel:
         self._assemble_ranges(cells)
         return self
 
+    def inverse_references(self):
+        dsp = self.dsp
+        pred, succ, nodes = dsp.dmap.pred, dsp.dmap.succ, dsp.nodes
+        for c in tuple(self.cells.values()):
+            if isinstance(c, Ref) and c.inputs:
+                if c.func.dsp.function_nodes:
+                    continue
+                inp = c.output
+                if set(pred[inp]) == {c.func.function_id}:
+                    out = list(c.inputs)[0]
+                    if not any(out in succ[k] for k in succ[inp]):
+                        dsp.add_function(
+                            '=%s' % inp, sh.bypass, inputs=[inp], outputs=[out]
+                        )
+                        d = nodes[inp]
+                        d['inv-ref'] = out
+                        sh.get_nested_dicts(d, 'filters', default=list).extend(
+                            nodes[out].get('filters', ())
+                        )
+
     def finish(self, complete=True, circular=False, assemble=True):
         if complete:
             self.complete()
@@ -333,6 +353,7 @@ class ExcelModel:
             self.assemble()
         if circular:
             self.solve_circular()
+        self.inverse_references()
         return self
 
     def to_dict(self):
@@ -433,10 +454,9 @@ class ExcelModel:
 
     def compile(self, inputs, outputs):
         dsp = self.dsp.shrink_dsp(outputs=outputs)
-
-        dsp.default_values = sh.selector(
-            set(dsp.default_values) - set(inputs), dsp.default_values
-        )
+        keys = set(dsp.default_values) - set(inputs)
+        keys -= {dsp.nodes.get(i, {}).get('inv-ref', None) for i in inputs}
+        dsp.default_values = sh.selector(keys, dsp.default_values)
 
         res = dsp()
 

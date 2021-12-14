@@ -139,6 +139,8 @@ class Ranges:
         self._value = sh.NONE
         self.ranges += rng,
         if value is not sh.EMPTY:
+            if isinstance(value, Ranges):
+                value = value.value
             if not isinstance(value, Array):
                 if not np.ndim(value):
                     value = [[value]]

@@ -131,7 +131,8 @@ class Cell:
         if self.func or self.value is not sh.EMPTY:
             output, ctx = self.output, context or {}
             nodes.add(dsp.add_data(
-                output, filters=self._output_filters(), default_value=self.value
+                output, filters=self._output_filters(),
+                default_value=self.value, initial_dist=sh.inf(1, 0)
             ))
             if self.func:
                 inputs = self.inputs

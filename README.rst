@@ -146,22 +146,25 @@ some value to a specific cell:
 
     >>> xl_model.calculate(
     ...     inputs={
-    ...         "'[excel.xlsx]DATA'!A2": 3,  # To overwrite the default value.
+    ...         "'[excel.xlsx]'!INPUT_A": 3,  # To overwrite the default value.
     ...         "'[excel.xlsx]DATA'!B3": 1  # To impose a value to B3 cell.
     ...     },
     ...     outputs=[
     ...        "'[excel.xlsx]DATA'!C2", "'[excel.xlsx]DATA'!C4"
     ...     ] # To define the outputs that you want to calculate.
     ... )
-    Solution([("'[excel.xlsx]DATA'!A2", <Ranges>('[excel.xlsx]DATA'!A2)=[[3]]),
-              ("'[excel.xlsx]DATA'!A3", <Ranges>('[excel.xlsx]DATA'!A3)=[[6]]),
+    Solution([("'[excel.xlsx]'!INPUT_A", <Ranges>('[excel.xlsx]DATA'!A2)=[[3]]),
               ("'[excel.xlsx]DATA'!B3", <Ranges>('[excel.xlsx]DATA'!B3)=[[1]]),
+              ("'[excel.xlsx]DATA'!A2", <Ranges>('[excel.xlsx]DATA'!A2)=[[3]]),
+              ("'[excel.xlsx]DATA'!A3", <Ranges>('[excel.xlsx]DATA'!A3)=[[6]]),
               ("'[excel.xlsx]DATA'!D2", <Ranges>('[excel.xlsx]DATA'!D2)=[[1]]),
+              ("'[excel.xlsx]'!INPUT_B", <Ranges>('[excel.xlsx]DATA'!A3)=[[6]]),
               ("'[excel.xlsx]DATA'!B2", <Ranges>('[excel.xlsx]DATA'!B2)=[[9.0]]),
               ("'[excel.xlsx]DATA'!D3", <Ranges>('[excel.xlsx]DATA'!D3)=[[2.0]]),
               ("'[excel.xlsx]DATA'!C2", <Ranges>('[excel.xlsx]DATA'!C2)=[[10.0]]),
               ("'[excel.xlsx]DATA'!D4", <Ranges>('[excel.xlsx]DATA'!D4)=[[3.0]]),
               ("'[excel.xlsx]DATA'!C4", <Ranges>('[excel.xlsx]DATA'!C4)=[[4.0]])])
+
 
 To build a single function out of an excel model with fixed inputs and outputs,
 you can use the `compile` method of the `ExcelModel` that returns a
@@ -173,7 +176,7 @@ the data node ids (i.e., cell references).
 
     >>> func = xl_model.compile(
     ...     inputs=[
-    ...         "'[excel.xlsx]DATA'!A2",  # First argument of the function.
+    ...         "'[excel.xlsx]'!INPUT_A",  # First argument of the function.
     ...         "'[excel.xlsx]DATA'!B3"   # Second argument of the function.
     ...     ], # To define function inputs.
     ...     outputs=[
@@ -201,7 +204,10 @@ the `from_ranges` method of the `ExcelModel`:
     ... )
     >>> dsp = xl.dsp
     >>> sorted(dsp.data_nodes)
-    ["'[excel.xlsx]DATA'!A2",
+    ["'[excel.xlsx]'!INPUT_A",
+     "'[excel.xlsx]'!INPUT_B",
+     "'[excel.xlsx]'!INPUT_C",
+     "'[excel.xlsx]DATA'!A2",
      "'[excel.xlsx]DATA'!A3",
      "'[excel.xlsx]DATA'!A3:A4",
      "'[excel.xlsx]DATA'!A4",

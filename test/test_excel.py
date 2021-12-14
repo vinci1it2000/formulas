@@ -204,6 +204,11 @@ class TestExcelModel(unittest.TestCase):
         i = sh.selector(inputs, self.results_compile, output_type='list')
         res = sh.selector(outputs, self.results_compile, output_type='list')
         self.assertEqual([x.value[0, 0] for x in func(*i)], res)
+        func1 = xl_model.compile(
+            ["'[excel.xlsx]DATA'!INPUT_%s" % i for i in "ABC"],
+            ["'[excel.xlsx]DATA'!%s" % i for i in outputs]
+        )
+        self.assertEqual([x.value[0, 0] for x in func1(*i)], res)
         self.assertIsNot(xl_model, copy.deepcopy(xl_model))
         self.assertIsNot(func, copy.deepcopy(func))
         xl_model = ExcelModel().loads(self.filename_circular).finish(circular=1)
