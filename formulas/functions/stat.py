@@ -121,6 +121,47 @@ FUNCTIONS['MINA'] = wrap_func(functools.partial(
 ))
 
 
+def _forecast_known_filter(known_y, known_x):
+    for v in zip(known_y, known_x):
+        if not any(isinstance(i, (str, bool)) for i in v):
+            yield v
+
+
+def _args_parser_forecast(x, yp, xp):
+    yp, xp = tuple(flatten(yp, check=None)), tuple(flatten(xp, check=None))
+    x = replace_empty(x)
+    if (sh.EMPTY,) == yp or (sh.EMPTY,) == xp:
+        return x, Error.errors['#VALUE!']
+    if len(yp) != len(xp):
+        return x, Error.errors['#N/A']
+    error = get_error(*zip(yp, xp))
+    if error:
+        return x, error
+    yxp = tuple(_forecast_known_filter(yp, xp))
+    if not yxp or len(yxp) <= 1:
+        return x, Error.errors['#DIV/0!']
+    yp, xp = tuple(map(np.array, zip(*yxp)))
+    ym, xm = yp.mean(), xp.mean()
+    dx = xp - xm
+    b = (dx ** 2).sum()
+    if not b:
+        return x, Error.errors['#DIV/0!']
+    b = (dx * (yp - ym)).sum() / b
+    a = ym - xm * b
+    return x, a, b
+
+
+def xforecast(x, a=None, b=None):
+    return a + b * x
+
+
+FUNCTIONS['_XLFN.FORECAST.LINEAR'] = FUNCTIONS['FORECAST'] = wrap_ufunc(
+    xforecast, args_parser=_args_parser_forecast, excluded={1, 2},
+    input_parser=lambda x, a, b: (_convert_args(x), a, b)
+)
+FUNCTIONS['FORECAST.LINEAR'] = FUNCTIONS['FORECAST']
+
+
 def xstdev(args, ddof=1, func=np.std):
     if len(args) <= ddof:
         return Error.errors['#DIV/0!']
@@ -141,7 +182,6 @@ FUNCTIONS['STDEVPA'] = wrap_func(functools.partial(
         xstdev, ddof=0
     ), default=None
 ))
-
 
 FUNCTIONS['_XLFN.VAR.S'] = FUNCTIONS['VAR.S'] = wrap_func(functools.partial(
     xfunc, func=functools.partial(xstdev, func=np.var)
