@@ -15,7 +15,8 @@ import numpy as np
 import schedula as sh
 from . import (
     raise_errors, flatten, wrap_func, Error, is_number, _text2num, xfilter,
-    XlError, wrap_ufunc, replace_empty, get_error, is_not_empty
+    XlError, wrap_ufunc, replace_empty, get_error, is_not_empty, _convert_args,
+    convert_nan
 )
 
 FUNCTIONS = {}
@@ -26,16 +27,6 @@ def _convert(v):
         return 0
     if isinstance(v, bool):
         return int(v)
-    return v
-
-
-def _convert_args(v):
-    if isinstance(v, XlError):
-        return v
-    if isinstance(v, bool):
-        return int(v)
-    if isinstance(v, str):
-        return float(_text2num(v))
     return v
 
 
@@ -59,6 +50,21 @@ FUNCTIONS['AVERAGEA'] = wrap_func(functools.partial(
     xfunc, convert=_convert, check=is_not_empty, func=_xaverage, default=None
 ))
 FUNCTIONS['AVERAGEIF'] = wrap_func(functools.partial(xfilter, xaverage))
+
+
+def xcorrel(arr1, arr2):
+    arr1, arr2 = tuple(flatten(arr1, None)), tuple(flatten(arr2, None))
+    if (sh.EMPTY,) == arr1 or (sh.EMPTY,) == arr2:
+        return Error.errors['#VALUE!']
+    if len(arr1) != len(arr2):
+        return Error.errors['#N/A']
+    a12 = tuple(_forecast_known_filter(arr1, arr2))
+    if len(a12) <= 1:
+        return Error.errors['#DIV/0!']
+    return np.corrcoef(*zip(*a12))[0, 1]
+
+
+FUNCTIONS['CORREL'] = wrap_func(xcorrel)
 FUNCTIONS['COUNT'] = wrap_func(functools.partial(
     xfunc, func=len, _raise=False, default=None,
     check=lambda x: is_number(x) and not isinstance(x, XlError)
@@ -115,6 +121,9 @@ FUNCTIONS['MAX'] = wrap_func(xfunc)
 FUNCTIONS['MAXA'] = wrap_func(functools.partial(
     xfunc, convert=_convert, check=is_not_empty
 ))
+FUNCTIONS['MEDIAN'] = wrap_func(functools.partial(
+    xfunc, func=lambda x: convert_nan(np.median(x)), default=None
+))
 FUNCTIONS['MIN'] = wrap_func(functools.partial(xfunc, func=min))
 FUNCTIONS['MINA'] = wrap_func(functools.partial(
     xfunc, convert=_convert, check=is_not_empty, func=min
@@ -138,7 +147,7 @@ def _args_parser_forecast(x, yp, xp):
     if error:
         return x, error
     yxp = tuple(_forecast_known_filter(yp, xp))
-    if not yxp or len(yxp) <= 1:
+    if len(yxp) <= 1:
         return x, Error.errors['#DIV/0!']
     yp, xp = tuple(map(np.array, zip(*yxp)))
     ym, xm = yp.mean(), xp.mean()

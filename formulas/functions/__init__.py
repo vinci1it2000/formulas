@@ -211,6 +211,30 @@ def _text2num(value):
     return value
 
 
+def convert2float(*a):
+    return map(_convert2float, a)
+
+
+def _convert2float(v):
+    if isinstance(v, XlError):
+        return v
+    if isinstance(v, bool):
+        return int(v)
+    if isinstance(v, str):
+        return float(_text2num(v))
+    return float(v)
+
+
+def _convert_args(v):
+    if isinstance(v, XlError):
+        return v
+    if isinstance(v, bool):
+        return int(v)
+    if isinstance(v, str):
+        return float(_text2num(v))
+    return v
+
+
 @functools.lru_cache(None)
 def _text2num_vectorize():
     return np.vectorize(_text2num, otypes=[object])
@@ -308,6 +332,10 @@ def value_return(res, *args):
     return res
 
 
+def convert_nan(value, default=Error.errors['#NUM!']):
+    return value if np.isfinite(value) else default
+
+
 def wrap_ufunc(
         func, input_parser=lambda *a: map(float, a), check_error=get_error,
         args_parser=lambda *a: map(replace_empty, a), otype=Array,
@@ -318,7 +346,7 @@ def wrap_ufunc(
         try:
             r = check_error(*vals) or func(*input_parser(*vals))
             if check_nan and not isinstance(r, (XlError, str)):
-                r = (not np.isfinite(r)) and Error.errors['#NUM!'] or r
+                r = convert_nan(r)
         except (ValueError, TypeError):
             r = Error.errors['#VALUE!']
         return r
