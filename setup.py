@@ -89,6 +89,7 @@ if __name__ == '__main__':
     extras['dev'] = extras['all'] + [
         'wheel', 'sphinx', 'gitchangelog', 'mako', 'sphinx_rtd_theme', 'ddt',
         'setuptools>=36.0.1', 'sphinxcontrib-restbuilder', 'nose', 'coveralls',
+        'twine'
     ]
 
     setup(
