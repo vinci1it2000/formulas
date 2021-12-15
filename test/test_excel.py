@@ -76,7 +76,9 @@ class TestExcelModel(unittest.TestCase):
             msg = '[{}]{}!{}'.format(*k)
             try:
                 if is_number(value) and is_number(res):
-                    self.assertAlmostEqual(float(res), float(value), msg=msg)
+                    self.assertAlmostEqual(
+                        float(res), float(value), places=4, msg=msg
+                    )
                 else:
                     self.assertEqual(res, value, msg=msg)
             except AssertionError as ex:

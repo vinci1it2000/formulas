@@ -14,8 +14,8 @@ EXTRAS = os.environ.get('EXTRAS', 'all')
 
 
 @unittest.skipIf(EXTRAS not in ('all',), 'Not for extra %s.' % EXTRAS)
-class TestDoctest(unittest.TestCase):
-    def runTest(self):
+class TestReadme(unittest.TestCase):
+    def test_readme(self):
         failure_count, test_count = doctest.testfile(
             '../README.rst', optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
         )
