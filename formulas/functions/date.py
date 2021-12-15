@@ -19,7 +19,7 @@ from dateutil.relativedelta import relativedelta
 from . import (
     wrap_ufunc, Error, FoundError, get_error, wrap_func, raise_errors, flatten,
     is_number, COMPILING, wrap_impure_func, text2num, replace_empty,
-    value_return
+    value_return, _get_single_args
 )
 
 FUNCTIONS = {}
@@ -143,16 +143,6 @@ def xweekday(serial_number, n=1):
 FUNCTIONS['WEEKDAY'] = wrap_ufunc(
     xweekday, input_parser=lambda *a: text2num(a), return_func=value_return
 )
-
-
-def _get_single_args(*args):
-    res = []
-    for v in args:
-        v = tuple(flatten(v, None))
-        if len(v) != 1 or isinstance(v[0], bool):
-            raise FoundError(err=Error.errors['#VALUE!'])
-        res.append(v[0])
-    return res
 
 
 def xisoweeknum(serial_number):

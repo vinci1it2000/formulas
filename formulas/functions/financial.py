@@ -9,10 +9,12 @@
 """
 Python equivalents of financial Excel functions.
 """
+import functools
 import numpy as np
 from . import (
     get_error, Error, wrap_func, raise_errors, text2num, flatten, Array,
-    replace_empty, _text2num
+    replace_empty, _text2num, wrap_ufunc, convert2float, value_return,
+    _get_single_args
 )
 
 FUNCTIONS = {}
@@ -60,7 +62,7 @@ def xnpv(rate, values, dates=None):
             return get_error(r, e) or func(r)
 
         rate = text2num(replace_empty(rate))
-        return np.vectorize(_, otypes=[object])(rate).view(Array)
+        return value_return(np.vectorize(_, otypes=[object])(rate).view(Array))
 
 
 def xxnpv(rate, values, dates):
@@ -81,6 +83,80 @@ FUNCTIONS['NPV'] = wrap_func(lambda r, v, *a: xnpv(r, tuple(flatten((v, a)))))
 FUNCTIONS['XNPV'] = wrap_func(xxnpv)
 
 
+def _npf(func, *args, freturn=lambda x: x):
+    import numpy_financial as npf
+    r = getattr(npf, func)(*args)
+    return freturn(r if getattr(r, 'shape', True) else r.ravel()[0])
+
+
+FUNCTIONS['FV'] = wrap_ufunc(
+    functools.partial(_npf, 'fv'),
+    check_error=lambda *args: None,
+    input_parser=lambda rate, nper, pmt, pv=0, type=0: convert2float(
+        rate, nper, pmt, pv, type
+    ), return_func=value_return
+)
+
+
+def xcumipmt(rate, nper, pv, start_period, end_period, type):
+    args = rate, nper, pv, start_period, end_period, type
+    args = tuple(map(_text2num, _get_single_args(*map(replace_empty, args))))
+    raise_errors(*args)
+    if any(not isinstance(v, (float, int)) for v in args):
+        return Error.errors['#VALUE!']
+    rate, nper, pv, start_period, end_period, type = args
+    if rate <= 0 or nper <= 0 or pv <= 0 or start_period < 1 or \
+            end_period < 1 or start_period > end_period or not type in (0, 1) \
+            or nper < start_period or end_period > nper:
+        return Error.errors['#NUM!']
+    import numpy_financial as npf
+    per = list(range(int(start_period), int(end_period + 1)))
+    res = npf.ipmt(rate, per, nper, pv, fv=0, when=type)
+    return res[res < 0].sum()
+
+
+FUNCTIONS['CUMIPMT'] = wrap_func(xcumipmt)
+
+_kw = {'input_parser': convert2float, 'return_func': value_return}
+FUNCTIONS['PV'] = wrap_ufunc(functools.partial(_npf, 'pv'), **_kw)
+FUNCTIONS['IPMT'] = wrap_ufunc(functools.partial(
+    _npf, 'ipmt', freturn=lambda x: x > 0 and Error.errors['#NUM!'] or x,
+), **_kw)
+FUNCTIONS['PMT'] = wrap_ufunc(functools.partial(_npf, 'pmt'), **_kw)
+
+
+def xppmt(rate, per, nper, pv, fv=0, type=0):
+    import numpy_financial as npf
+    if per < 1 or per >= nper + 1:
+        return Error.errors['#NUM!']
+    return npf.ppmt(rate, per, nper, pv, fv=fv, when=type)
+
+
+FUNCTIONS['PPMT'] = wrap_ufunc(xppmt, **_kw)
+
+
+def xrate(nper, pmt, pv, fv=0, type=0, guess=0.1):
+    with np.errstate(over='ignore'):
+        import numpy_financial as npf
+        return npf.rate(
+            nper, pmt, pv, fv=fv, when=type, guess=guess, maxiter=1000
+        )
+
+
+FUNCTIONS['RATE'] = wrap_ufunc(xrate, **_kw)
+
+
+def xnper(rate, pmt, pv, fv=0, type=0):
+    import numpy_financial as npf
+    r = npf.nper(rate, pmt, pv, fv=fv, when=type)
+    if rate == 0:
+        r = np.sign(npf.nper(0.00000001, pmt, pv, fv=fv, when=type)) * np.abs(r)
+    return r
+
+
+FUNCTIONS['NPER'] = wrap_ufunc(xnper, **_kw)
+
+
 def xirr(values, guess=0.1):
     with np.errstate(divide='ignore', invalid='ignore'):
         import numpy_financial as npf
@@ -92,7 +168,7 @@ def xirr(values, guess=0.1):
             return get_error(g, e) or res
 
         guess = text2num(replace_empty(guess))
-        return np.vectorize(_, otypes=[object])(guess).view(Array)
+        return value_return(np.vectorize(_, otypes=[object])(guess).view(Array))
 
 
 FUNCTIONS['IRR'] = wrap_func(xirr)

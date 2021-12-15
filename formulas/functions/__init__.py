@@ -217,7 +217,7 @@ def convert2float(*a):
 
 def _convert2float(v):
     if isinstance(v, XlError):
-        return v
+        raise FoundError(err=v)
     if isinstance(v, bool):
         return int(v)
     if isinstance(v, str):
@@ -242,6 +242,16 @@ def _text2num_vectorize():
 
 def text2num(*args, **kwargs):
     return _text2num_vectorize()(*args, **kwargs)
+
+
+def _get_single_args(*args):
+    res = []
+    for v in args:
+        v = tuple(flatten(v, None))
+        if len(v) != 1 or isinstance(v[0], bool):
+            raise FoundError(err=Error.errors['#VALUE!'])
+        res.append(v[0])
+    return res
 
 
 _re_condition = re.compile('(?<!~)[?*]')
@@ -336,6 +346,12 @@ def convert_nan(value, default=Error.errors['#NUM!']):
     return value if np.isfinite(value) else default
 
 
+def convert_noshp(value):
+    if isinstance(value, np.ndarray) and not value.shape:
+        value = value.ravel()[0]
+    return value
+
+
 def wrap_ufunc(
         func, input_parser=lambda *a: map(float, a), check_error=get_error,
         args_parser=lambda *a: map(replace_empty, a), otype=Array,
@@ -344,9 +360,11 @@ def wrap_ufunc(
 
     def safe_eval(*vals):
         try:
-            r = check_error(*vals) or func(*input_parser(*vals))
+            r = check_error(*vals) or convert_noshp(func(*input_parser(*vals)))
             if check_nan and not isinstance(r, (XlError, str)):
                 r = convert_nan(r)
+        except FoundError as ex:
+            r = ex.err
         except (ValueError, TypeError):
             r = Error.errors['#VALUE!']
         return r
