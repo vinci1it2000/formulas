@@ -1,0 +1,51 @@
+name: build
+
+on:
+  schedule:
+    - cron: '0 11 11 * *'
+  push:
+    branches: [ master, dev ]
+
+jobs:
+  run-tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        extra: [ base, excel, plot, all, dev ]
+        python-version: [ '3.7', '3.8', '3.9' ]
+        include:
+          - os: windows-latest
+            extra: all
+            python-version: '3.7'
+          - os: windows-latest
+            extra: all
+            python-version: '3.8'
+          - os: windows-latest
+            extra: all
+            python-version: '3.9'
+    env:
+      EXTRAS: ${{ matrix.extra }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Setup Graphviz
+        uses: ts-graphviz/setup-graphviz@v1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Test Dependencies
+        run: pip install -r requirements/test.pip
+      - if: matrix.extra == 'base'
+        name: Install Dependencies
+        run: pip install -e .
+      - if: matrix.extra != 'base'
+        name: Install Dependencies
+        run: pip install -e .[${{ matrix.extra }}]
+      - name: Run Test
+        run: coverage run --source=schedula setup.py nosetests
+      - if: matrix.python-version == '3.9' && matrix.extra == 'all' && matrix.os == 'ubuntu-latest'
+        name: Run Coveralls
+        run: coveralls --service=github
