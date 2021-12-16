@@ -16,7 +16,7 @@ import schedula as sh
 from . import (
     raise_errors, flatten, wrap_func, Error, is_number, _text2num, xfilter,
     XlError, wrap_ufunc, replace_empty, get_error, is_not_empty, _convert_args,
-    convert_nan
+    convert_nan, FoundError
 )
 
 FUNCTIONS = {}
@@ -53,15 +53,11 @@ FUNCTIONS['AVERAGEIF'] = wrap_func(functools.partial(xfilter, xaverage))
 
 
 def xcorrel(arr1, arr2):
-    arr1, arr2 = tuple(flatten(arr1, None)), tuple(flatten(arr2, None))
-    if (sh.EMPTY,) == arr1 or (sh.EMPTY,) == arr2:
-        return Error.errors['#VALUE!']
-    if len(arr1) != len(arr2):
-        return Error.errors['#N/A']
-    a12 = tuple(_forecast_known_filter(arr1, arr2))
-    if len(a12) <= 1:
-        return Error.errors['#DIV/0!']
-    return np.corrcoef(*zip(*a12))[0, 1]
+    try:
+        arr1, arr2 = _parse_yxp(arr1, arr2)
+    except FoundError as ex:
+        return ex.err
+    return np.corrcoef(arr1, arr2)[0, 1]
 
 
 FUNCTIONS['CORREL'] = wrap_func(xcorrel)
@@ -121,8 +117,10 @@ FUNCTIONS['MAX'] = wrap_func(xfunc)
 FUNCTIONS['MAXA'] = wrap_func(functools.partial(
     xfunc, convert=_convert, check=is_not_empty
 ))
+
 FUNCTIONS['MEDIAN'] = wrap_func(functools.partial(
-    xfunc, func=lambda x: convert_nan(np.median(x)), default=None
+    xfunc, func=lambda x: convert_nan(np.median(x) if x else np.nan),
+    default=None
 ))
 FUNCTIONS['MIN'] = wrap_func(functools.partial(xfunc, func=min))
 FUNCTIONS['MINA'] = wrap_func(functools.partial(
@@ -136,27 +134,47 @@ def _forecast_known_filter(known_y, known_x):
             yield v
 
 
-def _args_parser_forecast(x, yp, xp):
+def xslope(yp, xp):
+    try:
+        a, b = _slope_coeff(*map(np.array, _parse_yxp(yp, xp)))
+    except FoundError as ex:
+        return ex.err
+    return b
+
+
+FUNCTIONS['SLOPE'] = wrap_func(xslope)
+
+
+def _parse_yxp(yp, xp):
     yp, xp = tuple(flatten(yp, check=None)), tuple(flatten(xp, check=None))
-    x = replace_empty(x)
     if (sh.EMPTY,) == yp or (sh.EMPTY,) == xp:
-        return x, Error.errors['#VALUE!']
+        raise FoundError(err=Error.errors['#VALUE!'])
     if len(yp) != len(xp):
-        return x, Error.errors['#N/A']
-    error = get_error(*zip(yp, xp))
-    if error:
-        return x, error
+        raise FoundError(err=Error.errors['#N/A'])
+    raise_errors(*zip(yp, xp))
     yxp = tuple(_forecast_known_filter(yp, xp))
     if len(yxp) <= 1:
-        return x, Error.errors['#DIV/0!']
-    yp, xp = tuple(map(np.array, zip(*yxp)))
+        raise FoundError(err=Error.errors['#DIV/0!'])
+    return tuple(zip(*yxp))
+
+
+def _slope_coeff(yp, xp):
     ym, xm = yp.mean(), xp.mean()
     dx = xp - xm
     b = (dx ** 2).sum()
     if not b:
-        return x, Error.errors['#DIV/0!']
+        raise FoundError(err=Error.errors['#DIV/0!'])
     b = (dx * (yp - ym)).sum() / b
     a = ym - xm * b
+    return a, b
+
+
+def _args_parser_forecast(x, yp, xp):
+    x = replace_empty(x)
+    try:
+        a, b = _slope_coeff(*map(np.array, _parse_yxp(yp, xp)))
+    except FoundError as ex:
+        return x, ex.err
     return x, a, b
 
 

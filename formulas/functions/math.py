@@ -354,7 +354,7 @@ def xsrqtpi(number):
 FUNCTIONS['SQRTPI'] = wrap_func(xsrqtpi)
 
 
-def xsum(*args):
+def xsum(*args, func=sum):
     raise_errors(args)
     inputs = []
     for a in args:
@@ -363,9 +363,10 @@ def xsum(*args):
         elif isinstance(a, bool):
             a = float(a)
         inputs.append(a)
-    return sum(map(float, flatten(inputs)))
+    return func(tuple(map(float, flatten(inputs))))
 
 
+FUNCTIONS['PRODUCT'] = wrap_func(functools.partial(xsum, func=np.prod))
 FUNCTIONS['SUM'] = wrap_func(xsum)
 FUNCTIONS['SUMIF'] = wrap_func(functools.partial(xfilter, xsum))
 FUNCTIONS['TAN'] = wrap_ufunc(np.tan)
