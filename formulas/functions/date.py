@@ -18,7 +18,7 @@ import schedula as sh
 from dateutil.relativedelta import relativedelta
 from . import (
     wrap_ufunc, Error, FoundError, get_error, wrap_func, raise_errors, flatten,
-    is_number, COMPILING, wrap_impure_func, text2num
+    is_number, COMPILING, wrap_impure_func, text2num, replace_empty
 )
 
 FUNCTIONS = {}
@@ -116,6 +116,103 @@ FUNCTIONS['MONTH'] = wrap_ufunc(
 FUNCTIONS['YEAR'] = wrap_ufunc(
     functools.partial(xday, n=0), input_parser=lambda *a: a
 )
+
+
+def xweekday(serial_number, n=1):
+    n, serial_number, zero = int(n), int(serial_number), 7
+    if not (0 <= serial_number <= 2958465):
+        return Error.errors['#NUM!']
+    if 1 <= n <= 2:
+        n = n - 1
+    elif n == 3:
+        n, zero = 2, 0
+    elif 11 <= n <= 17:
+        n = n - 10
+    else:
+        return Error.errors['#NUM!']
+    return int(serial_number + 7 - n) % 7 or zero
+
+
+FUNCTIONS['WEEKDAY'] = wrap_ufunc(xweekday, input_parser=lambda *a: text2num(a))
+
+
+def _get_single_args(*args):
+    res = []
+    for v in args:
+        v = tuple(flatten(v, None))
+        if len(v) != 1 or isinstance(v[0], bool):
+            raise FoundError(err=Error.errors['#VALUE!'])
+        res.append(v[0])
+    return res
+
+
+def xisoweeknum(serial_number):
+    if serial_number <= 1:
+        return 52
+    if serial_number <= 60:
+        serial_number -= 1
+    return datetime.datetime(*_int2date(serial_number)).isocalendar()[1]
+
+
+FUNCTIONS['_XLFN.ISOWEEKNUM'] = FUNCTIONS['ISOWEEKNUM'] = wrap_ufunc(
+    xisoweeknum, input_parser=lambda *a: text2num(a)
+)
+
+
+def xweeknum(serial_number, n=1):
+    args = serial_number, n
+    raise_errors(*args)
+    args = _get_single_args(*(replace_empty(v) for v in args))
+    serial_number, n = (int(text2num(v)) for v in args)
+    if not (0 <= serial_number <= 2958465):
+        return Error.errors['#NUM!']
+    if 1 <= n <= 2:
+        pass
+    elif 11 <= n <= 17:
+        n = n - 9
+    elif n == 21:
+        return xisoweeknum(serial_number)
+    else:
+        return Error.errors['#NUM!']
+    n += 7
+    return math.floor((serial_number - n) / 7) - math.floor(
+        (xdate(_int2date(serial_number)[0], 1, 1) - n) / 7
+    ) + 1
+
+
+FUNCTIONS['WEEKNUM'] = wrap_func(xweeknum)
+
+
+def xdatedif(start_date, end_date, unit):
+    start_date, end_date = int(start_date), int(end_date)
+    if start_date > end_date:
+        return Error.errors['#NUM!']
+    if unit == 'D':
+        if any(not 0 <= v <= 2958465 for v in (start_date, end_date)):
+            return Error.errors['#NUM!']
+        return end_date - start_date
+    start, end = _int2date(start_date), _int2date(end_date)
+    if unit == 'Y':
+        return end[0] - start[0] - int(end[1:] < start[1:])
+    if unit == 'M':
+        r = (end[0] - start[0]) * 12 + end[1] - start[1]
+        return r - int(end[2] < start[2])
+    if unit in ('MD', 'YD'):
+        args = list(start)
+        i = 2 if unit == 'MD' else 1
+        if end[i:] < start[i:]:
+            args[i - 1] += 1
+            if args[1] > 12:
+                args[0] += 1
+                args[1] = 1
+        return xdate(*args[:i], *end[i:]) - start_date
+    if unit == 'YM':
+        dm = (end[1] - start[1]) - int(end[2] < start[2])
+        return dm + int(dm < 0) * 12
+    return Error.errors["#NUM!"]
+
+
+FUNCTIONS['DATEDIF'] = wrap_ufunc(xdatedif, input_parser=lambda *a: text2num(a))
 
 
 def xedate(start_date, months):
