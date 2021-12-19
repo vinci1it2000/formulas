@@ -80,6 +80,20 @@ FUNCTIONS['IFERROR'] = {
 }
 
 
+def xifna(val, val_if_error):
+    from .info import isna
+    return val_if_error if isna(val) else val
+
+
+FUNCTIONS['_XLFN.IFNA'] = FUNCTIONS['IFNA'] = {
+    'function': wrap_ufunc(
+        xifna, input_parser=lambda *a: a, check_error=lambda *a: False,
+        return_func=value_return
+    ),
+    'solve_cycle': solve_cycle
+}
+
+
 def xswitch(val, *args):
     if isinstance(val, bool):
         condition = lambda x: val is x

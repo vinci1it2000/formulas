@@ -38,36 +38,37 @@ class IsErrorArray(IsErrArray):
     _default = True
 
 
-def iserror(val):
+def iserror(val, check=lambda x: isinstance(x, XlError), array=IsErrorArray):
     try:
-        b = np.asarray([isinstance(v, XlError)
-                        for v in val.ravel().tolist()], bool)
+        b = np.asarray([check(v) for v in val.ravel().tolist()], bool)
         b.resize(val.shape)
-        return b.view(IsErrorArray)
+        return b.view(array)
     except AttributeError:  # val is not an array.
-        return iserror(np.asarray([[val]], object))[0][0].view(IsErrorArray)
-
-
-FUNCTIONS['ISERROR'] = wrap_ranges_func(iserror)
+        return iserror(
+            np.asarray([[val]], object), check, array
+        )[0][0].view(array)
 
 
 class IsNumberArray(IsErrArray):
     _collapse_value = False
 
 
-def xisnumber(val):
-    try:
-        b = np.asarray(list(map(
-            functools.partial(is_number, xl_return=False),
-            val.ravel().tolist()
-        )), bool)
-        b.resize(val.shape)
-        return b.view(IsNumberArray)
-    except AttributeError:  # val is not an array.
-        return xisnumber(np.asarray([[val]], object))[0][0].view(IsNumberArray)
+class IsNaArray(IsErrArray):
+    _collapse_value = False
+    _default = True
 
 
-FUNCTIONS['ISNUMBER'] = wrap_ranges_func(xisnumber)
+def isna(value):
+    return value == Error.errors['#N/A']
+
+
+FUNCTIONS['ISERROR'] = wrap_ranges_func(iserror)
+FUNCTIONS['ISNUMBER'] = wrap_ranges_func(functools.partial(
+    iserror, check=lambda x: is_number(x, xl_return=False), array=IsNumberArray
+))
+FUNCTIONS['ISNA'] = wrap_ranges_func(functools.partial(
+    iserror, check=isna, array=IsNaArray
+))
 
 
 def xna():
