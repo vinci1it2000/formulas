@@ -18,7 +18,8 @@ import schedula as sh
 from dateutil.relativedelta import relativedelta
 from . import (
     wrap_ufunc, Error, FoundError, get_error, wrap_func, raise_errors, flatten,
-    is_number, COMPILING, wrap_impure_func, text2num, replace_empty
+    is_number, COMPILING, wrap_impure_func, text2num, replace_empty,
+    value_return
 )
 
 FUNCTIONS = {}
@@ -51,7 +52,8 @@ def xdate(year, month, day):
 
 
 FUNCTIONS['DATE'] = wrap_ufunc(
-    xdate, input_parser=lambda *a: map(lambda v: math.floor(float(v)), a)
+    xdate, input_parser=lambda *a: map(lambda v: math.floor(float(v)), a),
+    return_func=value_return
 )
 
 
@@ -78,7 +80,9 @@ def xdatevalue(date_text):
     return xdate(*_text2datetime(date_text)[:3])
 
 
-FUNCTIONS['DATEVALUE'] = wrap_ufunc(xdatevalue, input_parser=lambda *a: a)
+FUNCTIONS['DATEVALUE'] = wrap_ufunc(
+    xdatevalue, input_parser=lambda *a: a, return_func=value_return
+)
 
 
 def _int2date(serial_number):
@@ -108,13 +112,16 @@ def xday(serial_number, n=2):
 
 
 FUNCTIONS['DAY'] = wrap_ufunc(
-    functools.partial(xday, n=2), input_parser=lambda *a: a
+    functools.partial(xday, n=2), input_parser=lambda *a: a,
+    return_func=value_return
 )
 FUNCTIONS['MONTH'] = wrap_ufunc(
-    functools.partial(xday, n=1), input_parser=lambda *a: a
+    functools.partial(xday, n=1), input_parser=lambda *a: a,
+    return_func=value_return
 )
 FUNCTIONS['YEAR'] = wrap_ufunc(
-    functools.partial(xday, n=0), input_parser=lambda *a: a
+    functools.partial(xday, n=0), input_parser=lambda *a: a,
+    return_func=value_return
 )
 
 
@@ -133,7 +140,9 @@ def xweekday(serial_number, n=1):
     return int(serial_number + 7 - n) % 7 or zero
 
 
-FUNCTIONS['WEEKDAY'] = wrap_ufunc(xweekday, input_parser=lambda *a: text2num(a))
+FUNCTIONS['WEEKDAY'] = wrap_ufunc(
+    xweekday, input_parser=lambda *a: text2num(a), return_func=value_return
+)
 
 
 def _get_single_args(*args):
@@ -155,7 +164,7 @@ def xisoweeknum(serial_number):
 
 
 FUNCTIONS['_XLFN.ISOWEEKNUM'] = FUNCTIONS['ISOWEEKNUM'] = wrap_ufunc(
-    xisoweeknum, input_parser=lambda *a: text2num(a)
+    xisoweeknum, input_parser=lambda *a: text2num(a), return_func=value_return
 )
 
 
@@ -212,7 +221,9 @@ def xdatedif(start_date, end_date, unit):
     return Error.errors["#NUM!"]
 
 
-FUNCTIONS['DATEDIF'] = wrap_ufunc(xdatedif, input_parser=lambda *a: text2num(a))
+FUNCTIONS['DATEDIF'] = wrap_ufunc(
+    xdatedif, input_parser=lambda *a: text2num(a), return_func=value_return
+)
 
 
 def xedate(start_date, months):
@@ -262,7 +273,8 @@ def xtime(hour, minute, second):
 
 
 FUNCTIONS['TIME'] = wrap_ufunc(
-    xtime, input_parser=lambda *a: map(lambda v: math.floor(float(v)), a)
+    xtime, input_parser=lambda *a: map(lambda v: math.floor(float(v)), a),
+    return_func=value_return
 )
 
 
@@ -270,7 +282,9 @@ def xtimevalue(time_text):
     return xtime(*_text2datetime(time_text)[3:])
 
 
-FUNCTIONS['TIMEVALUE'] = wrap_ufunc(xtimevalue, input_parser=lambda *a: a)
+FUNCTIONS['TIMEVALUE'] = wrap_ufunc(
+    xtimevalue, input_parser=lambda *a: a, return_func=value_return
+)
 
 
 def _n2time(serial_number):
@@ -294,13 +308,16 @@ def xsecond(serial_number, n=2):
 
 
 FUNCTIONS['SECOND'] = wrap_ufunc(
-    functools.partial(xsecond, n=2), input_parser=lambda *a: a
+    functools.partial(xsecond, n=2), input_parser=lambda *a: a,
+    return_func=value_return
 )
 FUNCTIONS['MINUTE'] = wrap_ufunc(
-    functools.partial(xsecond, n=1), input_parser=lambda *a: a
+    functools.partial(xsecond, n=1), input_parser=lambda *a: a,
+    return_func=value_return
 )
 FUNCTIONS['HOUR'] = wrap_ufunc(
-    functools.partial(xsecond, n=0), input_parser=lambda *a: a
+    functools.partial(xsecond, n=0), input_parser=lambda *a: a,
+    return_func=value_return
 )
 
 

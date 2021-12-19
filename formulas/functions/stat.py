@@ -16,7 +16,7 @@ import schedula as sh
 from . import (
     raise_errors, flatten, wrap_func, Error, is_number, _text2num, xfilter,
     XlError, wrap_ufunc, replace_empty, get_error, is_not_empty, _convert_args,
-    convert_nan, FoundError
+    convert_nan, FoundError, value_return
 )
 
 FUNCTIONS = {}
@@ -106,12 +106,12 @@ def _sort_parser(values, k):
 
 FUNCTIONS['LARGE'] = wrap_ufunc(
     xsort, args_parser=_sort_parser, excluded={0}, check_error=lambda *a: None,
-    input_parser=lambda *a: a
+    input_parser=lambda *a: a, return_func=value_return
 )
 
 FUNCTIONS['SMALL'] = wrap_ufunc(
     xsort, args_parser=_sort_parser, excluded={0}, check_error=lambda *a: None,
-    input_parser=lambda values, k: (values, k, False)
+    input_parser=lambda values, k: (values, k, False), return_func=value_return
 )
 FUNCTIONS['MAX'] = wrap_func(xfunc)
 FUNCTIONS['MAXA'] = wrap_func(functools.partial(
@@ -184,7 +184,8 @@ def xforecast(x, a=None, b=None):
 
 FUNCTIONS['_XLFN.FORECAST.LINEAR'] = FUNCTIONS['FORECAST'] = wrap_ufunc(
     xforecast, args_parser=_args_parser_forecast, excluded={1, 2},
-    input_parser=lambda x, a, b: (_convert_args(x), a, b)
+    input_parser=lambda x, a, b: (_convert_args(x), a, b),
+    return_func=value_return
 )
 FUNCTIONS['FORECAST.LINEAR'] = FUNCTIONS['FORECAST']
 
