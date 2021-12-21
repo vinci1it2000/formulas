@@ -23,7 +23,6 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
-        ('A1', '=NPER(1,4,5)', {}, '<Ranges>(A1)=[[-1.1699250014423124]]'),
         ('A1', '=NPER(0,4,5)', {}, '<Ranges>(A1)=[[-1.25]]'),
         ('A1', '=FV(0.06,-10,-200,-500,1)', {},
          '<Ranges>(A1)=[[-1281.1410664423581]]'),
