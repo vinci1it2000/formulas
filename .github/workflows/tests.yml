@@ -46,7 +46,7 @@ jobs:
         name: Install Dependencies
         run: pip install -e .[${{ matrix.extra }}]
       - name: Run Test
-        run: coverage run --source=schedula setup.py nosetests
+        run: coverage run --source=formulas setup.py nosetests
       - if: matrix.python-version == '3.9' && matrix.extra == 'all' && matrix.os == 'ubuntu-latest'
         name: Run Coveralls
         run: coveralls --service=github
