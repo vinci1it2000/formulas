@@ -31,7 +31,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
-      - name: Setup Graphviz
+      - if: matrix.extra == 'plot' || matrix.extra == 'all'
+        name: Setup Graphviz
         uses: ts-graphviz/setup-graphviz@v1
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
