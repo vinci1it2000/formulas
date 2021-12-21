@@ -10,6 +10,7 @@ jobs:
   run-tests:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
         extra: [ base, excel, plot, all, dev ]
