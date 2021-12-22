@@ -94,6 +94,8 @@ def xsort(values, k, large=True):
 
 
 def _sort_parser(values, k):
+    if isinstance(values, XlError):
+        raise FoundError(err=values)
     err = get_error(values)
     if err:
         return err, k

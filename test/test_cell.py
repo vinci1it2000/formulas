@@ -23,6 +23,13 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
+        ('A1', '=LARGE({-1.1,4.1,#REF!},1)', {}, '<Ranges>(A1)=[[#REF!]]'),
+        ('A1', '=LARGE({-1.1,4.1,#REF!},"c")', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=LARGE({-1.1,4.1,#REF!},#N/A)', {}, '<Ranges>(A1)=[[#N/A]]'),
+        ('A1', '=LARGE(#N/A,#VALUE!)', {}, '<Ranges>(A1)=[[#N/A]]'),
+        ('A1', '=SLOPE(A2,{1})', {'A2': [[sh.EMPTY]]},
+         '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=FORECAST(32,{2,3,4},{1,1,1})', {}, '<Ranges>(A1)=[[#DIV/0!]]'),
         ('A1', '=NPER(0,4,5)', {}, '<Ranges>(A1)=[[-1.25]]'),
         ('A1', '=FV(0.06,-10,-200,-500,1)', {},
          '<Ranges>(A1)=[[-1281.1410664423581]]'),
@@ -279,8 +286,6 @@ class TestCell(unittest.TestCase):
         }, '<Ranges>(A1:B1)=[[4.0 #N/A]]'),
         ('A1', '=SMALL({-1.1,10.1;4.1,"40"},4)', {}, '<Ranges>(A1)=[[#NUM!]]'),
         ('A1', '=SMALL({-1.1,10.1;"40",TRUE},2)', {}, '<Ranges>(A1)=[[10.1]]'),
-        ('A1', '=LARGE({-1.1,4.1,#REF!},"c")', {}, '<Ranges>(A1)=[[#VALUE!]]'),
-        ('A1', '=LARGE({-1.1,4.1,#REF!},#N/A)', {}, '<Ranges>(A1)=[[#N/A]]'),
         ('A1', '=LARGE({-1.1,10.1;4.1,"40"},4)', {}, '<Ranges>(A1)=[[#NUM!]]'),
         ('A1', '=LARGE({-1.1,10.1;"40",-2},2)', {}, '<Ranges>(A1)=[[-1.1]]'),
         ('A1', '=LOOKUP(2,{-1.1,2.1,3.1,4.1},{#REF!,2.1,3.1,4.1})', {},
