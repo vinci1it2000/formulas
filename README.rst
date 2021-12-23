@@ -3,11 +3,11 @@
 ##################################################
 formulas: An Excel formulas interpreter in Python.
 ##################################################
-|pypi_ver| |travis_status| |cover_status| |docs_status| |dependencies|
+|pypi_ver| |test_status| |cover_status| |docs_status| |dependencies|
 |github_issues| |python_ver| |proj_license| |binder|
 
-:release:       1.1.1
-:date:          2021-10-13 13:30:00
+:release:       1.2.0
+:date:          2021-12-23 16:00:00
 :repository:    https://github.com/vinci1it2000/formulas
 :pypi-repo:     https://pypi.org/project/formulas/
 :docs:          http://formulas.readthedocs.io/
@@ -278,9 +278,9 @@ Things yet to do: implement the missing Excel formulas.
 
 .. _end-intro:
 .. _start-badges:
-.. |travis_status| image:: https://travis-ci.org/vinci1it2000/formulas.svg?branch=master
-    :alt: Travis build status
-    :target: https://travis-ci.org/vinci1it2000/formulas
+.. |test_status| image:: https://github.com/vinci1it2000/formulas/actions/workflows/tests.yml/badge.svg?branch=master
+    :alt: Build status
+    :target: https://github.com/vinci1it2000/formulas/actions/workflows/tests.yml?query=branch%3Amaster
 
 .. |cover_status| image:: https://coveralls.io/repos/github/vinci1it2000/formulas/badge.svg?branch=master
     :target: https://coveralls.io/github/vinci1it2000/formulas?branch=master

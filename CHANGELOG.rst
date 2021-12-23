@@ -2,6 +2,55 @@ Changelog
 =========
 
 
+v1.2.0 (2021-12-23)
+-------------------
+
+Feat
+~~~~
+- (binder): Refresh environment binder for 2021.
+
+- (look) :gh:`87`: Add `ADDRESS` function.
+
+- (test): Update test cases.
+
+- (financial) :gh:`74`, :gh:`87`: Add `FV`, `PV`, `IPMT`, `PMT`, `PPMT`,
+  `RATE`, `CUMIPMT`, and `NPER` functions.
+
+- (info, logic): Add `ISNA` and `IFNA` functions.
+
+- (date) :gh:`87`: Add `WEEKDAY`, `WEEKNUM`, `ISOWEEKNUM`, and `DATEDIF`
+  functions.
+
+- (stat, math) :gh:`87`: Add `SLOPE` and `PRODUCT` functions.
+
+- (stats) :gh:`87`: Add `CORREL` and `MEDIAN` functions.
+
+- (bin): Add `bin` folder.
+
+- (actions): Add test cases.
+
+- (stats) :gh:`80`: Add `FORECAST` and `FORECAST.LINEAR` functions.
+
+- (excel) :gh:`82`: Add inverse of simple references.
+
+
+Fix
+~~~
+- (stat): Correct `LARGE` and `SMALL` error handling.
+
+- (actions): Skip `Setup Graphviz` when not needed.
+
+- (actions): Correct coverall setting.
+
+- (actions): Remove unstable test case.
+
+- (actions): Disable fail fast.
+
+- (date, stat): Correct collapsed return value.
+
+- (function) :gh:`78`, :gh:`79`, :gh:`91`: Correct import error.
+
+
 v1.1.1 (2021-10-13)
 -------------------
 
