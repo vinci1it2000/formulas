@@ -16,7 +16,7 @@ import numpy as np
 import schedula as sh
 from . import (
     wrap_func, wrap_ufunc, Error, get_error, XlError, FoundError, Array,
-    parse_ranges
+    parse_ranges, value_return
 )
 from ..ranges import Ranges
 from ..cell import CELL
@@ -63,6 +63,30 @@ FUNCTIONS['ROW'] = {
     'extra_inputs': collections.OrderedDict([(CELL, None)]),
     'function': wrap_func(xrow, ranges=True)
 }
+
+
+def xaddress(row_num, column_num, abs_num=1, a1=True, sheet_text=None):
+    from ..tokens.operand import _index2col
+    column_num, row_num = int(column_num), int(row_num)
+    if column_num <= 0 or row_num <= 0:
+        return Error.errors['#VALUE!']
+    if a1 is sh.EMPTY or not int(a1):
+        m = {1: 'R{1}C{0}', 2: 'R{1}C[{0}]', 3: 'R[{1}]C{0}', 4: 'R[{1}]C[{0}]'}
+    else:
+        column_num = _index2col(column_num)
+        m = {1: '${}${}', 2: '{}${}', 3: '${}{}', 4: '{}{}'}
+    address = m[int(abs_num)].format(column_num, row_num)
+    if sheet_text:
+        if sheet_text is sh.EMPTY:
+            return "!{}".format(address)
+        address = "'{}'!{}".format(str(sheet_text).replace("'", "''"), address)
+    return address
+
+
+FUNCTIONS['ADDRESS'] = wrap_ufunc(
+    xaddress, input_parser=lambda *a: a, args_parser=lambda *a: a,
+    return_func=value_return
+)
 
 
 def xsingle(cell, rng):
