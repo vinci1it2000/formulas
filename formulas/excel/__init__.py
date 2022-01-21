@@ -477,13 +477,9 @@ class ExcelModel:
         return books
 
     def compile(self, inputs, outputs):
-        dsp = self.dsp.shrink_dsp(outputs=outputs)
+        dsp = self.dsp.shrink_dsp(inputs=inputs, outputs=outputs)
         inp = set(inputs)
         inp.update({dsp.nodes.get(i, {}).get('inv-ref', None) for i in inputs})
-        pred, start = dsp.dmap.pred, (sh.START,)
-        dsp.dmap.remove_nodes_from({
-            i for k in inp for i in pred.get(k, ()) if tuple(pred[i]) == start
-        })
         dsp.default_values = sh.selector(
             set(dsp.default_values) - inp, dsp.default_values
         )
