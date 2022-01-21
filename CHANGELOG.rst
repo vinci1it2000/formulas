@@ -2,6 +2,24 @@ Changelog
 =========
 
 
+v1.2.1 (2022-01-21)
+-------------------
+
+Feat
+~~~~
+- (functions): Improve performances caching results.
+
+- (excel): Make replacing missing ref optional in `from_dict` method.
+
+- (excel) :gh:`73`, :gh:`75`: Improve performances to parse full ranges.
+
+
+Fix
+~~~
+- (excel): Correct compile function when inputs are computed with a
+  default function.
+
+
 v1.2.0 (2021-12-23)
 -------------------
 
