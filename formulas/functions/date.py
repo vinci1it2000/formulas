@@ -44,6 +44,7 @@ def _date(y, m, d):
     return y, m, d
 
 
+@functools.lru_cache()
 def xdate(year, month, day):
     if year == 1900 and (month, day) in ((2, 29), (3, 0)):
         return 60
@@ -66,6 +67,7 @@ def _get_date_parser():
     return parser(info)
 
 
+@functools.lru_cache()
 def _text2datetime(date_text):
     res = _get_date_parser()._parse(date_text)[0]
     assert res

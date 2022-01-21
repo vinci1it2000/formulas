@@ -97,6 +97,9 @@ class Array(np.ndarray):
         obj._default = copy.deepcopy(self._default, memo)
         return obj
 
+    def __hash__(self):
+        return hash(self.tolist())
+
 
 # noinspection PyUnusedLocal
 def not_implemented(*args, **kwargs):
@@ -198,7 +201,10 @@ def is_number(number, xl_return=True):
     return True
 
 
+@functools.lru_cache()
 def _text2num(value):
+    if isinstance(value, Array) and not value.shape:
+        value = value.tolist()
     if not isinstance(value, Error) and isinstance(value, str):
         try:
             return float(value)
@@ -297,6 +303,7 @@ def _xfilter(accumulator, test_range, condition, operating_range):
     from .operators import _get_type_id
     type_id, operator = _get_type_id(condition), LOGIC_OPERATORS[operator]
 
+    @functools.lru_cache()
     def check(value):
         return _get_type_id(value) == type_id and operator(value, condition)
 
