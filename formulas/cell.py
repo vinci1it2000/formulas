@@ -15,8 +15,8 @@ import functools
 import numpy as np
 import schedula as sh
 from .parser import Parser
-from .tokens.operand import Error, XlError, range2parts, _re_ref
 from .ranges import Ranges, _assemble_values, _shape, _get_indices_intersection
+from .tokens.operand import Error, XlError, range2parts, _re_ref, _index2col
 
 CELL = sh.Token('Cell')
 
@@ -189,39 +189,64 @@ class RangesAssembler:
     @staticmethod
     def _range_indices(rng):
         return {
-            (i, j)
+            (j, i)
             for r in rng.ranges
             for i in range(int(r['r1']), int(r['r2']) + 1)
             for j in range(r['n1'], r['n2'] + 1)
         }
 
-    def __init__(self, ref, context=None):
+    def __init__(self, ref, context=None, compact=1):
         self.range = Ranges().push(ref, context=context)
         self.missing = self._range_indices(self.range)
         self.inputs = collections.OrderedDict()
+        self.compact = compact or 1
 
     @property
     def output(self):
         return self.range.ranges[0]['name']
 
-    def push(self, output, indices):
+    def push(self, indices, output=None):
         missing = self.missing
         if not missing.isdisjoint(indices):
-            self.missing = missing = missing - indices
-            self.inputs[output] = None
+            if output is None:
+                self.inputs.update({
+                    indices[k]: None for k in missing.intersection(indices)
+                })
+            else:
+                self.inputs[output] = None
+            self.missing = missing = self.missing - set(indices)
+
         return missing
 
     def add(self, dsp):
         base = self.range.ranges[0]
-        ctx = sh.selector(('sheet_id',), base)
-        for r, n in self.missing:
-            ist = Ranges.format_range(
-                ('name', 'n1', 'n2'), n1=n, r1=r, **ctx
-            )
-            k = ist['name']
-            self.inputs[k] = _get_indices_intersection(base, ist)
-            f = functools.partial(format_output, ist),
-            dsp.add_data(k, [[sh.EMPTY]], filters=f)
+        sheet_id = base['sheet_id']
+        ists = {}
+        nodes = dsp.default_values
+        _name = f'{sheet_id}!%s'
+        for n, r in tuple(self.missing):
+            c = _index2col(n)
+            ref = '{}{}'.format(c, r)
+            name = _name % ref
+            ist = {
+                'r1': r, 'r2': r, 'c1': c, 'c2': c, 'n1': n, 'n2': n,
+                'ref': ref, 'name': name, 'sheet_id': sheet_id
+            }
+            if name in nodes:
+                self.inputs[name] = _get_indices_intersection(base, ist)
+                self.missing.remove((n, r))
+            else:
+                ists[name] = ist
+
+        if len(ists) <= self.compact:
+            for k, ist in ists.items():
+                self.inputs[k] = _get_indices_intersection(base, ist)
+                f = functools.partial(format_output, ist),
+                dsp.add_data(k, [[sh.EMPTY]], filters=f)
+        else:
+            if sh.SELF not in nodes:
+                dsp.add_data(sh.SELF, sh.inf(2, 0))
+            self.inputs[sh.SELF] = ists
         if list(self.inputs) != [self.output]:
             dsp.add_function(None, self, self.inputs or None, [self.output])
 
@@ -231,7 +256,20 @@ class RangesAssembler:
 
     def __call__(self, *cells):
         base = self.range.ranges[0]
-        out = np.empty(_shape(**base), object)
+        if sh.SELF in self.inputs:
+            out = np.empty(_shape(**base), object)
+            out[:] = sh.EMPTY
+            ists = self.inputs[sh.SELF]
+            sol = cells[-1].solution
+            cells = cells[:-1]
+            for n in set(ists).intersection(sol):
+                v = ists[n]
+                if isinstance(v, dict):
+                    v = ists[n] = _get_indices_intersection(base, v)
+                i, j = v
+                out[i, j] = sol[n].value
+        else:
+            out = np.empty(_shape(**base), object)
         for c, ind in zip(cells, self.inputs.values()):
             if ind:
                 out[ind[0], ind[1]] = c.value

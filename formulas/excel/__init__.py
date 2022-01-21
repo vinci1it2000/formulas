@@ -249,6 +249,7 @@ class ExcelModel:
         if stack is None:
             stack = set(self.dsp.data_nodes) - done - set(self.references)
         stack = sorted(stack)
+        sheet_limits = {}
         while stack:
             n_id = stack.pop()
             if isinstance(n_id, sh.Token) or n_id in done:
@@ -268,7 +269,7 @@ class ExcelModel:
 
             try:
                 context = self.add_book(book)[1]
-                worksheet, context = self.add_sheet(rng['sheet'], context)
+                wk, context = self.add_sheet(rng['sheet'], context)
             except Exception as ex:  # Missing excel file or sheet.
                 log.warning('Error in loading `{}`:\n{}'.format(n_id, ex))
                 Cell(n_id, '=#REF!').compile().add(self.dsp)
@@ -279,9 +280,22 @@ class ExcelModel:
             formula_references = self.formula_references(context)
             formula_ranges = self.formula_ranges(context)
             external_links = self.external_links(context)
-            rng = '{c1}{r1}:{c2}{r2}'.format(**rng)
-            for c in flatten(worksheet[rng], None):
-                if hasattr(c, 'value'):
+
+            _name = '%s'
+            if 'sheet_id' in rng:
+                _name = f'{rng["sheet_id"]}!{_name}'
+            if wk not in sheet_limits:
+                sheet_limits[wk] = wk.max_row, wk.max_column
+            max_row, max_column = sheet_limits[wk]
+            it = wk.iter_rows(
+                int(rng['r1']), min(int(rng['r2']), max_row),
+                rng['n1'], min(rng['n2'], max_column)
+            )
+            for c in flatten(it, None):
+                n = _name % c.coordinate
+                if n in self.cells:
+                    continue
+                elif hasattr(c, 'value'):
                     cell = self.add_cell(
                         c, context, references=references,
                         formula_references=formula_references,
@@ -292,38 +306,48 @@ class ExcelModel:
                         stack.extend(cell.inputs or ())
         return self
 
-    def _assemble_ranges(self, cells, nodes=None):
-        get = sh.get_nested_dicts
-        pred = self.dsp.dmap.pred
+    def _assemble_ranges(self, cells, nodes=None, compact=1):
+        get, dsp = sh.get_nested_dicts, self.dsp
+        pred = dsp.dmap.pred
         if nodes is None:
-            nodes = set(self.dsp.data_nodes).difference(self.dsp.default_values)
+            nodes = set(dsp.data_nodes).difference(dsp.default_values)
         it = (
             k for k in nodes
             if not pred[k] and not isinstance(k, sh.Token)
         )
+        ranges = []
         for n_id in it:
             if isinstance(n_id, sh.Token):
                 continue
             try:
-                ra = RangesAssembler(n_id)
+                ra = RangesAssembler(n_id, compact=compact)
             except ValueError:
                 continue
             rng = ra.range.ranges[0]
-            for output, indices in get(cells, rng['sheet_id'], default=list):
-                if not ra.push(output, indices):
+            for out, idx in get(cells, 'range', rng['sheet_id'], default=list):
+                if not ra.push(idx, out):
                     break
-            ra.add(self.dsp)
+            ra.push(get(cells, 'cell', rng['sheet_id']))
+            ranges.append(ra)
 
-    def assemble(self):
+        for ra in sorted(ranges, key=lambda x: len(x.missing)):
+            ra.add(dsp)
+
+    def assemble(self, compact=1):
         cells, get = {}, sh.get_nested_dicts
         for c in self.cells.values():
             if isinstance(c, Ref):
                 continue
             rng = c.range.ranges[0]
-            get(cells, rng['sheet_id'], default=list).append((
-                c.output, RangesAssembler._range_indices(c.range)
-            ))
-        self._assemble_ranges(cells)
+            indices = RangesAssembler._range_indices(c.range)
+            if len(indices) == 1:
+                get(cells, 'cell', rng['sheet_id'])[list(indices)[0]] = c.output
+            else:
+                get(cells, 'range', rng['sheet_id'], default=list).append(
+                    (c.output, indices)
+                )
+
+        self._assemble_ranges(cells, compact=compact)
         return self
 
     def inverse_references(self):

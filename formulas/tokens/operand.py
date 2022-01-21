@@ -175,6 +175,7 @@ _re_sheet_id = regex.compile(
 )
 
 
+@functools.lru_cache()
 def _index2col(index):
     index = int(index) - 1
     if index < 0:
