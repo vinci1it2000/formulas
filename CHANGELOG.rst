@@ -2,6 +2,14 @@ Changelog
 =========
 
 
+v1.2.2 (2022-01-22)
+-------------------
+
+Fix
+~~~
+- (excel): Correct function compilation from excel.
+
+
 v1.2.1 (2022-01-21)
 -------------------
 
