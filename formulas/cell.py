@@ -65,8 +65,10 @@ def format_output(rng, value):
 class Cell:
     parser = Parser()
 
-    def __init__(self, reference, value, context=None, check_formula=True):
+    def __init__(self, reference, value, context=None, check_formula=True,
+                 replace_missing_ref=True):
         self.func = self.range = self.inputs = self.output = None
+        self.replace_missing_ref = replace_missing_ref
         if reference is not None:
             self.range = Ranges().push(reference, context=context)
             self.output = self.range.ranges[0]['name']
@@ -93,9 +95,12 @@ class Cell:
         return self
 
     def _missing_ref(self, inp, k):
-        m = _re_ref.match(k)
-        i = m and m.groupdict()['excel_id'] and '#NAME?' or '#REF!'
-        sh.get_nested_dicts(inp, Error.errors[i], default=list).append(k)
+        i = k
+        if self.replace_missing_ref:
+            m = _re_ref.match(k)
+            i = m and m.groupdict()['excel_id'] and '#NAME?' or '#REF!'
+            i = Error.errors[i]
+        sh.get_nested_dicts(inp, i, default=list).append(k)
 
     def update_inputs(self, references=None):
         if not self.builder:

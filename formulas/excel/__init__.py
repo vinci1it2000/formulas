@@ -396,11 +396,11 @@ class ExcelModel:
                 nodes.update(dict.fromkeys(d['outputs'], fun.__name__))
         return nodes
 
-    def from_dict(self, adict, context=None, assemble=True):
+    def from_dict(self, adict, context=None, assemble=True, ref=True):
         refs, cells, nodes, get = {}, {}, set(), sh.get_nested_dicts
         for k, v in adict.items():
             try:
-                cell = Cell(k, v, context=context)
+                cell = Cell(k, v, context=context, replace_missing_ref=ref)
             except ValueError:
                 ref = Ref(k, v, context=context).compile(context=context)
                 nodes.update(ref.add(self.dsp))
