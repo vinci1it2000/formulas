@@ -11,7 +11,11 @@ Python equivalents of information Excel functions.
 """
 import functools
 import numpy as np
-from . import wrap_ranges_func, Error, Array, XlError, wrap_func, is_number
+import schedula as sh
+from . import (
+    wrap_ranges_func, Error, Array, XlError, wrap_func, is_number, flatten,
+    _text2num
+)
 
 FUNCTIONS = {}
 
@@ -62,9 +66,38 @@ def isna(value):
     return value == Error.errors['#N/A']
 
 
+def xiseven_odd(number, odd=False):
+    number = tuple(flatten(number, None))
+    if len(number) > 1 or isinstance(number[0], bool):
+        return Error.errors['#VALUE!']
+    number = number[0]
+    if isinstance(number, XlError):
+        return number
+    if number is sh.EMPTY:
+        number = 0
+    v = int(_text2num(number)) % 2
+    return v != 0 if odd else v == 0
+
+
+FUNCTIONS['ISODD'] = wrap_ranges_func(functools.partial(xiseven_odd, odd=True))
+FUNCTIONS['ISEVEN'] = wrap_ranges_func(xiseven_odd)
 FUNCTIONS['ISERROR'] = wrap_ranges_func(iserror)
 FUNCTIONS['ISNUMBER'] = wrap_ranges_func(functools.partial(
     iserror, check=lambda x: is_number(x, xl_return=False), array=IsNumberArray
+))
+FUNCTIONS['ISBLANK'] = wrap_ranges_func(functools.partial(
+    iserror, check=lambda x: x is sh.EMPTY, array=IsNumberArray
+))
+FUNCTIONS['ISTEXT'] = wrap_ranges_func(functools.partial(
+    iserror, check=lambda x: isinstance(x, str) and not isinstance(x, sh.Token),
+    array=IsNumberArray
+))
+FUNCTIONS['ISNONTEXT'] = wrap_ranges_func(functools.partial(
+    iserror, check=lambda x: not isinstance(x, str) or isinstance(x, sh.Token),
+    array=IsErrorArray
+))
+FUNCTIONS['ISLOGICAL'] = wrap_ranges_func(functools.partial(
+    iserror, check=lambda x: isinstance(x, bool), array=IsNumberArray
 ))
 FUNCTIONS['ISNA'] = wrap_ranges_func(functools.partial(
     iserror, check=isna, array=IsNaArray
