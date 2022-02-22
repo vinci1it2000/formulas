@@ -90,13 +90,11 @@ FUNCTIONS['DATEVALUE'] = wrap_ufunc(
 def _int2date(serial_number):
     if 60 < serial_number <= 2958465:
         serial_number -= 1
-    elif 0 < serial_number < 60:
-        pass
     elif serial_number == 60:
         return 1900, 2, 29
     elif serial_number == 0:
         return 1900, 1, 0
-    else:
+    elif not 0 < serial_number < 60:
         raise FoundError(err=Error.errors['#NUM!'])
 
     date = DATE_ZERO + datetime.timedelta(days=serial_number)
@@ -167,13 +165,11 @@ def xweeknum(serial_number, n=1):
     serial_number, n = (int(text2num(v)) for v in args)
     if not (0 <= serial_number <= 2958465):
         return Error.errors['#NUM!']
-    if 1 <= n <= 2:
-        pass
-    elif 11 <= n <= 17:
+    if 11 <= n <= 17:
         n = n - 9
     elif n == 21:
         return xisoweeknum(serial_number)
-    else:
+    elif not 1 <= n <= 2:
         return Error.errors['#NUM!']
     n += 7
     return math.floor((serial_number - n) / 7) - math.floor(
@@ -206,6 +202,7 @@ def xdatedif(start_date, end_date, unit):
             if args[1] > 12:
                 args[0] += 1
                 args[1] = 1
+                end = end[0], end[1], end[2] - 1
         return xdate(*args[:i], *end[i:]) - start_date
     if unit == 'YM':
         dm = (end[1] - start[1]) - int(end[2] < start[2])
@@ -337,18 +334,13 @@ def xyearfrac(start_date, end_date, basis=0):
         return Error.errors['#VALUE!']
     # noinspection PyTypeChecker
     basis, dates = int(basis), [xday(*d, slice(0, 3)) for d in dates]
-    err = get_error(*dates)
-    if err:
-        return err
 
     (y1, m1, d1), (y2, m2, d2) = sorted(dates)
     denom = 360
     if basis in (0, 4):  # US 30/360 & Eurobond 30/360
         d1 = min(d1, 30)
-        if basis == 4:
+        if basis == 4 or d1 == 30:
             d2 = min(d2, 30)
-        elif d1 == 30:
-            d2 = max(d2, 30)
         n_days = 360 * (y2 - y1) + 30 * (m2 - m1) + (d2 - d1)
     else:  # Actual/actual & Actual/360 & Actual/365
         n_days = xdate(y2, m2, d2) - xdate(y1, m1, d1)
