@@ -451,7 +451,8 @@ class ExcelModel:
             if sheet_name not in sheet_names:
                 book.create_sheet(sheet_name)
             sheet = book[sheet_name]
-
+            rng['c1'] = rng['c1'] or 'A'
+            rng['r1'] = int(rng['r1']) or 1
             ref = '{c1}{r1}:{c2}{r2}'.format(**rng)
             for c, v in zip(flatten(sheet[ref], None), flatten(r.value, None)):
                 try:

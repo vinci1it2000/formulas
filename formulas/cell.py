@@ -271,7 +271,10 @@ class RangesAssembler:
                 if isinstance(v, dict):
                     v = ists[n] = _get_indices_intersection(base, v)
                 i, j = v
-                out[i, j] = sol[n].value
+                v = sol[n]
+                if isinstance(sol[n], Ranges):
+                    v = v.value
+                out[i, j] = v
         else:
             out = np.empty(_shape(**base), object)
         for c, ind in zip(cells, self.inputs.values()):

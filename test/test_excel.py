@@ -24,6 +24,7 @@ EXTRAS = os.environ.get('EXTRAS', 'all')
 mydir = osp.join(osp.dirname(__file__), 'test_files')
 _filename = 'test.xlsx'
 _filename_compile = 'excel.xlsx'
+_filename_full_range = 'full-range.xlsx'
 _link_filename = 'test_link.xlsx'
 _filename_circular = 'circular.xlsx'
 
@@ -57,6 +58,7 @@ class TestExcelModel(unittest.TestCase):
         self.link_filename = osp.join(mydir, _link_filename)
         self.filename_compile = osp.join(mydir, _filename_compile)
         self.filename_circular = osp.join(mydir, _filename_circular)
+        self.filename_full_range = osp.join(mydir, _filename_full_range)
 
         self.results = _file2books(self.filename, self.link_filename)
         sh.get_nested_dicts(self.results, 'EXTRA.XLSX', 'EXTRA').update({
@@ -66,6 +68,10 @@ class TestExcelModel(unittest.TestCase):
             load_workbook(self.filename_compile, data_only=True)
         )['DATA']
         self.results_circular = _file2books(self.filename_circular)
+        self.results_full_range = _file2books(self.filename_full_range)
+        sh.get_nested_dicts(
+            self.results_full_range, 'FULL-RANGE.XLSX', 'DATA'
+        ).update({'A6': 5, 'B2': 18})
         self.maxDiff = None
 
     def _compare(self, books, results):
@@ -129,7 +135,8 @@ class TestExcelModel(unittest.TestCase):
                 print(msg % (_msg, time.time() - s, _msg))
                 s = time.time()
 
-                n_test += self._compare(_res2books(xl_mdl.write()), self.results)
+                n_test += self._compare(_res2books(xl_mdl.write()),
+                                        self.results)
 
                 msg = '%sCompared fresh written results in %.2fs.'
                 print(msg % (_msg, time.time() - s))
@@ -232,6 +239,21 @@ class TestExcelModel(unittest.TestCase):
         }
 
         self._compare(books, self.results_circular)
+
+    def test_excel_model_full_range(self):
+        xl_model = ExcelModel().loads(self.filename_full_range).finish()
+        xl_model.calculate({
+            "'[full-range.xlsx]DATA'!A6": 5,
+            "'[full-range.xlsx]DATA'!A7": Ranges().push(
+                "'[full-range.xlsx]DATA'!A7", 1
+            )
+        })
+        books = {
+            k: _book2dict(v[BOOK]) for k, v in
+            xl_model.write(xl_model.books).items()
+        }
+
+        self._compare(books, self.results_full_range)
 
     def tearDown(self) -> None:
         shutil.rmtree(osp.join(mydir, 'tmp'), ignore_errors=True)

@@ -78,9 +78,9 @@ def _merge_col_update(base, rng):
 
 
 def _get_indices_intersection(base, i):
-    r, c = int(base['r1']), base['n1']
-    r = slice(int(i['r1']) - r, int(i['r2']) - r + 1)
-    c = slice(i['n1'] - c, i['n2'] - c + 1)
+    r, c = int(base['r1']) or 1, base['n1'] or 1
+    r = slice((int(i['r1']) or 1) - r, (int(i['r2']) or 1) - r + 1)
+    c = slice((i['n1'] or 1) - c, (i['n2'] or 1) - c + 1)
     return r, c
 
 
@@ -100,8 +100,8 @@ def _assemble_values(base, values, out=None):
 # noinspection PyUnusedLocal
 def _shape(n1, n2, r1, r2, **kw):
     r1, r2 = int(r1), int(r2)
-    r = maxrow if r1 == 0 or r2 == maxrow else (r2 - r1 + 1)
-    c = maxcol if n1 == 0 or n2 == maxcol else (n2 - n1 + 1)
+    r = maxrow if r1 == 0 and r2 == maxrow else (r2 - r1 + 1)
+    c = maxcol if n1 == 0 and n2 == maxcol else (n2 - n1 + 1)
     return r, c
 
 
