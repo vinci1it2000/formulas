@@ -28,6 +28,8 @@ def _default_filter():
 
 
 class AstBuilder:
+    compile_class = sh.DispatchPipe
+
     def __init__(self, dsp=None, nodes=None, match=None):
         self._deque = collections.deque()
         self.match = match
@@ -131,4 +133,4 @@ class AstBuilder:
                         i[k] = None
         dsp.raises = True
         dsp.nodes[o]['filters'] = _default_filter()
-        return sh.DispatchPipe(dsp, '=%s' % o, i, [o], wildcard=False)
+        return self.compile_class(dsp, '=%s' % o, i, [o], wildcard=False)
