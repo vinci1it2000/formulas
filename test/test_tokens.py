@@ -16,7 +16,8 @@ from formulas.errors import TokenError
 @ddt.ddt
 class TestTokens(unittest.TestCase):
     @ddt.data(('A:A', 'A:A'), ('1:1', '1:1'), ('A1', 'A1'), ('A:A5', 'A:A5'),
-              ('A1:B2', 'A1:B2'))
+              ('A1:B2', 'A1:B2'), ('R1C1', 'A1'), ('R1C1:R2C2', 'A1:B2'),
+              ('R[1]C[1]', 'B2'))
     def test_range(self, case):
         inputs, result = case
         token = Range(inputs)

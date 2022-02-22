@@ -71,7 +71,11 @@ class Cell:
         self.replace_missing_ref = replace_missing_ref
         if reference is not None:
             self.range = Ranges().push(reference, context=context)
-            self.output = self.range.ranges[0]['name']
+            r = self.range.ranges[0]
+            context = sh.combine_dicts(context or {}, base={
+                'cr': r['r1'], 'cc': r['n1']
+            })
+            self.output = r['name']
         self.builder, self.value = None, sh.EMPTY
         prs = self.parser
         if check_formula and isinstance(value, str) and prs.is_formula(value):
@@ -184,8 +188,6 @@ class Ref(Cell):
         super(Ref, self).compile(references=references, context=context)
         if self.inputs:
             self.func.dsp.nodes[self.func.outputs[0]].pop('filters', None)
-        elif self.value is not sh.EMPTY:
-            self.value, self.func = self.func(), None
         return self
 
 

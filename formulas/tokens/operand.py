@@ -115,6 +115,19 @@ _re_sheet_id = r"""
 _re_range = r"""
     (?>
         (?>
+            (?>
+                R\[(?P<rr1>[\+-]?[1-9]\d*)\]C\[(?P<rc1>[\+-]?[1-9]\d*)\]
+                (?>:R\[(?P<rr2>[\+-]?[1-9]\d*)\]C\[(?P<rc2>[\+-]?[1-9]\d*)\])?
+            )
+        |
+            R\[(?P<rr1>[\+-]?[1-9]\d*)\]C\[(?P<rc1>[\+-]?[1-9]\d*)\]
+        |
+            R\[(?P<rr1>[\+-]?[1-9]\d*)\]:R\[(?P<rr2>[\+-]?[1-9]\d*)\]
+        |
+            C\[(?P<rc1>[\+-]?[1-9]\d*)\]:C\[(?P<rc2>[\+-]?[1-9]\d*)\]
+        )
+    |
+        (?>
             %s!
         )?
         (?>
@@ -145,19 +158,6 @@ _re_range = r"""
             )(?![_\.\w])
         |
             %s
-        )
-    |
-        (?>
-            (?>
-                R\[(?P<rr1>[\+-]?[1-9]\d*)\]C\[(?P<rc1>[\+-]?[1-9]\d*)\]
-                (?>:R\[(?P<rr2>[\+-]?[1-9]\d*)\]C\[(?P<rc2>[\+-]?[1-9]\d*)\])?
-            )
-        |
-            R\[(?P<rr1>[\+-]?[1-9]\d*)\]C\[(?P<rc1>[\+-]?[1-9]\d*)\]
-        |
-            R\[(?P<rr1>[\+-]?[1-9]\d*)\]:R\[(?P<rr2>[\+-]?[1-9]\d*)\]
-        |
-            C\[(?P<rc1>[\+-]?[1-9]\d*)\]:C\[(?P<rc2>[\+-]?[1-9]\d*)\]
         )
     )
     (?![\(\w])
@@ -299,20 +299,20 @@ def fast_range2parts_v1(r1, c1, sheet_id):
     }
 
 
-def fast_range2parts_v2(r1, n1, sheet_id):
+def fast_range2parts_v2(r1, c1, r2, c2, sheet_id):
+    ref = _build_ref(c1, r1, c2, r2).upper()
+    return {
+        'r1': r1, 'r2': r2, 'c1': c1, 'c2': c2, 'n1': _col2index(c1),
+        'n2': _col2index(c2), 'ref': ref, 'name': _build_id(ref, sheet_id)
+    }
+
+
+def fast_range2parts_v3(r1, n1, sheet_id):
     c1 = _index2col(n1)
     ref = '{}{}'.format(*_build_cel(c1, r1)).upper()
     return {
         'r1': r1, 'r2': r1, 'c1': c1, 'c2': c1, 'n1': n1, 'n2': n1, 'ref': ref,
         'name': _build_id(ref, sheet_id)
-    }
-
-
-def fast_range2parts_v3(r1, c1, r2, c2, sheet_id):
-    ref = _build_ref(c1, r1, c2, r2).upper()
-    return {
-        'r1': r1, 'r2': r2, 'c1': c1, 'c2': c2, 'n1': _col2index(c1),
-        'n2': _col2index(c2), 'ref': ref, 'name': _build_id(ref, sheet_id)
     }
 
 

@@ -18,6 +18,7 @@ import schedula as sh
 from formulas.excel import ExcelModel, BOOK, ERR_CIRCULAR
 from formulas.excel.xlreader import load_workbook
 from formulas.functions import is_number
+from formulas.ranges import Ranges
 
 EXTRAS = os.environ.get('EXTRAS', 'all')
 
@@ -71,7 +72,7 @@ class TestExcelModel(unittest.TestCase):
         self.results_full_range = _file2books(self.filename_full_range)
         sh.get_nested_dicts(
             self.results_full_range, 'FULL-RANGE.XLSX', 'DATA'
-        ).update({'A6': 5, 'B2': 18})
+        ).update({'A6': 5, 'A7': 1, 'B2': 19})
         self.maxDiff = None
 
     def _compare(self, books, results):
@@ -254,6 +255,15 @@ class TestExcelModel(unittest.TestCase):
         }
 
         self._compare(books, self.results_full_range)
+
+    def test_excel_from_dict(self):
+        xl_model = ExcelModel().from_dict({
+            'A1': 1, 'B2': '=R[-1]C[-1]', 'A': 2, 'B': '=2'
+        }).finish()
+        self.assertEqual({
+            k: v.value if isinstance(v, Ranges) else v
+            for k, v in xl_model.calculate().items()
+        }, {'A1': 1, 'B2': 1, 'A': 2, 'B': 2})
 
     def tearDown(self) -> None:
         shutil.rmtree(osp.join(mydir, 'tmp'), ignore_errors=True)
