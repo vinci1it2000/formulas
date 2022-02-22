@@ -72,10 +72,10 @@ class Cell:
         if reference is not None:
             self.range = Ranges().push(reference, context=context)
             self.output = self.range.ranges[0]['name']
-        self.tokens, self.builder, self.value = (), None, sh.EMPTY
+        self.builder, self.value = None, sh.EMPTY
         prs = self.parser
         if check_formula and isinstance(value, str) and prs.is_formula(value):
-            self.tokens, self.builder = prs.ast(value, context=context)
+            self.builder = prs.ast(value, context=context)[1]
         elif value is not None:
             self.value = value
 
@@ -86,12 +86,13 @@ class Cell:
         return self.output
 
     def compile(self, references=None, context=None):
-        if self.builder:
+        if not self.func and self.builder:
             func = self.builder.compile(
                 references=references, context=context, **{CELL: self.range}
             )
             self.func = wrap_cell_func(func, self._args)
             self.update_inputs(references=references)
+            self.builder = None
         return self
 
     def _missing_ref(self, inp, k):
@@ -103,8 +104,6 @@ class Cell:
         sh.get_nested_dicts(inp, i, default=list).append(k)
 
     def update_inputs(self, references=None):
-        if not self.builder:
-            return
         self.inputs = inp = collections.OrderedDict()
         references, get = references or set(), sh.get_nested_dicts
         for k, rng in self.func.inputs.items():

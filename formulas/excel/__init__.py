@@ -114,16 +114,18 @@ class ExcelModel:
         formula_references = self.formula_references(context)
         formula_ranges = self.formula_ranges(context)
         external_links = self.external_links(context)
-
+        ctx = {'external_links': external_links}
+        ctx.update(context)
+        cells = []
         for row in worksheet.iter_rows():
             for c in row:
                 if hasattr(c, 'value'):
-                    self.add_cell(
-                        c, context, references=references,
-                        formula_references=formula_references,
-                        formula_ranges=formula_ranges,
-                        external_links=external_links
-                    )
+                    cells.append(self.compile_cell(
+                        c, ctx, references, formula_references
+                    ))
+        for cell in cells:
+            # noinspection PyTypeChecker
+            self.add_cell(sh.await_result(cell), ctx, formula_ranges)
         return self
 
     def add_book(self, book=None, context=None, data_only=False):
@@ -210,37 +212,28 @@ class ExcelModel:
     def external_links(self, ctx):
         return sh.get_nested_dicts(self.books, ctx['excel'], 'external_links')
 
-    def add_cell(self, cell, context, references=None, formula_references=None,
-                 formula_ranges=None, external_links=None):
-        if formula_references is None:
-            formula_references = self.formula_references(context)
+    @staticmethod
+    def _compile_cell(crd, val, context, check_formula, references):
+        cell = Cell(crd, val, context=context, check_formula=check_formula)
+        cell.compile(references=references, context=context)
+        return cell
 
-        if formula_ranges is None:
-            formula_ranges = self.formula_ranges(context)
-
-        if references is None:
-            references = self.references
-
-        if external_links is None:
-            external_links = self.external_links(context)
-
-        ctx = {'external_links': external_links}
-        ctx.update(context)
+    def compile_cell(self, cell, context, references, formula_references):
         crd = cell.coordinate
         crd = formula_references.get(crd, crd)
         val = cell.value
         val = cell.data_type == 'f' and val[:2] == '==' and val[1:] or val
         check_formula = cell.data_type != 's'
-        cell = Cell(crd, val, context=ctx, check_formula=check_formula).compile(
-            references=references, context=ctx
-        )
+        return self._compile_cell(crd, val, context, check_formula, references)
+
+    def add_cell(self, cell, context, formula_ranges):
         if cell.output in self.cells:
             return
         if cell.value is not sh.EMPTY:
             if any(not (cell.range - rng).ranges for rng in formula_ranges):
                 return
 
-        if cell.add(self.dsp, context=ctx):
+        if cell.add(self.dsp, context=context):
             self.cells[cell.output] = cell
             return cell
 
@@ -291,19 +284,22 @@ class ExcelModel:
                 int(rng['r1']), min(int(rng['r2']), max_row),
                 rng['n1'], min(rng['n2'], max_column)
             )
+            ctx = {'external_links': external_links}
+            ctx.update(context)
+            cells = []
             for c in flatten(it, None):
                 n = _name % c.coordinate
                 if n in self.cells:
                     continue
                 elif hasattr(c, 'value'):
-                    cell = self.add_cell(
-                        c, context, references=references,
-                        formula_references=formula_references,
-                        formula_ranges=formula_ranges,
-                        external_links=external_links
-                    )
-                    if cell:
-                        stack.extend(cell.inputs or ())
+                    cells.append(self.compile_cell(
+                        c, ctx, references, formula_references
+                    ))
+            for cell in cells:
+                # noinspection PyTypeChecker
+                cell = self.add_cell(sh.await_result(cell), ctx, formula_ranges)
+                if cell:
+                    stack.extend(cell.inputs or ())
         return self
 
     def _assemble_ranges(self, cells, nodes=None, compact=1):
