@@ -266,7 +266,7 @@ class ExcelModel:
             except Exception as ex:  # Missing excel file or sheet.
                 log.warning('Error in loading `{}`:\n{}'.format(n_id, ex))
                 Cell(n_id, '=#REF!').compile().add(self.dsp)
-                self.books.pop(book)
+                self.books.pop(book, None)
                 continue
 
             references = self.references
@@ -313,8 +313,6 @@ class ExcelModel:
         )
         ranges = []
         for n_id in it:
-            if isinstance(n_id, sh.Token):
-                continue
             try:
                 ra = RangesAssembler(n_id, compact=compact)
             except ValueError:

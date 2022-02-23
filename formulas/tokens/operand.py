@@ -214,7 +214,7 @@ def _build_ref(c1, r1, c2, r2):
     if v1 == v2 and c1 and r1:
         if v1:
             return v1
-        raise ValueError()
+        raise ValueError
     return '%s:%s' % (v1, v2)
 
 

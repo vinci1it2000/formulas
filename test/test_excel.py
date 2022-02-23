@@ -69,10 +69,13 @@ class TestExcelModel(unittest.TestCase):
             load_workbook(self.filename_compile, data_only=True)
         )['DATA']
         self.results_circular = _file2books(self.filename_circular)
-        self.results_full_range = _file2books(self.filename_full_range)
+        self.results_full_range = {
+            'TEST_FILES/%s' % k: v
+            for k, v in _file2books(self.filename_full_range).items()
+        }
         sh.get_nested_dicts(
-            self.results_full_range, 'FULL-RANGE.XLSX', 'DATA'
-        ).update({'A6': 5, 'A7': 1, 'B2': 19})
+            self.results_full_range, 'TEST_FILES/FULL-RANGE.XLSX', 'DATA'
+        ).update({'A6': 5, 'A7': 1, 'B2': 19, 'B5': 25})
         self.maxDiff = None
 
     def _compare(self, books, results):
@@ -242,12 +245,16 @@ class TestExcelModel(unittest.TestCase):
         self._compare(books, self.results_circular)
 
     def test_excel_model_full_range(self):
-        xl_model = ExcelModel().loads(self.filename_full_range).finish()
+        fname = osp.basename(self.filename_full_range)
+        xl_model = ExcelModel()
+        xl_model.basedir = osp.dirname(__file__)
+        xl_model.complete([
+            f"'test_files/[{fname}]DATA'!B5"
+        ]).finish(complete=False)
+        sheet_name = f'test_files/[{fname}]DATA'
         xl_model.calculate({
-            "'[full-range.xlsx]DATA'!A6": 5,
-            "'[full-range.xlsx]DATA'!A7": Ranges().push(
-                "'[full-range.xlsx]DATA'!A7", 1
-            )
+            f"'{sheet_name}'!A6": 5,
+            f"'{sheet_name}'!A7": Ranges().push(f"'{sheet_name}'!A7", 1)
         })
         books = {
             k: _book2dict(v[BOOK]) for k, v in

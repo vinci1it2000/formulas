@@ -23,6 +23,10 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
+        ('A1', '=ROMAN(0)', {}, '<Ranges>(A1)=[[\'\']]'),
+        ('A1', '=ROMAN(1)', {}, '<Ranges>(A1)=[[\'I\']]'),
+        ('A1', '=ROMAN(4000)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=ROMAN(1, 5)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=ADDRESS(2,3,2,FALSE)', {}, '<Ranges>(A1)=[[\'R2C[3]\']]'),
         ('A1', '=ADDRESS(2,3,2)', {}, '<Ranges>(A1)=[[\'C$2\']]'),
         ('A1', '=ADDRESS(2,3)', {}, '<Ranges>(A1)=[[\'$C$2\']]'),
@@ -105,6 +109,7 @@ class TestCell(unittest.TestCase):
         ('A1', '=DATEDIF(222,222289,"D")', {}, '<Ranges>(A1)=[[222067]]'),
         ('A1', '=DATEDIF(222,222222,"D")', {}, '<Ranges>(A1)=[[222000]]'),
         ('A1', '=EDATE(1, TRUE)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=EDATE(1, "DSD")', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=WEEKDAY(-1, 21)', {}, '<Ranges>(A1)=[[#NUM!]]'),
         ('A1', '=DAY(1)', {}, '<Ranges>(A1)=[[1]]'),
         ('A1', '=WEEKNUM(-1, 21)', {}, '<Ranges>(A1)=[[#NUM!]]'),
@@ -460,7 +465,10 @@ class TestCell(unittest.TestCase):
         ('A1', '=OR(TRUE,#REF!,"0")', {}, '<Ranges>(A1)=[[#REF!]]'),
         ('A1', '=OR(FALSE,"0",#REF!)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=INDEX({2,3;4,5},FALSE,"0")', {}, '<Ranges>(A1)=[[2]]'),
+        ('A1', '=INDEX({2,3;4,5},0,0)', {}, '<Ranges>(A1)=[[2]]'),
         ('A1', '=INDEX({2,3;4,5}, -1)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=INDEX({2,3;4,5}, 0, 0, -1)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=INDEX({2,3;4,5}, 0, -1)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=INDEX(B1:C1, 1, 1)', {'B1:C1': [[sh.EMPTY, 2]]},
          '<Ranges>(A1)=[[0]]'),
         ('A1', '=INDEX(B1:C2, -1)', {'B1:C2': [[1, 2], [3, 4]]},
@@ -528,6 +536,7 @@ class TestCell(unittest.TestCase):
          '<Ranges>(A11)=[[54]]'),
         ('A11', '=ROW(L45)', inp_ranges('L45'), '<Ranges>(A11)=[[45]]'),
         ('A11', '=ROW()', {}, '<Ranges>(A11)=[[11]]'),
+        ('A1', '=REF()', {}, "<Ranges>(A1)=[[#NAME?]]"),
         ('A1', '=REF', {}, "<Ranges>(A1)=[[#REF!]]"),
         ('A1', '=(-INT(2))', {}, '<Ranges>(A1)=[[-2.0]]'),
         ('A1', '=(1+1)+(1+1)', {}, '<Ranges>(A1)=[[4.0]]'),

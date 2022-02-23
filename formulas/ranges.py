@@ -20,10 +20,7 @@ import schedula as sh
 
 
 def _has_same_sheet(x, y):
-    try:
-        return x['sheet_id'] == y['sheet_id']
-    except KeyError:
-        return False
+    return x.get('sheet_id', True) == y.get('sheet_id', False)
 
 
 def _intersect(x, y):
