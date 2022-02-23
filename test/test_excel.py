@@ -47,7 +47,7 @@ def _res2books(res):
 
 def _file2books(*fpaths):
     d = osp.dirname(fpaths[0])
-    return {osp.relpath(fp, d).upper(): _book2dict(
+    return {osp.relpath(fp, d).upper().replace('\\', '/'): _book2dict(
         load_workbook(fp, data_only=True)
     ) for fp in fpaths}
 

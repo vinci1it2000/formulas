@@ -55,6 +55,14 @@ def _get_name(name, names):
     return name
 
 
+def _encode_path(path):
+    return path.replace('\\', '/')
+
+
+def _decode_path(path):
+    return path.replace('/', osp.sep)
+
+
 class ExcelModel:
     compile_class = sh.DispatchPipe
 
@@ -132,17 +140,21 @@ class ExcelModel:
         ctx = (context or {}).copy()
         are_in, get_in = sh.are_in_nested_dicts, sh.get_nested_dicts
         if isinstance(book, str):
-            ctx['directory'], ctx['filename'] = osp.split(book)
+            book = _encode_path(book).split('/')
+            ctx['directory'], ctx['filename'] = '/'.join(book[:-1]), book[-1]
         if self.basedir is None:
-            self.basedir = osp.abspath(ctx['directory'] or '.')
+            directory = _encode_path(ctx.get('directory') or '.')
+            self.basedir = osp.abspath(_decode_path(directory))
+            ctx['directory'] = ''
         if ctx['directory']:
-            ctx['directory'] = osp.relpath(
-                osp.join(self.basedir, ctx['directory']), self.basedir
-            )
+            ctx['directory'] = _encode_path(osp.relpath(
+                osp.join(self.basedir, _decode_path(ctx['directory'])),
+                self.basedir
+            ))
         if ctx['directory'] == '.':
             ctx['directory'] = ''
-        fpath = osp.join(ctx['directory'], ctx['filename'])
-        ctx['excel'] = fpath.upper()
+        fpath = osp.join(_decode_path(ctx['directory']), ctx['filename'])
+        ctx['excel'] = _encode_path(fpath).upper()
         data = get_in(self.books, ctx['excel'])
         book = data.get(BOOK)
         if not book:
@@ -152,13 +164,17 @@ class ExcelModel:
             )
 
         if 'external_links' not in data:
-            fdir = osp.join(self.basedir, ctx['directory'])
+            fdir = osp.join(self.basedir, _decode_path(ctx['directory']))
             data['external_links'] = {
                 str(i + 1): osp.split(osp.relpath(osp.realpath(osp.join(
-                    fdir, el.file_link.Target
+                    fdir, _decode_path(el.file_link.Target)
                 )), self.basedir))
                 for i, el in enumerate(book._external_links)
                 if el.file_link.Target.endswith('.xlsx')
+            }
+            data['external_links'] = {
+                k: (_encode_path(d), f)
+                for k, (d, f) in data['external_links'].items()
             }
 
         if 'references' not in data:
@@ -259,8 +275,10 @@ class ExcelModel:
                 log.warning('Missing Reference `{}`!'.format(n_id))
                 Ref(n_id, '=#REF!').compile().add(self.dsp)
                 continue
-            book = osp.join(rng.get('directory', ''),
-                            rng.get('filename', rng.get('excel_id', '')))
+            book = _encode_path(osp.join(
+                _decode_path(rng.get('directory', '')),
+                _decode_path(rng.get('filename', rng.get('excel_id', '')))
+            ))
 
             try:
                 context = self.add_book(book)[1]
@@ -430,7 +448,9 @@ class ExcelModel:
                     rng = r.ranges[0]
                 except ValueError:  # Reference.
                     rng = {'sheet': ''}
-            fpath = osp.join(rng.get('directory', ''), rng.get('filename', ''))
+            fpath = _encode_path(osp.join(
+                _decode_path(rng.get('directory', '')), rng.get('filename', '')
+            ))
             fpath, sheet_name = _get_name(fpath, books), rng.get('sheet')
             if not (fpath and sheet_name):
                 log.info('Node `%s` cannot be saved '
@@ -470,7 +490,7 @@ class ExcelModel:
         if dirpath:
             os.makedirs(dirpath, exist_ok=True)
             for fpath, d in books.items():
-                d[BOOK].save(osp.join(dirpath, fpath))
+                d[BOOK].save(osp.join(dirpath, _decode_path(fpath)))
         return books
 
     def compile(self, inputs, outputs):
