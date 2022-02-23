@@ -1,4 +1,4 @@
-name: build
+name: test cases
 
 on:
   schedule:
