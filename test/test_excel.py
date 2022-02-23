@@ -94,7 +94,10 @@ class TestExcelModel(unittest.TestCase):
             except AssertionError as ex:
                 errors.append(str(ex))
         self.assertFalse(
-            bool(errors), 'Errors(%d):\n%s' % (len(errors), '\n'.join(errors))
+            bool(errors),
+            'Errors({}):\n{}\n\nCalculated:\n{}\n\nTarget:\n{}'.format(
+                len(errors), '\n'.join(errors), books, results
+            )
         )
         return len(it)
 
