@@ -12,7 +12,8 @@ Python equivalents of logical Excel functions.
 import functools
 import numpy as np
 from . import (
-    wrap_ufunc, Error, flatten, get_error, value_return, wrap_func, raise_errors
+    wrap_ufunc, Error, flatten, get_error, value_return, wrap_func, XlError,
+    raise_errors
 )
 
 FUNCTIONS = {}
@@ -100,7 +101,7 @@ def xswitch(val, *args):
     else:
         condition = lambda x: val == x
     for k, v in zip(args[::2], args[1::2]):
-        if isinstance(k, Error):
+        if isinstance(k, XlError):
             return k
         elif condition(k):
             return v

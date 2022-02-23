@@ -495,6 +495,7 @@ class TestCell(unittest.TestCase):
         ('A1', '=LOOKUP(2,{-1.1,2.1,3.1,4.1})', {}, '<Ranges>(A1)=[[-1.1]]'),
         ('A1', '=LOOKUP(3,{-1.1,2.1,3.1,4.1})', {}, '<Ranges>(A1)=[[2.1]]'),
         ('A1', '=SWITCH(TRUE,1,0,,,TRUE,1,7)', {}, '<Ranges>(A1)=[[1]]'),
+        ('A1', '=SWITCH(TRUE,1,0,#REF!,3,TRUE,1,7)', {}, '<Ranges>(A1)=[[#REF!]]'),
         ('A1:D1', '=SWITCH({0,1,TRUE},1,0,,,TRUE,1,7)', {},
          '<Ranges>(A1:D1)=[[0 0 1 #N/A]]'),
         ('A1', '=SWITCH(1,2,0,1,4,,4,5)', {}, '<Ranges>(A1)=[[4]]'),
