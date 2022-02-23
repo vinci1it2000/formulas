@@ -306,7 +306,7 @@ Things yet to do: implement the missing Excel formulas.
     :target: https://raw.githubusercontent.com/vinci1it2000/formulas/master/LICENSE.txt
     :alt: Project License
 
-.. |dependencies| image:: https://img.shields.io/requires/github/vinci1it2000/formulas.svg?
+.. |dependencies| image:: https://requires.io/github/vinci1it2000/formulas/requirements.svg?branch=master
     :target: https://requires.io/github/vinci1it2000/formulas/requirements/?branch=master
     :alt: Dependencies up-to-date?
 
