@@ -136,7 +136,9 @@ class ExcelModel:
         if self.basedir is None:
             self.basedir = osp.abspath(ctx['directory'] or '.')
         if ctx['directory']:
-            ctx['directory'] = osp.relpath(ctx['directory'], self.basedir)
+            ctx['directory'] = osp.relpath(
+                osp.join(self.basedir, ctx['directory']), self.basedir
+            )
         if ctx['directory'] == '.':
             ctx['directory'] = ''
         fpath = osp.join(ctx['directory'], ctx['filename'])
