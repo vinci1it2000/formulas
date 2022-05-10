@@ -2,6 +2,40 @@ Changelog
 =========
 
 
+v1.2.3 (2022-05-10)
+-------------------
+
+Feat
+~~~~
+- (test): Add more error logs.
+
+- (test): Improve code coverage.
+
+- (builder): Add `compile_class` attribute to `AstBuilder`.
+
+- (info): Add `ISODD`, `ISEVEN`, `ISBLANK`, `ISTEXT`, `ISNONTEXT`, and
+  `ISLOGICAL` functions.
+
+
+Fix
+~~~
+- (excel): Correct file path excel definition.
+
+- (logic): Correct `SWITCH` error handling.
+
+- (actions): Rename workflow name.
+
+- (readme): Correct badge link for dependencies status.
+
+- (excel): Correct `basedir` reference to load files.
+
+- (date): Correct `YEARFRAC` and `DATEDIF` formulation.
+
+- (cell): Enable R1C1 notation for absolute and relative references.
+
+- (cell): Correct RangeAssembler value assignment.
+
+
 v1.2.2 (2022-01-22)
 -------------------
 
