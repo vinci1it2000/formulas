@@ -16,7 +16,7 @@ import numpy as np
 import schedula as sh
 from . import (
     wrap_func, wrap_ufunc, Error, get_error, XlError, FoundError, Array,
-    parse_ranges, value_return
+    parse_ranges, value_return, _text2num
 )
 from ..ranges import Ranges
 from ..cell import CELL
@@ -235,7 +235,7 @@ FUNCTIONS['LOOKUP'] = wrap_ufunc(
 
 
 def _hlookup_parser(val, vec, index, match_type=1, transpose=False):
-    index = np.ravel(index)[0] - 1
+    index = int(_text2num(np.ravel(index)[0]) - 1)
     vec = np.matrix(vec)
     if transpose:
         vec = vec.T
