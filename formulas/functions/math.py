@@ -325,10 +325,11 @@ def xsumproduct(*args):
     # Check all arrays are the same length
     # Excel returns #VAlUE! error if they don't match
     raise_errors(args)
+    args = tuple(map(np.asarray, args))
     assert len(set(arg.size for arg in args)) == 1
     inputs = []
     for a in args:
-        a = np.asarray(a).ravel()
+        a = a.ravel()
         x = np.zeros_like(a, float)
         b = np.vectorize(is_number)(a)
         x[b] = a[b]
