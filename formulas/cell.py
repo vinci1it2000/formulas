@@ -229,7 +229,7 @@ class RangesAssembler:
         sheet_id = base['sheet_id']
         ists = {}
         nodes = dsp.default_values
-        _name = f'{sheet_id}!%s'
+        _name = f'{sheet_id}!%s' if sheet_id else '%s'
         for n, r in tuple(self.missing):
             c = _index2col(n)
             ref = '{}{}'.format(c, r)
