@@ -212,17 +212,12 @@ class RangesAssembler:
         return self.range.ranges[0]['name']
 
     def push(self, indices, output=None):
-        missing = self.missing
-        if not missing.isdisjoint(indices):
-            if output is None:
-                self.inputs.update({
-                    indices[k]: None for k in missing.intersection(indices)
-                })
-            else:
-                self.inputs[output] = None
-            self.missing = missing = self.missing - set(indices)
-
-        return missing
+        it = {i for i in self.missing if i in indices}
+        if it:
+            self.missing.difference_update(it)
+            it = (indices[i] for i in it) if output is None else (output,)
+            self.inputs.update(dict.fromkeys(it, None))
+        return self.missing
 
     def add(self, dsp):
         base = self.range.ranges[0]
