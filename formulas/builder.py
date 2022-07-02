@@ -62,12 +62,12 @@ class AstBuilder:
             out, dmap, get_id = token.node_id, self.dsp.dmap, get_unused_node_id
             if out not in self.dsp.nodes:
                 func = token.compile()
-                kw = dict(
-                    function_id=get_id(dmap, token.name),
-                    function=func,
-                    inputs=inputs or None,
-                    outputs=[out],
-                )
+                kw = {
+                    'function_id': get_id(dmap, token.name),
+                    'function': func,
+                    'inputs': inputs or None,
+                    'outputs': [out]
+                }
                 if isinstance(func, dict):
                     _inputs = func.get('extra_inputs', {})
                     for k, v in _inputs.items():
@@ -104,10 +104,12 @@ class AstBuilder:
 
     def compile(self, references=None, context=None, **inputs):
         dsp, inp = self.dsp, inputs.copy()
-        for k in set(dsp.data_nodes).intersection(references or {}):
-            ref = references[k]
-            if ref is not None:
-                inp[k] = ref if isinstance(ref, Ranges) else Ranges().push(ref)
+        for k, ref in (references or {}).items():
+            if k in dsp.data_nodes:
+                if isinstance(ref, Ranges):
+                    inp[k] = ref
+                elif ref is not None:
+                    inp[k] = Ranges().push(ref)
         inp[COMPILING] = True
         res, o = dsp(inp), self.get_node_id(self[-1])
         dsp = dsp.get_sub_dsp_from_workflow(
@@ -133,4 +135,6 @@ class AstBuilder:
                         i[k] = None
         dsp.raises = True
         dsp.nodes[o]['filters'] = _default_filter()
-        return self.compile_class(dsp, '=%s' % o, i, [o], wildcard=False)
+        return self.compile_class(
+            dsp, '=%s' % o, i, [o], wildcard=False, shrink=False
+        )

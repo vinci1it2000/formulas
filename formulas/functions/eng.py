@@ -79,9 +79,8 @@ def _dec2x(x, places=None, base=16):
     return Error.errors['#NUM!']
 
 
-@functools.lru_cache()
-def hex2dec2bin2oct(function_id):
-    dsp = sh.Dispatcher(raises=True)
+def hex2dec2bin2oct(function_id, memo):
+    dsp = sh.BlueDispatcher(raises=True)
 
     for k in ('HEX', 'OCT', 'BIN'):
         dsp.add_data(k, filters=[_parseX])
@@ -133,10 +132,10 @@ def hex2dec2bin2oct(function_id):
     _func = sh.DispatchPipe(dsp, function_id, [i, 'places'], [o])
 
     def func(x, places=None):
-        return _func(x, places)
+        return _func.register(memo=memo)(x, places)
 
     return func
 
-
+_memo = {}
 for k in map('2'.join, itertools.permutations(['HEX', 'OCT', 'BIN', 'DEC'], 2)):
-    FUNCTIONS[k] = wrap_func(hex2dec2bin2oct(k))
+    FUNCTIONS[k] = wrap_func(hex2dec2bin2oct(k, _memo))

@@ -154,9 +154,7 @@ class Cell:
                             dsp.add_data(k, val)
                         else:
                             try:
-                                rng = Ranges.get_range(
-                                    Ranges.format_range, k, context
-                                )
+                                rng = Ranges.get_range(k, ctx)
                                 f = functools.partial(format_output, rng),
                             except ValueError:
                                 f = ()
@@ -263,15 +261,15 @@ class RangesAssembler:
             ists = self.inputs[sh.SELF]
             sol = cells[-1].solution
             cells = cells[:-1]
-            for n in set(ists).intersection(sol):
-                v = ists[n]
-                if isinstance(v, dict):
-                    v = ists[n] = _get_indices_intersection(base, v)
-                i, j = v
-                v = sol[n]
-                if isinstance(sol[n], Ranges):
-                    v = v.value
-                out[i, j] = v
+            for n, v in ists.items():
+                if n in sol:
+                    if isinstance(v, dict):
+                        v = ists[n] = _get_indices_intersection(base, v)
+                    i, j = v
+                    v = sol[n]
+                    if isinstance(sol[n], Ranges):
+                        v = v.value
+                    out[i, j] = v
         else:
             out = np.empty(_shape(**base), object)
         for c, ind in zip(cells, self.inputs.values()):

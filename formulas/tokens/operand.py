@@ -276,7 +276,7 @@ _keys = {'r1', 'r2', 'c1', 'c2', 'n1', 'n2', 'ref', 'name', 'sheet_id'}
 
 
 def fast_range2parts(**kw):
-    inputs = sh.selector(_keys, kw, allow_miss=True)
+    inputs = {k: kw[k] for k in _keys if k in kw}
 
     for func in (fast_range2parts_v1, fast_range2parts_v2, fast_range2parts_v3,
                  fast_range2parts_v4, fast_range2parts_v5):

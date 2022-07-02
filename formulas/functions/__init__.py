@@ -79,10 +79,10 @@ class Array(np.ndarray):
 
     def __reduce__(self):
         reduce = super(Array, self).__reduce__()  # Get the parent's __reduce__.
-        state = dict(
-            _collapse_value=self._collapse_value,
-            _default=self._default
-        ),  # Additional state params to pass to __setstate__.
+        state = {
+            '_collapse_value': self._collapse_value,
+            '_default': self._default
+        },  # Additional state params to pass to __setstate__.
         return reduce[0], reduce[1], reduce[2] + state
 
     def __setstate__(self, state, *args, **kwargs):

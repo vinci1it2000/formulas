@@ -46,7 +46,10 @@ def _split(base, rng, intersect=None, format_range=range2parts):
         intersect.update(z)
 
     ranges = []
-    rng = sh.selector(('sheet_id', 'n1', 'n2', 'r1', 'r2'), rng)
+    rng = {
+        'sheet_id': rng['sheet_id'], 'n1': rng['n1'], 'n2': rng['n2'],
+        'r1': rng['r1'], 'r2': rng['r2']
+    }
     it = ('n1', 'n2', 1), ('n2', 'n1', -1), ('r1', 'r2', 1), ('r2', 'r1', -1)
     for i, j, n in it:
         if z[i] != rng[i]:
@@ -115,7 +118,6 @@ def _reshape_array_as_excel(value, base_shape):
 
 
 class Ranges:
-    input_fields = 'sheet_id', 'n1', 'n2', 'r1', 'r2'
     __slots__ = 'ranges', 'values', '_value'
 
     def __init__(self, ranges=(), values=None):
@@ -153,22 +155,25 @@ class Ranges:
         return len(self.ranges) > 1
 
     @staticmethod
-    def get_range(format_range, ref, context=None):
-        ctx = (context or {}).copy()
+    def get_range(ref, context):
+        ctx = context.copy()
         for k, v in _re_range.match(ref).groupdict().items():
             if v is not None:
                 if k == 'ref':
                     raise InvalidRangeName
                 ctx[k] = v
-        return dict(format_range(('name', 'n1', 'n2'), **ctx))
+        return Ranges.format_range(('name', 'n1', 'n2'), **ctx)
 
     def push(self, ref, value=sh.EMPTY, context=None):
-        rng = self.get_range(self.format_range, ref, context)
-        return self.set_value(rng, value)
+        return self.set_value(self.get_range(ref, context or {}), value)
 
     def __add__(self, other):  # Expand.
         ranges = self.ranges[1:] + other.ranges
-        rng = sh.selector(self.input_fields, self.ranges[0])
+        rng = self.ranges[0]
+        rng = {
+            'sheet_id': rng['sheet_id'], 'n1': rng['n1'], 'n2': rng['n2'],
+            'r1': rng['r1'], 'r2': rng['r2']
+        }
         for k in ('r1', 'r2'):
             rng[k] = int(rng[k])
 
@@ -241,7 +246,10 @@ class Ranges:
                     if rng:
                         rng.append(rng.pop())
                     if select:
-                        r = sh.selector(self.input_fields, r)
+                        r = {
+                            'sheet_id': r['sheet_id'], 'n1': r['n1'],
+                            'n2': r['n2'], 'r1': r['r1'], 'r2': r['r2']
+                        }
                     rng.append(r)
         rng = [self.format_range(['name'], **r) for r in rng]
         return Ranges(tuple(rng), self.values)

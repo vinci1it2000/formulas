@@ -79,12 +79,14 @@ class ExcelModel:
         return {'dsp': self.dsp, 'cells': {}, 'books': {}}
 
     def _update_refs(self, nodes, refs):
-        dsp = self.dsp.get_sub_dsp(nodes)
-        dsp.raises = ''
-        sol = dsp(dict.fromkeys(set(dsp.data_nodes) - set(refs), sh.EMPTY))
-        refs.update({
-            k: v for k, v in sol.items() if k in refs and isinstance(v, Ranges)
-        })
+        if nodes:
+            dsp = self.dsp.get_sub_dsp(nodes)
+            dsp.raises = ''
+            sol = dsp({k: sh.EMPTY for k in dsp.data_nodes if k not in refs})
+            refs.update({
+                k: v for k, v in sol.items()
+                if k in refs and isinstance(v, Ranges)
+            })
 
     def add_references(self, book, context=None):
         refs, nodes = {}, set()
@@ -178,11 +180,9 @@ class ExcelModel:
             }
 
         if 'references' not in data:
-            data['references'] = self.add_references(
-                book, context=sh.combine_dicts(ctx, base=sh.selector(
-                    ('external_links',), data, allow_miss=True
-                ))
-            )
+            context = {'external_links': data['external_links']}
+            context.update(ctx)
+            data['references'] = self.add_references(book, context=context)
 
         return book, ctx
 
@@ -258,7 +258,8 @@ class ExcelModel:
     def complete(self, stack=None):
         done = set(self.cells)
         if stack is None:
-            stack = set(self.dsp.data_nodes) - done - set(self.references)
+            stack = {k for k in self.dsp.data_nodes if k not in self.references}
+            stack = stack.difference(done)
         stack = sorted(stack)
         sheet_limits = {}
         while stack:
@@ -326,7 +327,7 @@ class ExcelModel:
         get, dsp = sh.get_nested_dicts, self.dsp
         pred = dsp.dmap.pred
         if nodes is None:
-            nodes = set(dsp.data_nodes).difference(dsp.default_values)
+            nodes = {k for k in dsp.data_nodes if k not in dsp.default_values}
         it = (
             k for k in nodes
             if not pred[k] and not isinstance(k, sh.Token)
@@ -497,9 +498,9 @@ class ExcelModel:
         dsp = self.dsp.shrink_dsp(inputs=inputs, outputs=outputs)
         inp = set(inputs)
         inp.update({dsp.nodes.get(i, {}).get('inv-ref', None) for i in inputs})
-        dsp.default_values = sh.selector(
-            set(dsp.default_values) - inp, dsp.default_values
-        )
+        dsp.default_values = {
+            k: v for k, v in dsp.default_values.items() if k not in inp
+        }
 
         res = dsp()
 
@@ -508,9 +509,9 @@ class ExcelModel:
             wildcard=False
         )
 
-        keys = set(dsp.data_nodes) - set(dsp.default_values)
-        for k, v in sh.selector(keys, res, allow_miss=True).items():
-            dsp.set_default_value(k, v.value)
+        for k, v in res.items():
+            if k in dsp.data_nodes and k not in dsp.default_values:
+                dsp.set_default_value(k, v.value)
 
         func = self.compile_class(
             dsp=dsp,
