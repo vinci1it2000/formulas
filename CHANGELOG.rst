@@ -2,6 +2,26 @@ Changelog
 =========
 
 
+v1.2.4 (2022-07-02)
+-------------------
+
+Feat
+~~~~
+- (core): Improve speed performance.
+
+- (cell): Improve speed `RangesAssembler` definition.
+
+
+Fix
+~~~
+- (cell): Correct range assembler defaults when no `sheet_id` is
+  defined.
+
+- (math) :gh:`99`: Convert args into np.arrays in func `xsumproduct`.
+
+- (look): Correct lookup parser for float and strings.
+
+
 v1.2.3 (2022-05-10)
 -------------------
 
