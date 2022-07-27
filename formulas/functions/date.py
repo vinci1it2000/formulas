@@ -9,6 +9,7 @@
 """
 Python equivalents of financial Excel functions.
 """
+import typing as t
 import math
 import calendar
 import datetime
@@ -22,7 +23,7 @@ from . import (
     value_return, _get_single_args
 )
 
-FUNCTIONS = {}
+FUNCTIONS: dict[str, t.Callable[..., t.Any]] = {}
 DATE_ZERO = datetime.datetime(1899, 12, 31)
 DEFAULT_DATE = [datetime.datetime.now().year, 1, 1, 0, 0, 0]
 

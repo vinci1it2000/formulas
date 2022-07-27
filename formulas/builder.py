@@ -106,6 +106,15 @@ class AstBuilder:
             self.get_node_id(token)
 
     def compile(self, references=None, context=None, **inputs) -> t.Callable[..., t.Any]:
+        """Compiles a given expression into a Schedula DispatchPipe, which itself acts as a Callable.
+
+        Args:
+            references (_type_, optional): _description_. Defaults to None.
+            context (_type_, optional): _description_. Defaults to None.
+
+        Returns:
+            t.Callable[..., t.Any]: The Schedula DispatchPipe (in practice a Callable)
+        """        
         dsp, inp = self.dsp, inputs.copy()
         for k, ref in (references or {}).items():
             if k in dsp.data_nodes:

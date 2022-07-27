@@ -57,15 +57,16 @@ class Parser:
 
             .. codeblock :: python
 
-                from formulas import Parser
-
-                parser = Parser()
-                
-                func_tokens = parser.ast('=A1+B1')[0]
-                func_callale = parser.ast('=A1+B1')[1].compile()
-                
-                result = func_callale(A1=1, B1=2)
-                assert result == 3
+                >>> from formulas import Parser
+                >>> 
+                >>> parser = Parser()
+                >>> 
+                >>> func_tokens = parser.ast('=A1+B1')[0]
+                >>> func_callable = parser.ast('=A1+B1')[1].compile()
+                >>> 
+                >>> result = func_callable(A1=1, B1=2)
+                >>> assert result == 3
+                True
 
 
         Args:
@@ -114,13 +115,16 @@ class Parser:
     def compile(self, expression: str, context=None) -> t.Callable[..., t.Any]:
         """Shortcut to compile an `expression` to a callable.
 
-        Example:
+        Example::
 
             .. codeblock:: python
 
                 >>> from formulas import Parser
                 >>> parser = Parser()
                 >>> func = parser.compile('=A1+B1')
+                >>> result = func(A1=2, B1=2)
+                >>> asert result == 4
+                True
 
         Args:
             expression (str): The Excel formula to compile.
@@ -132,23 +136,35 @@ class Parser:
         _, builder = self.ast(expression, context)
         return builder.compile()
 
-    def tokens(self, expression: str, context=None) -> t.List[t.Type[Token]]:
-        """Shortcut to compile an `expression` to a callable.
+    def tokens(self, expression: str, context=None) -> t.List[Token]:
+        """Shortcut to identify the `expression` tokens.
 
-        Example:
+        Example::
 
             .. codeblock:: python
 
                 >>> from formulas import Parser
+                >>> from formulas.token import Token
+                >>>
                 >>> parser = Parser()
-                >>> func = parser.compile('=A1+B1')
+                >>> tokens = parser.tokens('=A1+B1')
+                >>> tokens
+                [A1 <Range>, + <Operator>, B1 <Range>]
+                >>> tokens[0].name
+                'A1'
+                >>> tokens[1].name
+                '+'
+                >>> tokens[2].name
+                'B1'
+                >>> isinstance(tokens[0], Token)
+                True
 
         Args:
             expression (str): The Excel formula to compile.
             context (_type_, optional): ...
 
         Returns:
-            AstBuilder: The Formula Callable.
+            List[Token]: A list of tokens.
         """        
         tokens, _ = self.ast(expression, context)
         return tokens
