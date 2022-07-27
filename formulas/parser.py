@@ -48,7 +48,37 @@ class Parser:
         """        
         return self.formula_check.match(value) or Error._re.match(value)
 
-    def ast(self, expression: str, context=None) -> tuple[t.Any, ...]:
+    def ast(self, expression: str, context=None) -> tuple[t.List[Token], AstBuilder]:
+        """Main method to parse an `expression` to a callable.
+        It uses the `AstBuilder` class to build the AST.
+        Parses the expression into tokens, compiles the tokens to a callable using `Schedula`
+
+        Example::
+
+            .. codeblock :: python
+
+                from formulas import Parser
+
+                parser = Parser()
+                
+                func_tokens = parser.ast('=A1+B1')[0]
+                func_callale = parser.ast('=A1+B1')[1].compile()
+                
+                result = func_callale(A1=1, B1=2)
+                assert result == 3
+
+
+        Args:
+            expression (str): The expression to parse.
+            context (_type_, optional): _description_. Defaults to None.
+
+        Raises:
+            FormulaError: If the formula has a syntax error.
+            ParenthesesError: _description_
+
+        Returns:
+            tuple[t.Tokens, AstBuilder]: A tuple with the tokens and the Builder.
+        """        
         try:
             match = self.is_formula(expression.replace('\n', '')).groupdict()
             expr = match['name']

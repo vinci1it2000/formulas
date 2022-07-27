@@ -37,6 +37,7 @@ import functools
 import collections
 import numpy as np
 import schedula as sh
+import typing as t
 from collections.abc import Iterable
 from formulas.errors import (
     RangeValueError, FoundError, BaseError, BroadcastError, InvalidRangeError
@@ -400,8 +401,28 @@ def wrap_ufunc(
 
 
 @functools.lru_cache()
-def get_functions():
-    functions = collections.defaultdict(lambda: not_implemented)
+def get_functions() -> t.Dict[str, t.Callable]:
+    """Get's a dictionary with all functions.
+    Can be used to create custom funcions that can be used in formulas.
+
+    Example::
+
+        ..codeblock :: python
+
+            import formulas
+            
+            FUNCTIONS = formulas.get_functions()
+            FUNCTIONS['MY_CUSTOM_FUNC'] = lambda x, y: 1 + y + x
+            
+            func = formulas.Parser().compile('=MY_CUSTOM_FUNC(1, 2)')
+            result = func(4)
+            assert result == 4
+
+
+    Returns:
+        t.Dict[str, t.Callable]: The FUNCTIONS dictionary.
+    """    
+    functions: t.Dict[str, t.Callable] = collections.defaultdict(lambda: not_implemented)
     for name in SUBMODULES:
         functions.update(importlib.import_module(name, __name__).FUNCTIONS)
     functions.update(FUNCTIONS)
