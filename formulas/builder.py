@@ -89,7 +89,7 @@ class AstBuilder:
     def get_node_id(self, token):
         if token in self.nodes:
             return self.nodes[token]
-        if not isinstance(token, Operand):
+        if isinstance(token, Operand):
             self.missing_operands.remove(token)
             token.set_expr()
             kw = {}
