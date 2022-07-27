@@ -14,6 +14,7 @@ import functools
 import collections
 import schedula as sh
 from .errors import FormulaError, RangeValueError, InvalidRangeError
+from .tokens import Token
 from .tokens.operator import Operator
 from .tokens.function import Function
 from .tokens.operand import Operand
@@ -30,8 +31,8 @@ def _default_filter():
 class AstBuilder:
     compile_class = sh.DispatchPipe
 
-    def __init__(self, dsp=None, nodes=None, match=None):
-        self._deque = collections.deque()
+    def __init__(self, dsp: t.Optional[sh.Dispatcher] = None, nodes=None, match: t.Optional[t.Dict[str, t.Any]] = None):
+        self._deque: t.Deque = collections.deque()
         self.match = match
         self.dsp = dsp or sh.Dispatcher(
             raises=lambda e: not isinstance(e, (
@@ -39,18 +40,18 @@ class AstBuilder:
             ))
         )
         self.nodes = nodes or {}
-        self.missing_operands = set()
+        self.missing_operands: t.Set[t.Any] = set()
 
     def __len__(self):
         return len(self._deque)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int):
         return self._deque[index]
 
     def pop(self):
         return self._deque.pop()
 
-    def append(self, token):
+    def append(self, token: t.Type[Token]):
         if isinstance(token, (Operator, Function)):
             try:
                 tokens = [self.pop() for _ in range(token.get_n_args)][::-1]
@@ -81,12 +82,14 @@ class AstBuilder:
                 self.dsp.add_function(None, sh.bypass, [out], [n_id])
         elif isinstance(token, Operand):
             self.missing_operands.add(token)
+        
+        
         self._deque.append(token)
 
     def get_node_id(self, token):
         if token in self.nodes:
             return self.nodes[token]
-        if isinstance(token, Operand):
+        if not isinstance(token, Operand):
             self.missing_operands.remove(token)
             token.set_expr()
             kw = {}
