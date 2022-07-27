@@ -9,7 +9,7 @@
 """
 It provides AstBuilder class.
 """
-
+import typing as t
 import functools
 import collections
 import schedula as sh
@@ -102,7 +102,7 @@ class AstBuilder:
         for token in list(self.missing_operands):
             self.get_node_id(token)
 
-    def compile(self, references=None, context=None, **inputs):
+    def compile(self, references=None, context=None, **inputs) -> t.Callable[..., t.Any]:
         dsp, inp = self.dsp, inputs.copy()
         for k, ref in (references or {}).items():
             if k in dsp.data_nodes:
