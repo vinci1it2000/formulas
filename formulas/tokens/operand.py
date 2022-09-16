@@ -99,7 +99,7 @@ class Number(Operand):
         return eval(self.name.capitalize())
 
 
-_re_ref = r'(?P<ref>[[:alpha:]_\\]+[[:alnum:]\.\_]*)'
+_re_ref = r'(?P<ref>[[:alpha:]_\\]+[[:alnum:]\.\_\\]*)'
 _re_sheet_id = r"""
     (?>
         '((?P<directory>[^\[]+)?\/?\[(?P<filename>[^\[\]]+)\])?
