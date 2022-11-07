@@ -22,6 +22,8 @@ CELL = sh.Token('Cell')
 
 
 class CellWrapper(sh.add_args):
+    _args = 'func', 'parse_args', 'parse_kwargs'
+
     def __init__(self, func, parse_args, parse_kwargs):
         super(CellWrapper, self).__init__(func, n=0)
         self.parse_args = parse_args
