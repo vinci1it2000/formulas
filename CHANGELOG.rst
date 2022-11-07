@@ -2,6 +2,16 @@ Changelog
 =========
 
 
+v1.2.5 (2022-11-07)
+-------------------
+
+Fix
+~~~
+- (parser): Correct missing raise.
+
+- (excel): Skip hidden named ranges.
+
+
 v1.2.4 (2022-07-02)
 -------------------
 
