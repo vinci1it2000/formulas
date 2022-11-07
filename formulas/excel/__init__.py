@@ -91,6 +91,9 @@ class ExcelModel:
     def add_references(self, book, context=None):
         refs, nodes = {}, set()
         for n in book.defined_names.definedName:
+
+            if n.hidden or n.localSheetId is not None:
+                continue  # Accepts only global references.
             ref = Ref(n.name.upper(), '=%s' % n.value, context).compile(
                 context=context
             )
