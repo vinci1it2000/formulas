@@ -19,7 +19,7 @@ from .tokens.function import Function
 from .tokens.operand import Operand
 from .functions import wrap_ranges_func, COMPILING
 from .ranges import Ranges
-from schedula.utils.alg import get_unused_node_id
+from schedula.utils.utl import get_unused_node_id
 
 
 @functools.lru_cache(None)

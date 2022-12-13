@@ -158,9 +158,9 @@ class Cell:
                             try:
                                 rng = Ranges.get_range(k, ctx)
                                 f = functools.partial(format_output, rng),
+                                dsp.add_data(k, filters=f)
                             except ValueError:
-                                f = ()
-                            dsp.add_data(k, filters=f)
+                                dsp.add_data(k)
                 nodes.add(dsp.add_function(
                     self.__name__, self.func, inputs or None, [output]
                 ))

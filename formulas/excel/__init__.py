@@ -384,9 +384,10 @@ class ExcelModel:
                         )
                         d = nodes[inp]
                         d['inv-ref'] = out
-                        sh.get_nested_dicts(d, 'filters', default=list).extend(
-                            nodes[out].get('filters', ())
-                        )
+                        if 'filters' in nodes[out]:
+                            sh.get_nested_dicts(
+                                d, 'filters', default=list
+                            ).extend(nodes[out]['filters'])
 
     def finish(self, complete=True, circular=False, assemble=True):
         if complete:
