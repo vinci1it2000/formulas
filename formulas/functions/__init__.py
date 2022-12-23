@@ -37,6 +37,7 @@ import functools
 import collections
 import numpy as np
 import schedula as sh
+import typing as t
 from collections.abc import Iterable
 from formulas.errors import (
     RangeValueError, FoundError, BaseError, BroadcastError, InvalidRangeError
@@ -188,7 +189,16 @@ def raise_errors(*args):
         raise FoundError(err=v)
 
 
-def is_number(number, xl_return=True):
+def is_number(number, xl_return: bool = True) -> bool:
+    """Checks if a given element is a number.
+
+    Args:
+        number (_type_): The element to be tested.
+        xl_return (bool, optional): _description_. Defaults to True.
+
+    Returns:
+        bool: True if is a number, False otherwise.
+    """    
     if isinstance(number, (bool, np.bool_)):
         return False
     elif isinstance(number, XlError):
@@ -360,11 +370,29 @@ def convert_noshp(value):
 
 
 def wrap_ufunc(
-        func, input_parser=lambda *a: map(float, a), check_error=get_error,
+        func: t.Callable[..., t.Any], input_parser=lambda *a: map(float, a), check_error: t.Callable[..., t.Any] = get_error,
         args_parser=lambda *a: map(replace_empty, a), otype=Array,
-        ranges=False, return_func=lambda res, *args: res, check_nan=True, **kw):
-    """Helps call a numpy universal function (ufunc)."""
+        ranges: bool = False, return_func=lambda res, *args: res, check_nan: bool = True, **kw):
+    """A Wraper for numpy's ufunc.
+    Helps call a numpy universal function (ufunc)
 
+    Args:
+        func (t.Callable[..., t.Any]): _description_
+        input_parser (_type_, optional): _description_. Defaults to lambda*a:map(float, a).
+        check_error (t.Callable[..., t.Any], optional): _description_. Defaults to get_error.
+        args_parser (_type_, optional): _description_. Defaults to lambda*a:map(replace_empty, a).
+        otype (_type_, optional): _description_. Defaults to Array.
+        ranges (bool, optional): _description_. Defaults to False.
+        return_func (_type_, optional): _description_. Defaults to lambdares.
+        check_nan (bool, optional): _description_. Defaults to True.
+
+    Raises:
+        BroadcastError: _description_
+        ex: _description_
+
+    Returns:
+        _type_: _description_
+    """
     def safe_eval(*vals):
         try:
             r = check_error(*vals) or convert_noshp(func(*input_parser(*vals)))
@@ -400,8 +428,29 @@ def wrap_ufunc(
 
 
 @functools.lru_cache()
-def get_functions():
-    functions = collections.defaultdict(lambda: not_implemented)
+def get_functions() -> t.Dict[str, t.Callable]:
+    """Get's a dictionary with all functions.
+    Can be used to create and set custom funcions to be used in formulas.
+
+    Example::
+
+        ..codeblock :: python
+
+            >>> import formulas
+            
+            >>> FUNCTIONS = formulas.get_functions()
+            >>> FUNCTIONS['MY_CUSTOM_FUNC'] = lambda x, y: 1 + y + x
+            
+            >>> func = formulas.Parser().compile('=MY_CUSTOM_FUNC(1, 2)')
+            >>> result = func(4)
+            >>> assert result == 4
+            True
+
+
+    Returns:
+        t.Dict[str, t.Callable]: The FUNCTIONS dictionary.
+    """    
+    functions: t.Dict[str, t.Callable] = collections.defaultdict(lambda: not_implemented)
     for name in SUBMODULES:
         functions.update(importlib.import_module(name, __name__).FUNCTIONS)
     functions.update(FUNCTIONS)
