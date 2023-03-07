@@ -14,7 +14,7 @@ Modules:
 
 .. autosummary::
     :nosignatures:
-    :toctree: _build/formulas
+    :toctree: toctree/formulas
 
     ~parser
     ~builder

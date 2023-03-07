@@ -49,7 +49,7 @@ extensions = [
 ]
 
 extlinks = {
-    'gh': ('https://github.com/vinci1it2000/formulas/issues/%s', '#'),
+    'gh': ('https://github.com/vinci1it2000/formulas/issues/%s', '#%s'),
 }
 
 autosummary_generate = True
