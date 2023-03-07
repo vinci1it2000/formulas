@@ -90,8 +90,9 @@ class ExcelModel:
 
     def add_references(self, book, context=None):
         refs, nodes = {}, set()
-        for n in book.defined_names.definedName:
-
+        it = book.defined_names
+        it = it.values() if isinstance(it, dict) else it.definedName
+        for n in it:
             if n.hidden or n.localSheetId is not None:
                 continue  # Accepts only global references.
             ref = Ref(n.name.upper(), '=%s' % n.value, context).compile(
@@ -200,10 +201,15 @@ class ExcelModel:
 
         d = get_in(self.books, ctx['excel'], SHEETS, ctx['sheet'])
         if 'formula_references' not in d:
-            d['formula_references'] = formula_references = {
-                k: v['ref'] for k, v in worksheet.formula_attributes.items()
-                if v.get('t') == 'array' and 'ref' in v
-            }
+            try:
+                formula_references = {
+                    k: v['ref'] for k, v in worksheet.formula_attributes.items()
+                    if v.get('t') == 'array' and 'ref' in v
+                }
+            except AttributeError:  # openpyxl>=3.1
+                formula_references = worksheet.array_formulae.copy()
+
+            d['formula_references'] = formula_references
         else:
             formula_references = d['formula_references']
 
@@ -243,7 +249,11 @@ class ExcelModel:
         crd = cell.coordinate
         crd = formula_references.get(crd, crd)
         val = cell.value
-        val = cell.data_type == 'f' and val[:2] == '==' and val[1:] or val
+        if cell.data_type == 'f':
+            if not isinstance(val, str):
+                val = val.text
+            val = val[:2] == '==' and val[1:] or val
+
         check_formula = cell.data_type != 's'
         return self._compile_cell(crd, val, context, check_formula, references)
 
