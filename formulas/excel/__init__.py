@@ -91,6 +91,9 @@ class ExcelModel:
     def add_references(self, book, context=None):
         refs, nodes = {}, set()
         for n in book.defined_names.definedName:
+
+            if n.hidden or n.localSheetId is not None:
+                continue  # Accepts only global references.
             ref = Ref(n.name.upper(), '=%s' % n.value, context).compile(
                 context=context
             )
@@ -381,9 +384,10 @@ class ExcelModel:
                         )
                         d = nodes[inp]
                         d['inv-ref'] = out
-                        sh.get_nested_dicts(d, 'filters', default=list).extend(
-                            nodes[out].get('filters', ())
-                        )
+                        if 'filters' in nodes[out]:
+                            sh.get_nested_dicts(
+                                d, 'filters', default=list
+                            ).extend(nodes[out]['filters'])
 
     def finish(self, complete=True, circular=False, assemble=True):
         if complete:

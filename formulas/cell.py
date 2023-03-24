@@ -22,6 +22,8 @@ CELL = sh.Token('Cell')
 
 
 class CellWrapper(sh.add_args):
+    _args = 'func', 'parse_args', 'parse_kwargs'
+
     def __init__(self, func, parse_args, parse_kwargs):
         super(CellWrapper, self).__init__(func, n=0)
         self.parse_args = parse_args
@@ -156,9 +158,9 @@ class Cell:
                             try:
                                 rng = Ranges.get_range(k, ctx)
                                 f = functools.partial(format_output, rng),
+                                dsp.add_data(k, filters=f)
                             except ValueError:
-                                f = ()
-                            dsp.add_data(k, filters=f)
+                                dsp.add_data(k)
                 nodes.add(dsp.add_function(
                     self.__name__, self.func, inputs or None, [output]
                 ))

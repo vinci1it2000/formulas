@@ -138,7 +138,7 @@ if __name__ == '__main__':
         ],
         install_requires=[
             'regex',
-            'schedula>=1.2.18',
+            'schedula>=1.4.1',
             'numpy>=1.15',
             'python-dateutil',
             'numpy-financial'

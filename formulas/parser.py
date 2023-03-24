@@ -66,6 +66,6 @@ class Parser:
                 raise ParenthesesError()
             builder.append(stack.pop())
         if len(builder) != 1:
-            FormulaError(expression)
+            raise FormulaError(expression)
         builder.finish()
         return tokens, builder
