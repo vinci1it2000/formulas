@@ -359,6 +359,21 @@ def convert_noshp(value):
     return value
 
 
+def args2vals(args):
+    return (np.ravel(v)[0] for v in args)
+
+
+def args2list(max_shape, shapes, *args):
+    it = []
+    for arg, shape in zip(args, shapes):
+        if not shape or shape[0] == 1:
+            arg = np.tile(arg, max_shape)
+        elif shape[0] != max_shape:
+            raise BroadcastError()
+        it.append(arg)
+    return map(args2vals, zip(*it))
+
+
 def wrap_ufunc(
         func, input_parser=lambda *a: map(float, a), check_error=get_error,
         args_parser=lambda *a: map(replace_empty, a), otype=Array,
@@ -383,7 +398,19 @@ def wrap_ufunc(
         try:
             args = tuple(args_parser(*args))
             with np.errstate(divide='ignore', invalid='ignore'):
-                res = np.vectorize(safe_eval, **kw)(*args)
+                if len(args) >= 32:
+                    shapes = [np.shape(arg) for arg in args]
+                    max_shape = max((s or (1,))[0] for s in shapes)
+                    if max_shape == 1:
+                        res = np.asarray([[
+                            safe_eval(*args2vals(args))
+                        ]], object).view(otype)
+                    else:
+                        res = np.asarray([safe_eval(*v) for v in args2list(
+                            max_shape, shapes, *args
+                        )], object).view(otype)
+                else:
+                    res = np.vectorize(safe_eval, **kw)(*args)
             try:
                 res = res.view(otype)
             except AttributeError:
