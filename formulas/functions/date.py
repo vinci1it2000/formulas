@@ -189,6 +189,7 @@ def xdatedif(start_date, end_date, unit):
             return Error.errors['#NUM!']
         return end_date - start_date
     start, end = _int2date(start_date), _int2date(end_date)
+    unit = unit.upper()
     if unit == 'Y':
         return end[0] - start[0] - int(end[1:] < start[1:])
     if unit == 'M':
