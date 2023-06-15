@@ -15,10 +15,12 @@ import unittest
 import platform
 import os.path as osp
 import schedula as sh
-from formulas.excel import ExcelModel, BOOK, ERR_CIRCULAR
-from formulas.excel.xlreader import load_workbook
-from formulas.functions import is_number
 from formulas.ranges import Ranges
+from formulas.functions import is_number
+from formulas.excel.xlreader import load_workbook
+from formulas.excel import (
+    ExcelModel, BOOK, ERR_CIRCULAR, _book2dict, _res2books, _file2books
+)
 
 EXTRAS = os.environ.get('EXTRAS', 'all')
 
@@ -28,28 +30,6 @@ _filename_compile = 'excel.xlsx'
 _filename_full_range = 'full-range.xlsx'
 _link_filename = 'test_link.xlsx'
 _filename_circular = 'circular.xlsx'
-
-
-def _book2dict(book):
-    res = {}
-    for ws in book.worksheets:
-        s = res[ws.title.upper()] = {}
-        for k, cell in ws._cells.items():
-            value = getattr(cell, 'value', None)
-            if value is not None:
-                s[cell.coordinate] = value
-    return res
-
-
-def _res2books(res):
-    return {k.upper(): _book2dict(v[BOOK]) for k, v in res.items()}
-
-
-def _file2books(*fpaths):
-    d = osp.dirname(fpaths[0])
-    return {osp.relpath(fp, d).upper().replace('\\', '/'): _book2dict(
-        load_workbook(fp, data_only=True)
-    ) for fp in fpaths}
 
 
 @unittest.skipIf(EXTRAS not in ('all', 'excel'), 'Not for extra %s.' % EXTRAS)

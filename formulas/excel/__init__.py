@@ -63,6 +63,29 @@ def _decode_path(path):
     return path.replace('/', osp.sep)
 
 
+def _book2dict(book):
+    res = {}
+    for ws in book.worksheets:
+        s = res[ws.title.upper()] = {}
+        for k, cell in ws._cells.items():
+            value = getattr(cell, 'value', None)
+            if value is not None:
+                s[cell.coordinate] = value
+    return res
+
+
+def _res2books(res):
+    return {k.upper(): _book2dict(v[BOOK]) for k, v in res.items()}
+
+
+def _file2books(*fpaths):
+    from .xlreader import load_workbook
+    d = osp.dirname(fpaths[0])
+    return {osp.relpath(fp, d).upper().replace('\\', '/'): _book2dict(
+        load_workbook(fp, data_only=True)
+    ) for fp in fpaths}
+
+
 class ExcelModel:
     compile_class = sh.DispatchPipe
 
@@ -72,8 +95,20 @@ class ExcelModel:
         self.books = {}
         self.basedir = None
 
+    def __call__(self, *args, **kwargs):
+        return self.calculate(*args, **kwargs)
+
     def calculate(self, *args, **kwargs):
         return self.dsp.dispatch(*args, **kwargs)
+
+    def compare(self, *fpaths, solution=None):
+        if solution is None:
+            solution = self.dsp.dispatch()
+        from dictdiffer import diff
+        target = _file2books(*fpaths)
+        return list(diff(target, sh.selector(
+            target, _res2books(self.write(solution=solution))
+        )))
 
     def __getstate__(self):
         return {'dsp': self.dsp, 'cells': {}, 'books': {}}
