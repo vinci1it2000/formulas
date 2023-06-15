@@ -441,7 +441,8 @@ class TestCell(unittest.TestCase):
         ('A1', '=LOOKUP(2,{-1.1,2.1,3.1,4.1})', {}, '<Ranges>(A1)=[[-1.1]]'),
         ('A1', '=LOOKUP(3,{-1.1,2.1,3.1,4.1})', {}, '<Ranges>(A1)=[[2.1]]'),
         ('A1', '=SWITCH(TRUE,1,0,,,TRUE,1,7)', {}, '<Ranges>(A1)=[[1]]'),
-        ('A1', '=SWITCH(TRUE,1,0,#REF!,3,TRUE,1,7)', {}, '<Ranges>(A1)=[[#REF!]]'),
+        ('A1', '=SWITCH(TRUE,1,0,#REF!,3,TRUE,1,7)', {},
+         '<Ranges>(A1)=[[#REF!]]'),
         ('A1:D1', '=SWITCH({0,1,TRUE},1,0,,,TRUE,1,7)', {},
          '<Ranges>(A1:D1)=[[0 0 1 #N/A]]'),
         ('A1', '=SWITCH(1,2,0,1,4,,4,5)', {}, '<Ranges>(A1)=[[4]]'),
@@ -529,6 +530,18 @@ class TestCell(unittest.TestCase):
         ('A1', '=MATCH(2,{4.1,2.1,3.1,1.1},-1)', {}, '<Ranges>(A1)=[[3]]'),
         ('A1', '=LOOKUP(2.1,{4.1,2.1,3.1,1.1},{"L","ML","MR","R"})', {},
          '<Ranges>(A1)=[[\'ML\']]'),
+        ('A1', '=LOOKUP(A2,B1:B4,{"L","ML","MR","R"})',
+         {'A2': [[sh.EMPTY]], 'B1:B4': (0, sh.EMPTY, 2, 3)},
+         '<Ranges>(A1)=[[\'L\']]'),
+        ('A1', '=LOOKUP(A2,B1:B4,{"L","ML","MR","R"})',
+         {'A2': [[sh.EMPTY]], 'B1:B4': (1, sh.EMPTY, 2, 3)},
+         '<Ranges>(A1)=[[#N/A]]'),
+        ('A1', '=LOOKUP(1,B1:B4,{"L","ML","MR","R"})',
+         {'B1:B4': (1, sh.EMPTY, 2, 3)}, '<Ranges>(A1)=[[\'L\']]'),
+        ('A1', '=LOOKUP(1,{1,2,3,4},{"L","ML","MR","R"})', {},
+         '<Ranges>(A1)=[[\'L\']]'),
+        ('A1', '=LOOKUP(1,{1,"",3,4},{"L","ML","MR","R"})', {},
+         '<Ranges>(A1)=[[\'L\']]'),
         ('A1', '=LOOKUP("b",{"b",4.1,"a",1.1},{"L","ML","MR","R"})', {},
          '<Ranges>(A1)=[[\'MR\']]'),
         ('A1', '=LOOKUP(TRUE,{TRUE,4.1,FALSE,1.1},{"L","ML","MR","R"})', {},
@@ -586,6 +599,7 @@ class TestCell(unittest.TestCase):
             result, output,
             'Formula({}): {} != {}'.format(formula, result, output)
         )
+
     @ddt.idata([
         ('A1', '=XIRR({-10,1,5,0.0001,4.5},{1,20,4,4,5},"26/08/1987")',
          {}, '<Ranges>\(A1\)=\[\[38.321500577844\d*\]\]'),
@@ -652,7 +666,7 @@ class TestCell(unittest.TestCase):
         assert cell.add(dsp)
         output = str(dsp(inputs)[cell.output])
         self.assertRegex(
-             output, regex,
+            output, regex,
             'Formula({}): {} != {}'.format(formula, regex, output)
         )
 

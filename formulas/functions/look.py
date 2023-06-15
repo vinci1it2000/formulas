@@ -16,7 +16,7 @@ import numpy as np
 import schedula as sh
 from . import (
     wrap_func, wrap_ufunc, Error, get_error, XlError, FoundError, Array,
-    parse_ranges, value_return, _text2num
+    parse_ranges, value_return, _text2num, replace_empty
 )
 from ..ranges import Ranges
 from ..cell import CELL
@@ -213,6 +213,7 @@ def xmatch(lookup_value, lookup_array, match_type=1):
 
 FUNCTIONS['MATCH'] = wrap_ufunc(
     xmatch, check_error=lambda *a: get_error(a[:1]), excluded={1, 2},
+    args_parser=lambda val, *a: (replace_empty(val),) + a,
     input_parser=lambda val, vec, match_type=1: (val, np.ravel(vec), match_type)
 )
 
@@ -230,6 +231,7 @@ FUNCTIONS['LOOKUP'] = wrap_ufunc(
     input_parser=lambda val, vec, res=None: (
         val, np.ravel(vec), res if res is None else np.ravel(res)
     ),
+    args_parser=lambda val, *a: (replace_empty(val),) + a,
     check_error=lambda *a: get_error(a[:1]), excluded={1, 2}
 )
 
@@ -249,9 +251,11 @@ def _hlookup_parser(val, vec, index, match_type=1, transpose=False):
 
 FUNCTIONS['HLOOKUP'] = wrap_ufunc(
     xlookup, input_parser=_hlookup_parser,
+    args_parser=lambda val, *a: (replace_empty(val),) + a,
     check_error=lambda *a: get_error(a[:1]), excluded={1, 2, 3}
 )
 FUNCTIONS['VLOOKUP'] = wrap_ufunc(
     xlookup, input_parser=functools.partial(_hlookup_parser, transpose=True),
+    args_parser=lambda val, *a: (replace_empty(val),) + a,
     check_error=lambda *a: get_error(a[:1]), excluded={1, 2, 3}
 )
