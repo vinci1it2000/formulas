@@ -466,11 +466,9 @@ class ExcelModel:
             try:
                 cell = Cell(k, v, context=context, replace_missing_ref=ref)
             except ValueError:
-                ref = Ref(k, v, context=context).compile(context=context)
-                nodes.update(ref.add(self.dsp))
-                refs[ref.output] = None
-                cells[ref.output] = ref
-                continue
+                cell = Ref(k, v, context=context).compile(context=context)
+                refs[cell.output] = None
+                nodes.update(cell.add(self.dsp, context=context))
             cells[cell.output] = cell
         self._update_refs(nodes, refs)
         for cell in cells.values():
