@@ -356,14 +356,15 @@ class ExcelModel:
             ctx = {'external_links': external_links}
             ctx.update(context)
             cells = []
-            for c in flatten(it, None):
-                n = _name % c.coordinate
-                if n in self.cells:
-                    continue
-                elif hasattr(c, 'value'):
-                    cells.append(self.compile_cell(
-                        c, ctx, references, formula_references
-                    ))
+            for row in it:
+                for c in row:
+                    n = _name % c.coordinate
+                    if n in self.cells:
+                        continue
+                    elif hasattr(c, 'value'):
+                        cells.append(self.compile_cell(
+                            c, ctx, references, formula_references
+                        ))
             for cell in cells:
                 # noinspection PyTypeChecker
                 cell = self.add_cell(sh.await_result(cell), ctx, formula_ranges)
@@ -522,7 +523,7 @@ class ExcelModel:
             rng['c1'] = rng['c1'] or 'A'
             rng['r1'] = int(rng['r1']) or 1
             ref = '{c1}{r1}:{c2}{r2}'.format(**rng)
-            for c, v in zip(flatten(sheet[ref], None), flatten(r.value, None)):
+            for c, v in zip(np.ravel(sheet[ref]), np.ravel(r.value)):
                 try:
                     if v is sh.EMPTY:
                         v = None
