@@ -101,14 +101,14 @@ class ExcelModel:
     def calculate(self, *args, **kwargs):
         return self.dsp.dispatch(*args, **kwargs)
 
-    def compare(self, *fpaths, solution=None):
+    def compare(self, *fpaths, solution=None, tolerance=.000001, **kwargs):
         if solution is None:
             solution = self.dsp.dispatch()
         from dictdiffer import diff
         target = _file2books(*fpaths)
         return list(diff(target, sh.selector(
             target, _res2books(self.write(solution=solution))
-        )))
+        ), tolerance=tolerance, **kwargs))
 
     def __getstate__(self):
         return {'dsp': self.dsp, 'cells': {}, 'books': {}}
