@@ -13,6 +13,7 @@ import math
 import functools
 import collections
 import numpy as np
+import schedula as sh
 from decimal import Decimal, ROUND_HALF_UP
 from . import (
     get_error, raise_errors, is_number, flatten, wrap_ufunc, wrap_func,
@@ -149,7 +150,9 @@ def _factdouble(x):
 
 def xfactdouble(number):
     raise_errors(number)
-    x = list(flatten(replace_empty(number), None))[0]
+    x = next(flatten(number, None))
+    if x is sh.EMPTY:
+        x = 0
     if isinstance(x, bool):
         return Error.errors['#VALUE!']
     with np.errstate(divide='ignore', invalid='ignore'):

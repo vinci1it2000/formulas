@@ -63,7 +63,7 @@ def xcorrel(arr1, arr2):
 FUNCTIONS['CORREL'] = wrap_func(xcorrel)
 FUNCTIONS['COUNT'] = wrap_func(functools.partial(
     xfunc, func=len, _raise=False, default=None,
-    check=lambda x: is_number(x) and not isinstance(x, XlError)
+    check=functools.partial(is_number, xl_return=False)
 ))
 FUNCTIONS['COUNTA'] = wrap_func(functools.partial(
     xfunc, check=is_not_empty, func=len, _raise=False, default=None

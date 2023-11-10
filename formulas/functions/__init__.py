@@ -108,10 +108,11 @@ def not_implemented(*args, **kwargs):
 
 def replace_empty(x, empty=0):
     if isinstance(x, np.ndarray):
-        y = x.ravel().tolist()
-        if sh.EMPTY in y:
-            y = [empty if v is sh.EMPTY else v for v in y]
-            return np.asarray(y, object).reshape(*x.shape)
+        obj = np.array(sh.EMPTY, dtype=object)
+        if obj in x:
+            x = np.where(obj == x, empty, x)
+    elif x is sh.EMPTY:
+        return empty
     return x
 
 
@@ -176,7 +177,7 @@ FUNCTIONS['ARRAYROW'] = lambda *args: np.asarray(args, object).view(Array)
 
 def get_error(*vals):
     # noinspection PyTypeChecker
-    for v in flatten(vals, None):
+    for v in flatten(vals, None, True):
         if isinstance(v, XlError):
             return v
 
@@ -193,6 +194,8 @@ def is_number(number, xl_return=True):
         return False
     elif isinstance(number, XlError):
         return xl_return
+    elif number is sh.EMPTY:
+        return False
     else:
         try:
             float(number)
@@ -330,15 +333,17 @@ def xfilter(accumulator, test_range, condition, operating_range=None):
     return res.view(Array)
 
 
-def flatten(v, check=is_number):
+def flatten(v, check=is_number, drop_empty=False):
     if isinstance(v, np.ndarray):
-        if not check:
+        if drop_empty or check is is_number or check is is_not_empty:
+            v = v[v != np.array(sh.EMPTY, dtype=object)]
+        if not check or check is is_not_empty:
             yield from v.ravel()
         else:
             yield from filter(check, v.ravel())
     elif not isinstance(v, str) and isinstance(v, Iterable):
         for el in v:
-            yield from flatten(el, check)
+            yield from flatten(el, check, drop_empty)
     elif not check or check(v):
         yield v
 
