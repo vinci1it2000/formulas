@@ -2,7 +2,7 @@
 -r test.pip
 
 wheel
-sphinx
+sphinx>=7.2
 gitchangelog
 mako
 twine

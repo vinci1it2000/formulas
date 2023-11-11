@@ -87,8 +87,8 @@ if __name__ == '__main__':
     # noinspection PyTypeChecker
     extras['all'] = sorted(functools.reduce(set.union, extras.values(), set()))
     extras['dev'] = extras['all'] + [
-        'wheel', 'sphinx', 'gitchangelog', 'mako', 'sphinx_rtd_theme', 'ddt',
-        'setuptools>=36.0.1', 'sphinxcontrib-restbuilder', 'nose', 'coveralls',
+        'wheel', 'sphinx>=7.2', 'gitchangelog', 'mako', 'sphinx_rtd_theme',
+        'setuptools>=36.0.1', 'sphinxcontrib-restbuilder', 'coveralls', 'ddt',
         'twine'
     ]
 
@@ -96,8 +96,7 @@ if __name__ == '__main__':
         name=name,
         version=proj_ver,
         packages=find_packages(exclude=[
-            'test', 'test.*', 'doc', 'doc.*', 'appveyor', 'binder',
-            'requirements'
+            'test', 'test.*', 'doc', 'doc.*', 'binder', 'requirements'
         ]),
         url=url,
         project_urls=project_urls,
@@ -146,6 +145,5 @@ if __name__ == '__main__':
             'numpy-financial'
         ],
         extras_require=extras,
-        tests_require=['nose>=1.0', 'ddt', 'dill', 'openpyxl'],
-        test_suite='nose.collector',
+        tests_require=['ddt', 'dill', 'openpyxl']
     )

@@ -1,6 +1,5 @@
 -r base.pip
 
-nose
 coveralls
 ddt
 dill
