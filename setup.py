@@ -122,7 +122,7 @@ if __name__ == '__main__':
             "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
             "Programming Language :: Python :: Implementation :: CPython",
-            "Development Status :: 4 - Beta",
+            "Development Status :: 5 - Production/Stable",
             'Natural Language :: English',
             "Intended Audience :: Developers",
             "Intended Audience :: Science/Research",
