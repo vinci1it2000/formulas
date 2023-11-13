@@ -17,7 +17,8 @@ import schedula as sh
 from decimal import Decimal, ROUND_HALF_UP
 from . import (
     get_error, raise_errors, is_number, flatten, wrap_ufunc, wrap_func,
-    replace_empty, Error, xfilter, wrap_impure_func, COMPILING
+    replace_empty, Error, xfilter, wrap_impure_func, COMPILING, to_number,
+    clean_values
 )
 
 # noinspection PyDictCreation
@@ -328,17 +329,9 @@ def xsumproduct(*args):
     # Check all arrays are the same length
     # Excel returns #VAlUE! error if they don't match
     raise_errors(args)
-    args = tuple(map(np.asarray, args))
-    assert len(set(arg.size for arg in args)) == 1
-    inputs = []
-    for a in args:
-        a = a.ravel()
-        x = np.zeros_like(a, float)
-        b = np.vectorize(is_number)(a)
-        x[b] = a[b]
-        inputs.append(x)
-
-    return np.sum(np.prod(inputs, axis=0))
+    inp = np.asarray(args).reshape((len(args), -1))
+    inp = inp[:, ~(inp == np.array(sh.EMPTY, dtype=object)).any(axis=0)]
+    return np.sum(np.prod(np.nan_to_num(to_number(inp).astype(float)), axis=0))
 
 
 FUNCTIONS['SUMPRODUCT'] = wrap_func(xsumproduct)
@@ -358,16 +351,17 @@ def xsrqtpi(number):
 FUNCTIONS['SQRTPI'] = wrap_func(xsrqtpi)
 
 
-def xsum(*args, func=sum):
+def xsum(*args, func=np.sum):
     raise_errors(args)
-    inputs = []
+    inp = []
     for a in args:
         if isinstance(a, str) and not is_number(a):
             raise ValueError
         elif isinstance(a, bool):
             a = float(a)
-        inputs.append(a)
-    return func(tuple(map(float, flatten(inputs))))
+        inp.append(np.asarray(a).reshape(1, -1))
+    inp = to_number(clean_values(np.concatenate(inp, 1))).astype(float).ravel()
+    return func(inp[~np.isnan(inp)])
 
 
 FUNCTIONS['PRODUCT'] = wrap_func(functools.partial(xsum, func=np.prod))

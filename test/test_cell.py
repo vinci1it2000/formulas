@@ -503,7 +503,7 @@ class TestCell(unittest.TestCase):
          '<Ranges>(A1)=[[128.5]]'),
         ('A1', '="a" & "b"""', {}, '<Ranges>(A1)=[[\'ab"\']]'),
         ('A1', '=SUM(B2:B4)',
-         {'B2:B4': (sh.EMPTY, sh.EMPTY, sh.EMPTY)}, '<Ranges>(A1)=[[0]]'),
+         {'B2:B4': (sh.EMPTY, sh.EMPTY, sh.EMPTY)}, '<Ranges>(A1)=[[0.0]]'),
         ('A1', '=SUM(B2:B4)',
          {'B2:B4': (sh.EMPTY, 1, sh.EMPTY)}, '<Ranges>(A1)=[[1.0]]'),
         ('A1', '=MATCH("*b?u*",{"a",2.1,"ds  bau  dsd",4.1},0)', {},

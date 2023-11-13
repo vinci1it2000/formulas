@@ -55,7 +55,7 @@ class TestExcelModel(unittest.TestCase):
         }
         sh.get_nested_dicts(
             self.results_full_range, 'TEST_FILES/FULL-RANGE.XLSX', 'DATA'
-        ).update({'A6': 5, 'A7': 1, 'B2': 19, 'B5': 25})
+        ).update({'A6': 5, 'A7': 1, 'B2': 19, 'B5': 63})
         self.maxDiff = None
 
     def _compare(self, books, results):

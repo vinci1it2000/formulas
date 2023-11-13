@@ -189,9 +189,25 @@ def raise_errors(*args):
         raise FoundError(err=v)
 
 
-def is_number(number, xl_return=True):
+def _to_number(number):
+    if isinstance(number, (bool, np.bool_)) and number:
+        return np.nan
+    try:
+        return float(number)
+    except (ValueError, TypeError):
+        return np.nan
+
+
+to_number = np.frompyfunc(_to_number, 1, 1)
+
+
+def clean_values(values):
+    return values[values != np.array(sh.EMPTY, dtype=object)]
+
+
+def is_number(number, xl_return=True, bool_return=False):
     if isinstance(number, (bool, np.bool_)):
-        return False
+        return bool_return
     elif isinstance(number, XlError):
         return xl_return
     elif number is sh.EMPTY:
