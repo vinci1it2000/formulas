@@ -118,13 +118,11 @@ FUNCTIONS["_XLFN.SWITCH"] = FUNCTIONS["SWITCH"] = {
 
 
 def xand(logical, *logicals, func=np.logical_and.reduce):
-    check, arr = lambda x: not raise_errors(x) and not isinstance(x, str), []
-    for a in (logical,) + logicals:
-        v = list(flatten(a, check=check))
-        arr.extend(v)
-        if not v and not isinstance(a, np.ndarray):
-            return Error.errors['#VALUE!']
-    return func(arr) if arr else Error.errors['#VALUE!']
+    args = (logical,) + logicals
+    raise_errors(args)
+    check = lambda x: not isinstance(x, str)
+    inp = tuple(flatten(args, check=check, drop_empty=True))
+    return func(inp) if inp else Error.errors['#VALUE!']
 
 
 FUNCTIONS['AND'] = {'function': wrap_func(xand)}
