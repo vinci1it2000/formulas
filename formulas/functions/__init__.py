@@ -198,7 +198,13 @@ def _to_number(number):
         return np.nan
 
 
-to_number = np.frompyfunc(_to_number, 1, 1)
+@functools.lru_cache(None)
+def _compile_func(func):
+    return np.frompyfunc(func, 1, 1)
+
+
+def to_number(*args, **kwargs):
+    return _compile_func(_to_number)(*args, **kwargs)
 
 
 def clean_values(values):
