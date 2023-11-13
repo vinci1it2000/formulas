@@ -226,7 +226,6 @@ def is_number(number, xl_return=True, bool_return=False):
     return True
 
 
-@functools.lru_cache()
 def _text2num(value):
     if isinstance(value, Array) and not value.shape:
         value = value.tolist()

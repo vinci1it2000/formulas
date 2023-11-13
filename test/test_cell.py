@@ -23,6 +23,10 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
+        ('A1', '=VALUE(#NAME?)', {}, '<Ranges>(A1)=[[#NAME?]]'),
+        ('A1', '=VALUE(FALSE)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=VALUE(0)', {}, '<Ranges>(A1)=[[0.0]]'),
+        ('A1', '=VALUE("26/08/1987")', {}, '<Ranges>(A1)=[[32015]]'),
         ('A1', '=ROMAN(0)', {}, '<Ranges>(A1)=[[\'\']]'),
         ('A1', '=ROMAN(1)', {}, '<Ranges>(A1)=[[\'I\']]'),
         ('A1', '=ROMAN(4000)', {}, '<Ranges>(A1)=[[#VALUE!]]'),

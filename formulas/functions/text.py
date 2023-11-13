@@ -10,6 +10,7 @@
 Python equivalents of text Excel functions.
 """
 import functools
+import numpy as np
 from . import (
     wrap_ufunc, Error, replace_empty, XlError, value_return, flatten, wrap_func,
     is_not_empty, raise_errors
@@ -108,3 +109,20 @@ def xconcat(text, *args):
 
 FUNCTIONS['_XLFN.CONCAT'] = FUNCTIONS['CONCAT'] = wrap_func(xconcat)
 FUNCTIONS['CONCATENATE'] = wrap_ufunc(xconcat, return_func=value_return, **_kw0)
+
+
+def xvalue(value):
+    if not isinstance(value, Error) and isinstance(value, str):
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            from .date import xdate, _text2datetime
+            return xdate(*_text2datetime(value)[:3])
+    elif isinstance(value, (np.bool_, bool)):
+        raise ValueError
+    return float(value)
+
+
+FUNCTIONS['VALUE'] = wrap_ufunc(
+    xvalue, return_func=value_return, input_parser=lambda *a: a
+)
