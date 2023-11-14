@@ -75,6 +75,7 @@ class TestCell(unittest.TestCase):
          {}, '<Ranges>(A1)=[[\'0$0000  ,00 , 01234578    .  5 ,5.50.000\']]'),
         ('A1', '=TEXT(10.93, "#"" ""°F"" """)', {},
          '<Ranges>(A1)=[[\'11 °F \']]'),
+
         ('A1', '=AND(TRUE,"0",#REF!)', {}, '<Ranges>(A1)=[[#REF!]]'),
         ('A1', '=VALUE(#NAME?)', {}, '<Ranges>(A1)=[[#NAME?]]'),
         ('A1', '=VALUE(FALSE)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
