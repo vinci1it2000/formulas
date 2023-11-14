@@ -13,7 +13,9 @@ It provides AstBuilder class.
 import functools
 import collections
 import schedula as sh
-from .errors import FormulaError, RangeValueError, InvalidRangeError
+from .errors import (
+    FormulaError, RangeValueError, InvalidRangeError, InvalidRangeName
+)
 from .tokens.operator import Operator
 from .tokens.function import Function
 from .tokens.operand import Operand
@@ -131,7 +133,7 @@ class AstBuilder:
                 else:
                     try:
                         i[k] = Ranges().push(k, context=context)
-                    except ValueError:
+                    except InvalidRangeName:
                         i[k] = None
         dsp.raises = True
         dsp.nodes[o]['filters'] = _default_filter()

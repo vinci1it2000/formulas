@@ -157,11 +157,13 @@ class Ranges:
     @staticmethod
     def get_range(ref, context):
         ctx = context.copy()
-        for k, v in _re_range.match(ref).groupdict().items():
-            if v is not None:
-                if k == 'ref':
-                    raise InvalidRangeName
-                ctx[k] = v
+        try:
+            ctx.update({
+                k: v for k, v in _re_range.match(ref).groupdict().items()
+                if v is not None and (k != 'ref' or InvalidRangeName()._raise())
+            })
+        except AttributeError:
+            raise InvalidRangeName
         return Ranges.format_range(('name', 'n1', 'n2'), **ctx)
 
     def push(self, ref, value=sh.EMPTY, context=None):
