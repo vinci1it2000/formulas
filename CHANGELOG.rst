@@ -2,6 +2,73 @@ Changelog
 =========
 
 
+v1.2.6 (2023-11-15)
+-------------------
+
+Feat
+~~~~
+- (builder) :gh:`104`: Allow custom reference definition.
+
+- (test): Update test cases.
+
+- (operand) :gh:`106`: Accept number like `.3` to be parsed.
+
+- (text) :gh:`113`: Add `TEXT` function without fraction formatting.
+
+- (logic): Update logic functions according to new excel logic.
+
+- (text) :gh:`113`: Add `VALUE` function.
+
+- (math) :gh:`121`: Improve performances of `SUMPRODUCT`, `PRODUCT`,
+  `SUM`, and `SUMIF`.
+
+- (setup): Update requirements.
+
+- (core): Change development status.
+
+- (core): Add support for python 3.10 and 3.11.
+
+- (functions) :gh:`121`: Improve handling of EMPTY values.
+
+- (excel): Avoid using `flatten` function in basic routines.
+
+- (doc): Add Read the Docs configuration file.
+
+- (excel): Add tolerance when comparing two excels.
+
+- (excel): Add compare method to verify if formulas is able to replicate
+  excel values.
+
+
+Fix
+~~~
+- (doc): Remove broken badge.
+
+- (excel) :gh:`100`: Correct reading rounding from excel.
+
+- (math) :gh:`100`: Correct `TRUNC` defaults.
+
+- (tokens) :gh:`113`: Correct `sheet_id` definition.
+
+- (functions): Correct dill pickling error.
+
+- (excel): Correct reference parsing when loading from JSON.
+
+- (functions): Use an alternative method of vectorize when more than 32
+  arguments are provided.
+
+- (look): Correct `MATCH`, `LOOKUP`,`HLOOKUP`, and `VLOOKUP` behaviour
+  when empty values are given.
+
+- (date): Correct `DATEDIF` behaviour when unit is lowercase.
+
+- (test): Use regex for unstable tests due to changes in last digits.
+
+- (doc): Correct documentation bug due to new `sphinx`.
+
+- (excel) :gh:`114`: Update reading code according to `openpyxl>=3.1`.
+
+
 v1.2.6 (2022-12-13)
 -------------------
 
