@@ -189,7 +189,7 @@ def xgcd(*args):
 
 
 FUNCTIONS['GCD'] = wrap_func(xgcd)
-FUNCTIONS['INT'] = wrap_ufunc(int)
+FUNCTIONS['INT'] = wrap_ufunc(math.floor)
 FUNCTIONS['ISO.CEILING'] = FUNCTIONS['CEILING.PRECISE']
 
 
@@ -369,4 +369,10 @@ FUNCTIONS['SUM'] = wrap_func(xsum)
 FUNCTIONS['SUMIF'] = wrap_func(functools.partial(xfilter, xsum))
 FUNCTIONS['TAN'] = wrap_ufunc(np.tan)
 FUNCTIONS['TANH'] = wrap_ufunc(np.tanh)
-FUNCTIONS['TRUNC'] = wrap_ufunc(functools.partial(xround, func=math.trunc))
+
+
+def xtrunc(x, d=0, func=math.trunc):
+    return xround(x, d=d, func=func)
+
+
+FUNCTIONS['TRUNC'] = wrap_ufunc(xtrunc)
