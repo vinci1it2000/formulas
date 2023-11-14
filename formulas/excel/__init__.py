@@ -27,7 +27,6 @@ import numpy as np
 import os.path as osp
 import schedula as sh
 from ..ranges import Ranges
-from ..functions import flatten
 from ..errors import InvalidRangeName
 from ..cell import Cell, RangesAssembler, Ref, CellWrapper
 from ..tokens.operand import XlError, _re_sheet_id, _re_build_id
@@ -288,6 +287,8 @@ class ExcelModel:
             if not isinstance(val, str):
                 val = val.text
             val = val[:2] == '==' and val[1:] or val
+        elif cell.data_type == 'n' and isinstance(val, float):
+            val = round(val, 15)
 
         check_formula = cell.data_type != 's'
         return self._compile_cell(crd, val, context, check_formula, references)
