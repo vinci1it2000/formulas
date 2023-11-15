@@ -3,7 +3,7 @@
 ##################################################
 formulas: An Excel formulas interpreter in Python.
 ##################################################
-|pypi_ver| |test_status| |cover_status| |docs_status| |dependencies|
+|pypi_ver| |test_status| |cover_status| |docs_status|
 |github_issues| |python_ver| |proj_license| |binder|
 
 :release:       1.2.6
@@ -305,10 +305,6 @@ Things yet to do: implement the missing Excel formulas.
 .. |proj_license| image:: https://img.shields.io/badge/license-EUPL%201.1%2B-blue.svg?
     :target: https://raw.githubusercontent.com/vinci1it2000/formulas/master/LICENSE.txt
     :alt: Project License
-
-.. |dependencies| image:: https://requires.io/github/vinci1it2000/formulas/requirements.svg?branch=master
-    :target: https://requires.io/github/vinci1it2000/formulas/requirements/?branch=master
-    :alt: Dependencies up-to-date?
 
 .. |binder| image:: https://mybinder.org/badge_logo.svg
     :target: https://mybinder.org/v2/gh/vinci1it2000/formulas/master?urlpath=lab%2Ftree%2Fbinder%2Findex.ipynb
