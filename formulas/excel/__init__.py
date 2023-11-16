@@ -107,7 +107,7 @@ class ExcelModel:
         target = _file2books(*fpaths)
         return list(diff(target, sh.selector(
             target, _res2books(self.write(solution=solution))
-        ), tolerance=tolerance, **kwargs))
+        ), tolerance=0, absolute_tolerance=tolerance, **kwargs))
 
     def __getstate__(self):
         return {'dsp': self.dsp, 'cells': {}, 'books': {}}
