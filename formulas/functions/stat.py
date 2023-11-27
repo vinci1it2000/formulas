@@ -35,6 +35,7 @@ def xfunc(*args, func=max, check=is_number, convert=None, default=0,
     _raise and raise_errors(args)
     it = flatten(map(_convert_args, args), check=check)
     default = [] if default is None else [default]
+    print(it)
     return func(list(map(convert, it) if convert else it) or default)
 
 
@@ -50,6 +51,9 @@ FUNCTIONS['AVERAGEA'] = wrap_func(functools.partial(
     xfunc, convert=_convert, check=is_not_empty, func=_xaverage, default=None
 ))
 FUNCTIONS['AVERAGEIF'] = wrap_func(functools.partial(xfilter, xaverage))
+
+xsumsq = functools.partial(xfunc, func=lambda v: np.sum(np.square(v)), default=0)
+FUNCTIONS['SUMSQ'] = wrap_func(xsumsq)
 
 
 def xcorrel(arr1, arr2):
