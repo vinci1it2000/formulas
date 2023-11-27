@@ -191,6 +191,16 @@ FUNCTIONS['_XLFN.FORECAST.LINEAR'] = FUNCTIONS['FORECAST'] = wrap_ufunc(
 )
 FUNCTIONS['FORECAST.LINEAR'] = FUNCTIONS['FORECAST']
 
+def xquartile(v, q):
+    v = list(flatten(v, drop_empty=True))
+    if len(v) == 0:
+        return Error.errors['#NUM!']
+    q = np.floor(q)
+    if q < 0 or  q > 4:
+        return Error.errors['#NUM!']
+    return np.quantile(v, q*0.25)
+
+FUNCTIONS['QUARTILE'] = wrap_func(xquartile)
 
 def xstdev(args, ddof=1, func=np.std):
     if len(args) <= ddof:
