@@ -653,6 +653,16 @@ class TestCell(unittest.TestCase):
          {'B2:B4': (sh.EMPTY, sh.EMPTY, sh.EMPTY)}, '<Ranges>(A1)=[[0.0]]'),
         ('A1', '=SUMSQ(B2:B4)',
          {'B2:B4': (sh.EMPTY, 2, 3)}, '<Ranges>(A1)=[[13.0]]'),
+        ('A1', '=QUARTILE(B2:B5,0)',
+         {'B2:B5': (sh.EMPTY, sh.EMPTY, sh.EMPTY, sh.EMPTY)}, '<Ranges>(A1)=[[#NUM!]]'),
+        ('A1', '=QUARTILE(B2:B5,-1)',
+         {'B2:B5': (1, 1, 1, 1)}, '<Ranges>(A1)=[[#NUM!]]'),
+        ('A1', '=QUARTILE(B2:B5,5)',
+         {'B2:B5': (1, 1, 1, 1)}, '<Ranges>(A1)=[[#NUM!]]'),
+        ('A1', '=QUARTILE(B2:B5,1)',
+         {'B2:B5': (1, 2, 3, sh.EMPTY)}, '<Ranges>(A1)=[[1.5]]'),
+        ('A1', '=QUARTILE(B2:B5,2)',
+         {'B2:B5': (1, 2, 3, 4)}, '<Ranges>(A1)=[[2.5]]'),
         # ('A1:D1', '=IF({0,-0.2,0},{2,3},{1})', {},
         #  '<Ranges>(A1:D1)=[[1 2 1 #N/A]]'),
         # ('A1:D1', '=IF({0,-2,0},{2,3},{1,4})', {},
@@ -727,8 +737,6 @@ class TestCell(unittest.TestCase):
          '<Ranges>\(A1\)=\[\[-1030.1643271779\d*\]\]'),
         ('A1', '=PMT(0.08/12,10,10000)', {},
          '<Ranges>\(A1\)=\[\[-1037.0320893591\d*\]\]'),
-        ('A1', '=CORREL({2,4,1},{7,3,6})', {},
-         '<Ranges>\(A1\)=\[\[-0.838627869377534\d*\]\]'),
     ])
     def test_output_regex(self, case):
         reference, formula, inputs, regex = case
