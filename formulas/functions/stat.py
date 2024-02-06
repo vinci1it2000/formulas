@@ -35,7 +35,6 @@ def xfunc(*args, func=max, check=is_number, convert=None, default=0,
     _raise and raise_errors(args)
     it = flatten(map(_convert_args, args), check=check)
     default = [] if default is None else [default]
-    print(it)
     return func(list(map(convert, it) if convert else it) or default)
 
 
