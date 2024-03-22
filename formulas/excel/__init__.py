@@ -454,7 +454,11 @@ class ExcelModel:
         }
         nodes = {
             k: isinstance(v, str) and v.startswith('=') and '="%s"' % v or v
-            for k, v in nodes.items() if v != [[sh.EMPTY]]
+            for k, v in nodes.items()
+        }
+        nodes = {
+            k: '#EMPTY' if v == [[sh.EMPTY]] else v
+            for k, v in nodes.items()
         }
         for d in self.dsp.function_nodes.values():
             fun = d['function']
@@ -465,6 +469,8 @@ class ExcelModel:
     def from_dict(self, adict, context=None, assemble=True, ref=True):
         refs, cells, nodes, get = {}, {}, set(), sh.get_nested_dicts
         for k, v in adict.items():
+            if isinstance(v, str) and v.upper() == '#EMPTY':
+                v = [[sh.EMPTY]]
             try:
                 cell = Cell(k, v, context=context, replace_missing_ref=ref)
             except ValueError:
