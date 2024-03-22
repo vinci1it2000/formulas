@@ -248,12 +248,12 @@ class TestExcelModel(unittest.TestCase):
 
     def test_excel_from_dict(self):
         xl_model = ExcelModel().from_dict({
-            'A1': 1, 'B2': '=R[-1]C[-1]', 'A': 2, 'B': '=2'
+            'A1': 1, 'B2': '=R[-1]C[-1]', 'A': 2, 'B': '=2', 'C': '=A1'
         }).finish()
-        self.assertEqual({
-            k: v.value if isinstance(v, Ranges) else v
-            for k, v in xl_model.calculate().items()
-        }, {'A1': 1, 'B2': 1, 'A': 2, 'B': 2})
+        self.assertEqual({'A1': 2, 'B2': 2, 'A': 2, 'B': 2, 'C': 2}, {
+            k: v.value.ravel()[0] if isinstance(v, Ranges) else v
+            for k, v in xl_model.calculate({'C': 2}).items()
+        })
 
     def tearDown(self) -> None:
         shutil.rmtree(osp.join(mydir, 'tmp'), ignore_errors=True)

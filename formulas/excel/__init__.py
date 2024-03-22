@@ -473,11 +473,13 @@ class ExcelModel:
                 nodes.update(cell.add(self.dsp, context=context))
             cells[cell.output] = cell
         self._update_refs(nodes, refs)
-        for cell in cells.values():
-            nodes.update(cell.compile(references=refs).add(self.dsp))
+        for k, cell in cells.items():
+            if k not in refs:
+                nodes.update(cell.compile(references=refs).add(self.dsp))
         self.cells.update(cells)
         if assemble:
             self.assemble()
+        self.inverse_references()
         return self
 
     def write(self, books=None, solution=None, dirpath=None):
