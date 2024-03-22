@@ -17,6 +17,7 @@ import schedula as sh
 from .parser import Parser
 from .ranges import Ranges, _assemble_values, _shape, _get_indices_intersection
 from .tokens.operand import Error, XlError, range2parts, _re_ref, _index2col
+from .functions import replace_empty
 
 CELL = sh.Token('Cell')
 
@@ -162,7 +163,8 @@ class Cell:
                             except ValueError:
                                 dsp.add_data(k)
                 nodes.add(dsp.add_function(
-                    self.__name__, self.func, inputs or None, [output]
+                    self.__name__, self.func, inputs or None, [output],
+                    filters=[replace_empty]
                 ))
         return nodes
 
