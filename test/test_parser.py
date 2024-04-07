@@ -63,7 +63,8 @@ class TestParser(unittest.TestCase):
         ('=10  ^  -  2', '10^u-2'),
         ('=10^- + -  + + +2', '10^u+2'),
         ('=ATAN2( 10 , 2)', 'ATAN2(10,2)'),
-        ('=DAYS360( 10 , 2)', 'DAYS360(10,2)')
+        ('=DAYS360( 10 , 2)', 'DAYS360(10,2)'),
+        ('=FIRSTPARAMEMPTY(,,1)', 'FIRSTPARAMEMPTY(,,1)'),
     )
     def test_valid_formula(self, case):
         inputs, result = case
