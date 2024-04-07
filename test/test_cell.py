@@ -523,6 +523,7 @@ class TestCell(unittest.TestCase):
          '<Ranges>(A1)=[[0]]'),
         ('A1', '=IFS(FALSE, "FIRST", FALSE, "SECOND")', {},
          '<Ranges>(A1)=[[#N/A]]'),
+        ('A1', '=IF(,FALSE,"PASS")', {}, '<Ranges>(A1)=[[\'PASS\']]'),
         ('A1', '=ROW(4:7)', inp_ranges('4:7'), '<Ranges>(A1)=[[4]]'),
         ('A1', '=ROW(B8:D8:F7:H8 D7:E8)',
          inp_ranges('B8:D8', 'F7:H8', 'D7:E8'), '<Ranges>(A1)=[[7]]'),
