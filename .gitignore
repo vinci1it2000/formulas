@@ -8,6 +8,13 @@ __pycache__/
 # C extensions
 *.so
 
+# Mac OS
+.DS_Store
+
+# Virtual environment
+.venv
+/venv/
+
 # Distribution / packaging
 .Python
 env/
