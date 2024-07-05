@@ -23,6 +23,7 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
+        ('A1', '=CODE(A2)', {'A2': [[sh.EMPTY]]}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=CHAR(1)', {}, '<Ranges>(A1)=[[\'_x0001_\']]'),
         ('A1', '=CHAR(157)', {}, '<Ranges>(A1)=[[\'ù\']]'),
         ('A1', '=TEXT("a", "mm")', {}, '<Ranges>(A1)=[[\'a\']]'),
