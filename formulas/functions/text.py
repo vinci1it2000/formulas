@@ -263,6 +263,19 @@ def xchar(number):
 FUNCTIONS['CHAR'] = wrap_ufunc(xchar)
 
 
+def xcode(character) -> int:
+    """
+    Returns the  code of a character based on codes dictionary. Input must be a singular character
+    """
+    character = str(character)
+    if len(character) > 1:
+        character = character[0]
+    return {v: k for k, v in codes.items()}.get(character, None)
+
+
+FUNCTIONS["CODE"] = wrap_ufunc(xcode)
+
+
 def _str(text):
     if isinstance(text, bool):
         return str(text).upper()
