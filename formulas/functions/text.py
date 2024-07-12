@@ -249,6 +249,14 @@ codes = {
     254: "˛",
     255: "ˇ"
 }
+inverse_codes = {v: k for k, v in codes.items()}
+
+
+class HexValue(str):
+    pass
+
+
+_re_hex = regex.compile("^_x([0-9A-Z]{4})_$")
 
 
 def xchar(number):
@@ -256,24 +264,34 @@ def xchar(number):
     if 0 < number <= 255:
         if number in codes:
             return codes[number]
-        return f'_x{hex(number)[2:].upper():0>4}_'
+        return HexValue(f'_x{hex(number)[2:].upper():0>4}_')
     return Error.errors['#VALUE!']
 
 
-FUNCTIONS['CHAR'] = wrap_ufunc(xchar)
+FUNCTIONS['CHAR'] = wrap_ufunc(xchar, return_func=value_return)
 
 
 def xcode(character) -> int:
     """
     Returns the  code of a character based on codes dictionary. Input must be a singular character
     """
-    character = str(character)
-    if len(character) > 1:
-        character = character[0]
-    return {v: k for k, v in codes.items()}.get(character, None)
+
+    if isinstance(character, HexValue):
+        try:
+            number = int(f'0{character[1:-1]}', 16)
+            if 0 < number <= 255:
+                return number
+        except ValueError:
+            pass
+    elif isinstance(character, sh.Token):
+        raise ValueError
+    return inverse_codes.get(str(character)[0], None)
 
 
-FUNCTIONS["CODE"] = wrap_ufunc(xcode)
+FUNCTIONS["CODE"] = wrap_ufunc(
+    xcode, args_parser=lambda *a: a, input_parser=lambda *a: a,
+    return_func=value_return
+)
 
 
 def _str(text):

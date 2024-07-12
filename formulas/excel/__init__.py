@@ -30,6 +30,7 @@ from ..ranges import Ranges
 from ..errors import InvalidRangeName
 from ..cell import Cell, RangesAssembler, Ref, CellWrapper
 from ..tokens.operand import XlError, _re_sheet_id, _re_build_id
+from ..functions.text import HexValue
 
 log = logging.getLogger(__name__)
 BOOK = sh.Token('Book')
@@ -460,6 +461,12 @@ class ExcelModel:
             k: '#EMPTY' if v == [[sh.EMPTY]] else v
             for k, v in nodes.items()
         }
+        nodes = {
+            k: {
+                'type': 'HexValue', 'value': v
+            } if isinstance(v, HexValue) else v
+            for k, v in nodes.items()
+        }
         for d in self.dsp.function_nodes.values():
             fun = d['function']
             if isinstance(fun, CellWrapper):
@@ -469,6 +476,9 @@ class ExcelModel:
     def from_dict(self, adict, context=None, assemble=True, ref=True):
         refs, cells, nodes, get = {}, {}, set(), sh.get_nested_dicts
         for k, v in adict.items():
+            if isinstance(v, dict):
+                if v['type'] == 'HexValue':
+                    v = HexValue(v['value'])
             if isinstance(v, str) and v.upper() == '#EMPTY':
                 v = [[sh.EMPTY]]
             try:
