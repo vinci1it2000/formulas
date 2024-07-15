@@ -24,7 +24,12 @@ class Parenthesis(Token):
     n_args = 0
 
     def ast(self, tokens, stack, builder):
-        from . operand import Operand
+        from .operator import Separator
+        from .operand import Operand
+        if tokens and isinstance(tokens[-1],
+                                 Separator) and self.get_name == ')':
+            from .operand import Empty
+            Empty().ast(tokens, stack, builder)
         if self.has_start and tokens and isinstance(tokens[-1], Operand):
             raise TokenError
         super(Parenthesis, self).ast(tokens, stack, builder)
