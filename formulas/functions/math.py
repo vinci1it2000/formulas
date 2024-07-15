@@ -367,6 +367,9 @@ def xsum(*args, func=np.sum):
 FUNCTIONS['PRODUCT'] = wrap_func(functools.partial(xsum, func=np.prod))
 FUNCTIONS['SUM'] = wrap_func(xsum)
 FUNCTIONS['SUMIF'] = wrap_func(functools.partial(xfilter, xsum))
+FUNCTIONS['SUMSQ'] = wrap_func(functools.partial(
+    xsum, func=lambda v: np.sum(np.square(v))
+))
 FUNCTIONS['TAN'] = wrap_ufunc(np.tan)
 FUNCTIONS['TANH'] = wrap_ufunc(np.tanh)
 

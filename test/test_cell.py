@@ -650,9 +650,9 @@ class TestCell(unittest.TestCase):
             'A3:E3': [["h", "e", "l", "l", "o"]]
         }, '<Ranges>(A1)=[[\'hellohellocurl\']]'),
         ('A1', '=SUMSQ(B2:B4)',
-         {'B2:B4': (sh.EMPTY, sh.EMPTY, sh.EMPTY)}, '<Ranges>(A1)=[[0]]'),
+         {'B2:B4': (sh.EMPTY, sh.EMPTY, sh.EMPTY)}, '<Ranges>(A1)=[[0.0]]'),
         ('A1', '=SUMSQ(B2:B4)',
-         {'B2:B4': (sh.EMPTY, 2, 3)}, '<Ranges>(A1)=[[13]]'),
+         {'B2:B4': (sh.EMPTY, 2, 3)}, '<Ranges>(A1)=[[13.0]]'),
         # ('A1:D1', '=IF({0,-0.2,0},{2,3},{1})', {},
         #  '<Ranges>(A1:D1)=[[1 2 1 #N/A]]'),
         # ('A1:D1', '=IF({0,-2,0},{2,3},{1,4})', {},

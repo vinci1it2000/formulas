@@ -51,9 +51,6 @@ FUNCTIONS['AVERAGEA'] = wrap_func(functools.partial(
 ))
 FUNCTIONS['AVERAGEIF'] = wrap_func(functools.partial(xfilter, xaverage))
 
-xsumsq = functools.partial(xfunc, func=lambda v: np.sum(np.square(v)), default=0)
-FUNCTIONS['SUMSQ'] = wrap_func(xsumsq)
-
 
 def xcorrel(arr1, arr2):
     try:
