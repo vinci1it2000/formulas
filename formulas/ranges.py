@@ -258,7 +258,15 @@ class Ranges:
 
     def __repr__(self):
         ranges = ', '.join(r['name'] for r in self.ranges)
-        value = '={}'.format(self.value) if ranges and self.values else ''
+        if ranges and self.values:
+            value = '={}'.format(self.value)
+            if 'np.' in value:  # Correct formatting for numpy v2.x.
+                value = '={}'.format(np.array2string(
+                    self.value, formatter={'all': '{}'.format}
+                ))
+        else:
+            value = ''
+
         return '<%s>(%s)%s' % (self.__class__.__name__, ranges, value)
 
     @property

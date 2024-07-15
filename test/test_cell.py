@@ -245,8 +245,6 @@ class TestCell(unittest.TestCase):
         ('A1', '=CORREL(A2,{8,2})', {'A2': [[sh.EMPTY]]},
          '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=CORREL({"2",4,1},{7,3,6})', {}, '<Ranges>(A1)=[[-1.0]]'),
-        ('A1', '=CORREL({2,4,1},{7,3,6})', {},
-         '<Ranges>(A1)=[[-0.8386278693775346]]'),
         ('A1', '=IPMT(0.1/12, 60, 3*12, 8000)', {},
          '<Ranges>(A1)=[[#NUM!]]'),
         ('A1', '=PMT(0.08/12,0,10000)', {}, '<Ranges>(A1)=[[#NUM!]]'),
@@ -719,6 +717,8 @@ class TestCell(unittest.TestCase):
          '<Ranges>\(A1\)=\[\[-1030.1643271779\d*\]\]'),
         ('A1', '=PMT(0.08/12,10,10000)', {},
          '<Ranges>\(A1\)=\[\[-1037.0320893591\d*\]\]'),
+        ('A1', '=CORREL({2,4,1},{7,3,6})', {},
+         '<Ranges>\(A1\)=\[\[-0.838627869377534\d*\]\]'),
     ])
     def test_output_regex(self, case):
         reference, formula, inputs, regex = case
