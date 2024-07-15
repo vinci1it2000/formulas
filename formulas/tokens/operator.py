@@ -38,9 +38,11 @@ class Operator(Token):
     def update_input_tokens(self, *tokens):
         if self.name in ' ,:':
             self.attr['is_ranges'] = True
-            from .operand import Range
+            from .operand import Range, Error
             for t in tokens:
                 if isinstance(t, Range):
+                    t.attr['is_ranges'] = True
+                elif isinstance(t, Error) and t.name == '#REF!':
                     t.attr['is_ranges'] = True
                 elif not t.attr.get('is_ranges', False):
                     raise FormulaError()
