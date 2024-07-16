@@ -23,6 +23,7 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
+        ('A1', '=NORM.S.INV(0.7)', {}, '<Ranges>(A1)=[[0.5244005127080407]]'),
         ('A1', '=QUARTILE.EXC({#REF!,5},5)', {}, '<Ranges>(A1)=[[#REF!]]'),
         ('A1', '=QUARTILE({#REF!,5},5)', {}, '<Ranges>(A1)=[[#REF!]]'),
         ('A1', '=QUARTILE(B2:B5,0)',
@@ -666,7 +667,7 @@ class TestCell(unittest.TestCase):
          {'B2:B4': (sh.EMPTY, sh.EMPTY, sh.EMPTY)}, '<Ranges>(A1)=[[0.0]]'),
         ('A1', '=SUMSQ(B2:B4)',
          {'B2:B4': (sh.EMPTY, 2, 3)}, '<Ranges>(A1)=[[13.0]]'),
-        ('A1', '=NORMSDIST(2)', {}, '<Ranges>(A1)=[[0.9772498680518208]]'),
+        ('A1', '=NORMSDIST(2,TRUE)', {}, '<Ranges>(A1)=[[0.9772498680518208]]'),
         # ('A1:D1', '=IF({0,-0.2,0},{2,3},{1})', {},
         #  '<Ranges>(A1:D1)=[[1 2 1 #N/A]]'),
         # ('A1:D1', '=IF({0,-2,0},{2,3},{1,4})', {},

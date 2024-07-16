@@ -226,32 +226,6 @@ def xmround(*args):
 FUNCTIONS['MROUND'] = wrap_func(xmround)
 
 
-def normsdist(z):
-    """
-    https://support.microsoft.com/en-us/office/normsdist-function-463369ea-0345-445d-802a-4ff0d6ce7cac
-    mean (mu) = 0, stdev (sigma) = 1
-    formula on microsoft document is *non-cumulative* normal distribution
-
-    https://stackoverflow.com/questions/809362/how-to-calculate-cumulative-normal-distribution
-    scipy
-    ```
-    from scipy.stats import norm
-    norm.cdf(1.96)
-    ```
-
-    python3.8
-    ```
-    from statistics import NormalDist
-    NormalDist(mu=0, sigma=1).cdf(1.96)
-    ```
-    """
-    if not is_number(z):
-        return Error.errors['#VALUE!']
-    return (1.0 + math.erf(z / math.sqrt(2.0))) / 2.0
-
-
-FUNCTIONS['NORMSDIST'] = wrap_func(normsdist)
-
 def xodd(x):
     v = math.ceil(abs(x)) // 2 * 2 + 1
     return -v if x < 0 else v

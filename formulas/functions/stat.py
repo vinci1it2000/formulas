@@ -18,6 +18,7 @@ from . import (
     XlError, wrap_ufunc, replace_empty, get_error, is_not_empty, _convert_args,
     convert_nan, FoundError, value_return
 )
+from statistics import NormalDist
 
 FUNCTIONS = {}
 
@@ -192,6 +193,47 @@ FUNCTIONS['_XLFN.FORECAST.LINEAR'] = FUNCTIONS['FORECAST'] = wrap_ufunc(
 FUNCTIONS['FORECAST.LINEAR'] = FUNCTIONS['FORECAST']
 
 
+def xnormdist(z, mu, sigma, cumulative=True):
+    if isinstance(cumulative, str):
+        if cumulative.lower() in ('true', 'false'):
+            cumulative = cumulative.lower() == 'true'
+        else:
+            return Error.errors['#VALUE!']
+    if sigma <= 0:
+        return Error.errors['#NUM!']
+    norm = NormalDist(mu=mu, sigma=sigma)
+    return norm.cdf(z) if cumulative else norm.pdf(z)
+
+
+def xnorminv(z, mu=0, sigma=1):
+    if z <= 0.0 or z >= 1.0 or sigma <= 0:
+        return Error.errors['#NUM!']
+    norm = NormalDist(mu=mu, sigma=sigma)
+    return norm.inv_cdf(z)
+
+
+FUNCTIONS['_XLFN.NORM.DIST'] = FUNCTIONS['NORM.DIST'] = wrap_ufunc(
+    xnormdist,
+    input_parser=lambda *a: tuple(map(_convert_args, a[:-1])) + a[-1:],
+    return_func=value_return
+)
+FUNCTIONS['_XLFN.NORM.INV'] = FUNCTIONS['NORM.INV'] = wrap_ufunc(
+    xnorminv,
+    input_parser=lambda *a: tuple(map(_convert_args, a)),
+    return_func=value_return
+)
+FUNCTIONS['_XLFN.NORM.S.DIST'] = FUNCTIONS['NORM.S.DIST'] = wrap_ufunc(
+    xnormdist,
+    input_parser=lambda x, *a: (_convert_args(x), 0, 1) + a,
+    return_func=value_return
+)
+FUNCTIONS['_XLFN.NORM.S.INV'] = FUNCTIONS['NORM.S.INV'] = wrap_ufunc(
+    xnorminv,
+    input_parser=lambda x: (_convert_args(x),),
+    return_func=value_return
+)
+
+
 def xquartile(v, q, exclusive=False):
     if len(v) == 0:
         return Error.errors['#NUM!']
@@ -212,7 +254,8 @@ _quartile_kw = {
     'check_error': lambda *a: get_error(*a[::-1]),
     'args_parser': lambda v, q: (
         list(flatten(v, drop_empty=True)), replace_empty(q)
-    )
+    ),
+    'return_func': value_return
 }
 FUNCTIONS['_XLFN.QUARTILE.EXC'] = FUNCTIONS['QUARTILE.EXC'] = wrap_ufunc(
     functools.partial(xquartile, exclusive=True), **_quartile_kw
