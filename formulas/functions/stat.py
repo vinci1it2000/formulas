@@ -232,13 +232,43 @@ FUNCTIONS['_XLFN.NORM.S.INV'] = FUNCTIONS['NORM.S.INV'] = wrap_ufunc(
     input_parser=lambda x: (_convert_args(x),),
     return_func=value_return
 )
+_percentile_kw = {
+    'excluded': {0},
+    'input_parser': lambda v, q: (v, _convert_args(q)),
+    'check_error': lambda *a: get_error(*a[::-1]),
+    'args_parser': lambda v, q: (
+        list(flatten(v, drop_empty=True)), replace_empty(q)
+    ),
+    'return_func': value_return
+}
+
+
+def xpercentile(v, p, exclusive=False):
+    if len(v) == 0 or not is_number(p) or p < 0 or p > 1:
+        return Error.errors['#NUM!']
+    if exclusive:
+        n = len(v)
+        rank = (n + 1) * p
+        if rank < 1 or rank > n:
+            return Error.errors['#NUM!']
+    return np.percentile(v, p * 100, method=exclusive and 'weibull' or 'linear')
+
+
+FUNCTIONS['_XLFN.PERCENTILE.EXC'] = FUNCTIONS['PERCENTILE.EXC'] = wrap_ufunc(
+    functools.partial(xpercentile, exclusive=True), **_percentile_kw
+)
+FUNCTIONS['_XLFN.PERCENTILE.INC'] = FUNCTIONS['PERCENTILE.INC'] = wrap_ufunc(
+    xpercentile, **_percentile_kw
+)
 
 
 def xquartile(v, q, exclusive=False):
     if len(v) == 0:
         return Error.errors['#NUM!']
     if exclusive:
-        if q <= 0 or q >= 4 or (q != 2 and len(v) <= 2):
+        n = len(v)
+        rank = (n + 1) * q * 0.25
+        if q <= 0 or q >= 4 or rank < 1 or rank > n:
             return Error.errors['#NUM!']
         method = 'weibull'
     else:
@@ -248,7 +278,7 @@ def xquartile(v, q, exclusive=False):
     return np.quantile(v, q * 0.25, method=method)
 
 
-_quartile_kw = {
+_quartile_kw = sh.combine_dicts(_percentile_kw, {
     'excluded': {0},
     'input_parser': lambda v, q: (v, np.floor(_convert_args(q))),
     'check_error': lambda *a: get_error(*a[::-1]),
@@ -256,7 +286,7 @@ _quartile_kw = {
         list(flatten(v, drop_empty=True)), replace_empty(q)
     ),
     'return_func': value_return
-}
+})
 FUNCTIONS['_XLFN.QUARTILE.EXC'] = FUNCTIONS['QUARTILE.EXC'] = wrap_ufunc(
     functools.partial(xquartile, exclusive=True), **_quartile_kw
 )

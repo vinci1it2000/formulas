@@ -23,6 +23,8 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
+        ('A1', '=PERCENTILE.INC({0,-10,0.9,0.1,-0.1},0.9)', {},
+         '<Ranges>(A1)=[[0.5800000000000001]]'),
         ('A1', '=NORM.S.INV(0.7)', {}, '<Ranges>(A1)=[[0.5244005127080407]]'),
         ('A1', '=QUARTILE.EXC({#REF!,5},5)', {}, '<Ranges>(A1)=[[#REF!]]'),
         ('A1', '=QUARTILE({#REF!,5},5)', {}, '<Ranges>(A1)=[[#REF!]]'),
