@@ -12,6 +12,7 @@ Python equivalents of compatibility Excel functions.
 from .stat import FUNCTIONS as FSTAT
 
 FUNCTIONS = {
+    'QUARTILE': FSTAT['QUARTILE.INC'],
     'STDEV': FSTAT['STDEV.S'],
     'STDEVP': FSTAT['STDEV.P'],
     'VAR': FSTAT['VAR.S'],

@@ -191,16 +191,36 @@ FUNCTIONS['_XLFN.FORECAST.LINEAR'] = FUNCTIONS['FORECAST'] = wrap_ufunc(
 )
 FUNCTIONS['FORECAST.LINEAR'] = FUNCTIONS['FORECAST']
 
-def xquartile(v, q):
-    v = list(flatten(v, drop_empty=True))
+
+def xquartile(v, q, exclusive=False):
     if len(v) == 0:
         return Error.errors['#NUM!']
-    q = np.floor(q)
-    if q < 0 or  q > 4:
-        return Error.errors['#NUM!']
-    return np.quantile(v, q*0.25)
+    if exclusive:
+        if q <= 0 or q >= 4 or (q != 2 and len(v) <= 2):
+            return Error.errors['#NUM!']
+        method = 'weibull'
+    else:
+        if q < 0 or q > 4:
+            return Error.errors['#NUM!']
+        method = 'linear'
+    return np.quantile(v, q * 0.25, method=method)
 
-FUNCTIONS['QUARTILE'] = wrap_func(xquartile)
+
+_quartile_kw = {
+    'excluded': {0},
+    'input_parser': lambda v, q: (v, np.floor(_convert_args(q))),
+    'check_error': lambda *a: get_error(*a[::-1]),
+    'args_parser': lambda v, q: (
+        list(flatten(v, drop_empty=True)), replace_empty(q)
+    )
+}
+FUNCTIONS['_XLFN.QUARTILE.EXC'] = FUNCTIONS['QUARTILE.EXC'] = wrap_ufunc(
+    functools.partial(xquartile, exclusive=True), **_quartile_kw
+)
+FUNCTIONS['_XLFN.QUARTILE.INC'] = FUNCTIONS['QUARTILE.INC'] = wrap_ufunc(
+    xquartile, **_quartile_kw
+)
+
 
 def xstdev(args, ddof=1, func=np.std):
     if len(args) <= ddof:

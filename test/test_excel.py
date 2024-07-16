@@ -65,7 +65,8 @@ class TestExcelModel(unittest.TestCase):
             value = sh.get_nested_dicts(books, *k, default=lambda: '')
             msg = '[{}]{}!{}'.format(*k)
             try:
-                if not isinstance(res, str) and is_number(res) and is_number(value):
+                if not isinstance(res, str) and is_number(res) and \
+                        is_number(value):
                     self.assertAlmostEqual(
                         float(res), float(value), places=4, msg=msg
                     )
@@ -75,9 +76,7 @@ class TestExcelModel(unittest.TestCase):
                 errors.append(str(ex))
         self.assertFalse(
             bool(errors),
-            'Errors({}):\n{}\n\nCalculated:\n{}\n\nTarget:\n{}'.format(
-                len(errors), '\n'.join(errors), books, results
-            )
+            'Errors({}):\n{}\n'.format(len(errors), '\n'.join(errors))
         )
         return len(it)
 
