@@ -2,7 +2,77 @@ Changelog
 =========
 
 
-v1.2.6 (2023-11-15)
+v1.2.8 (2024-07-16)
+-------------------
+
+Feat
+~~~~
+- (core): Update Copyright.
+
+- (functions) :gh:`109`, :gh:`111`, :gh:`124`, :gh:`125`: Update test
+  cases.
+
+- (stat) :gh:`111`: Add `PERCENTILE`, `PERCENTILE.INC`, and
+  `PERCENTILE.EXC` functions.
+
+- (stat) :gh:`111`: Add `NORM.S.DIST`, `NORM.S.INV`, `NORM.DIST`,
+  `NORM.INV`,`NORMDIST`, `NORMINV`,`NORMSINV` functions.
+
+- (stat) :gh:`111`: Add `NORMSDIST` function.
+
+- (stat) :gh:`124`: Correct implementation `QUARTILE` and add
+  `QUARTILE.INC` and `QUARTILE.EXC`.
+
+- (functions) :gh:`124`: Add `QUARTILE` to stat functions.
+
+- (functions) :gh:`125`: Add `SUMSQ` to stat functions.
+
+- (tokens) :gh:`139`: Allow last parameters to be empty in a function
+  call.
+
+- (tokens) :gh:`139`: Allow first param to be empty.
+
+- (core): Update `.gitignore` settings.
+
+- (text): Add `CODE` function.
+
+- (text): Add `CHAR` function.
+
+- (test): Update coverage python version.
+
+
+Fix
+~~~
+- (test) :gh:`111`: Correct test case for windows.
+
+- (excel) :gh:`109`: Correct parser for named range with backslash in
+  name.
+
+- (functions) :gh:`125`: Move `SUMSQ` function to math.
+
+- (core): Correct repr formatting of ranges for numpy version 2.x.
+
+- (tokens) :gh:`145`: Correct handling of `#REF!` when compiling
+  functions.
+
+- (text): Correct `CODE` function.
+
+- (text): Add `CODE` text case.
+
+- (excel) :gh:`132`: Correction on how to handle the empty values used
+  within a formula.
+
+- (excel): Add `#EMPTY` value to save correctly the model as dict.
+
+- (excel) :gh:`134`, :gh:`135`: Correct `inverse_references` handling
+  when model defined with `from_dict`.
+
+- (excel): Correct tolerance.
+
+- (setup): Correct setup config file.
+
+
+v1.2.7 (2023-11-14)
 -------------------
 
 Feat

@@ -3,11 +3,11 @@
 ##################################################
 formulas: An Excel formulas interpreter in Python.
 ##################################################
-|pypi_ver| |test_status| |cover_status| |docs_status|
-|github_issues| |python_ver| |proj_license| |binder|
+|pypi_ver| |test_status| |cover_status| |docs_status| |downloads|
+|month_downloads| |github_issues| |python_ver| |proj_license| |binder|
 
-:release:       1.2.7
-:date:          2023-11-15 01:00:00
+:release:       1.2.8
+:date:          2024-07-16 14:00:00
 :repository:    https://github.com/vinci1it2000/formulas
 :pypi-repo:     https://pypi.org/project/formulas/
 :docs:          http://formulas.readthedocs.io/
@@ -309,4 +309,12 @@ Things yet to do: implement the missing Excel formulas.
 .. |binder| image:: https://mybinder.org/badge_logo.svg
     :target: https://mybinder.org/v2/gh/vinci1it2000/formulas/master?urlpath=lab%2Ftree%2Fbinder%2Findex.ipynb
     :alt: Live Demo
+
+.. |downloads| image:: https://static.pepy.tech/badge/schedula
+    :target: https://pepy.tech/project/schedula
+    :alt: Total Downloads
+
+.. |month_downloads| image:: https://static.pepy.tech/badge/schedula/month
+    :target: https://pepy.tech/project/schedula
+    :alt: Downloads per Month
 .. _end-badges:
