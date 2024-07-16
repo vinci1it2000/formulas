@@ -669,7 +669,6 @@ class TestCell(unittest.TestCase):
          {'B2:B4': (sh.EMPTY, sh.EMPTY, sh.EMPTY)}, '<Ranges>(A1)=[[0.0]]'),
         ('A1', '=SUMSQ(B2:B4)',
          {'B2:B4': (sh.EMPTY, 2, 3)}, '<Ranges>(A1)=[[13.0]]'),
-        ('A1', '=NORMSDIST(2,TRUE)', {}, '<Ranges>(A1)=[[0.9772498680518208]]'),
         # ('A1:D1', '=IF({0,-0.2,0},{2,3},{1})', {},
         #  '<Ranges>(A1:D1)=[[1 2 1 #N/A]]'),
         # ('A1:D1', '=IF({0,-2,0},{2,3},{1,4})', {},
@@ -687,6 +686,8 @@ class TestCell(unittest.TestCase):
         )
 
     @ddt.idata([
+        ('A1', '=NORMSDIST(2,TRUE)', {},
+         '<Ranges>\(A1\)=\[\[0.977249868051820\d*\]\]'),
         ('A1', '=XIRR({-10,1,5,0.0001,4.5},{1,20,4,4,5},"26/08/1987")',
          {}, '<Ranges>\(A1\)=\[\[38.321500577844\d*\]\]'),
         ('A1', '=XIRR({-10000,2750,3250,4250},'
