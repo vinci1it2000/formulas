@@ -321,7 +321,7 @@ class ExcelModel:
                 stack.extend(self.cells[n_id].inputs or ())
                 continue
             try:
-                rng = Ranges().push(n_id).ranges[0]
+                rng = Ranges.get_range(n_id, raise_anchor=False)
             except InvalidRangeName:  # Missing Reference.
                 log.warning('Missing Reference `{}`!'.format(n_id))
                 Ref(n_id, '=#REF!').compile().add(self.dsp)
@@ -339,9 +339,22 @@ class ExcelModel:
                 Cell(n_id, '=#REF!').compile().add(self.dsp)
                 self.books.pop(book, None)
                 continue
-
-            references = self.references
             formula_references = self.formula_references(context)
+            if rng.get('anchor'):
+                ref = formula_references.get(f"{rng['c1']}{rng['r1']}")
+                if ref:
+                    ref = Ranges.get_range(ref, context)['name']
+                    self.dsp.add_function(
+                        function_id=f'={ref}',
+                        function=sh.bypass,
+                        inputs=[ref],
+                        outputs=[n_id]
+                    )
+                    stack.append(ref)
+                else:
+                    Cell(n_id, '=#REF!').compile().add(self.dsp)
+                continue
+            references = self.references
             formula_ranges = self.formula_ranges(context)
             external_links = self.external_links(context)
 

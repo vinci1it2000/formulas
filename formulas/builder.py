@@ -14,7 +14,8 @@ import functools
 import collections
 import schedula as sh
 from .errors import (
-    FormulaError, RangeValueError, InvalidRangeError, InvalidRangeName
+    FormulaError, RangeValueError, InvalidRangeError, InvalidRangeName,
+    AnchorRangeName
 )
 from .tokens.operator import Operator
 from .tokens.function import Function
@@ -133,6 +134,8 @@ class AstBuilder:
                 else:
                     try:
                         i[k] = Ranges().push(k, context=context)
+                    except AnchorRangeName:
+                        i[k] = sh.NONE
                     except InvalidRangeName:
                         i[k] = None
         dsp.raises = True

@@ -53,5 +53,8 @@ class BroadcastError(BaseError):
 
 
 class InvalidRangeName(ValueError):
-    def _raise(self):
-        raise self
+    pass
+
+
+class AnchorRangeName(InvalidRangeName):
+    pass

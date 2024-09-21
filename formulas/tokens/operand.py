@@ -120,7 +120,7 @@ _re_range = r"""
                 (?>:R\[(?P<rr2>[\+-]?[1-9]\d*)\]C\[(?P<rc2>[\+-]?[1-9]\d*)\])?
             )
         |
-            R\[(?P<rr1>[\+-]?[1-9]\d*)\]C\[(?P<rc1>[\+-]?[1-9]\d*)\]
+            R\[(?P<rr1>[\+-]?[1-9]\d*)\]C\[(?P<rc1>[\+-]?[1-9]\d*)\](?P<anchor>\#)?
         |
             R\[(?P<rr1>[\+-]?[1-9]\d*)\]:R\[(?P<rr2>[\+-]?[1-9]\d*)\]
         |
@@ -137,7 +137,7 @@ _re_range = r"""
                     (?>:\$?(?P<c2>[A-Z]{1,3}))(\$?(?P<r2>[1-9]\d*))?
                 )
             |
-                \$?(?P<c1>[A-Z]{1,3})\$?(?P<r1>[1-9]\d*)
+                \$?(?P<c1>[A-Z]{1,3})\$?(?P<r1>[1-9]\d*)(?P<anchor>\#)?
             |
                 \$?(?P<c1>[A-Z]{1,3}):\$?(?P<c2>[A-Z]{1,3})
             |
@@ -150,7 +150,7 @@ _re_range = r"""
                     (?>:R(?P<r2>[1-9]\d*)C(?P<n2>[1-9]\d*))?
                 )
             |
-                R(?P<r1>[1-9]\d*)C(?P<n1>[1-9]\d*)
+                R(?P<r1>[1-9]\d*)C(?P<n1>[1-9]\d*)(?P<anchor>\#)?
             |
                 R(?P<r1>[1-9]\d*):R(?P<r2>[1-9]\d*)
             |
@@ -163,8 +163,10 @@ _re_range = r"""
     (?![\(\w])
 """ % (_re_sheet_id, _re_ref)
 _re_range = regex.compile(
-    r'^(?>(?P<indirect>INDIRECT\("{0}?"\))|{0})'.format(_re_range),
-    regex.IGNORECASE | regex.X | regex.DOTALL
+    r'^(?>(?P<anchor>(\_[Xx][Ll][Ff][Nn]\.)?ANCHORARRAY\({0}?\))|'
+    r'(?P<indirect>INDIRECT\("{0}?"\))|{0})'.format(
+        _re_range
+    ), regex.IGNORECASE | regex.X | regex.DOTALL
 )
 _re_ref = regex.compile(
     r'^(?>{0}!)?{1}'.format(_re_sheet_id, _re_ref),
@@ -208,12 +210,14 @@ def _build_cel(c, r):
     return c != _maxcol() and c or '', r != _maxrow() and r or ''
 
 
-def _build_ref(c1, r1, c2, r2):
+def _build_ref(c1, r1, c2, r2, anchor=''):
     (c1, r1), v2 = _build_cel(c1, r1), '{}{}'.format(*_build_cel(c2, r2))
-    v1 = '{}{}'.format(c1, r1)
+    v1 = '{}{}{}'.format(c1, r1, anchor)
     if v1 == v2 and c1 and r1:
         if v1:
             return v1
+        raise ValueError
+    if anchor:
         raise ValueError
     return '%s:%s' % (v1, v2)
 
@@ -265,14 +269,19 @@ def _range2parts(inputs, outputs):
     dsp.add_data(data_id='r1', default_value='0', initial_dist=100)
     dsp.add_data(data_id='c2', default_value=_maxcol(), initial_dist=100)
     dsp.add_data(data_id='r2', default_value=_maxrow(), initial_dist=100)
-    dsp.add_function(None, _build_ref, ['c1', 'r1', 'c2', 'r2'], ['ref'])
+    dsp.add_data(data_id='anchor', default_value='', initial_dist=100)
+    dsp.add_function(
+        None, _build_ref, ['c1', 'r1', 'c2', 'r2', 'anchor'], ['ref']
+    )
     dsp.add_function(None, _build_id, ['ref', 'sheet_id'], ['name'])
     func = sh.DispatchPipe(dsp, '', inputs, outputs)
     func.output_type = 'all'
     return func
 
 
-_keys = {'r1', 'r2', 'c1', 'c2', 'n1', 'n2', 'ref', 'name', 'sheet_id'}
+_keys = {
+    'r1', 'r2', 'c1', 'c2', 'n1', 'n2', 'ref', 'name', 'sheet_id', 'anchor'
+}
 
 
 def fast_range2parts(**kw):
@@ -290,12 +299,12 @@ def fast_range2parts(**kw):
         raise ValueError
 
 
-def fast_range2parts_v1(r1, c1, sheet_id):
+def fast_range2parts_v1(r1, c1, sheet_id, anchor=''):
     n1 = _col2index(c1)
-    ref = '{}{}'.format(*_build_cel(c1, r1)).upper()
+    ref = '{}{}{}'.format(*_build_cel(c1, r1), anchor).upper()
     return {
         'r1': r1, 'r2': r1, 'c1': c1, 'c2': c1, 'n1': n1, 'n2': n1, 'ref': ref,
-        'name': _build_id(ref, sheet_id)
+        'name': _build_id(ref, sheet_id), 'anchor': anchor
     }
 
 
@@ -307,12 +316,12 @@ def fast_range2parts_v2(r1, c1, r2, c2, sheet_id):
     }
 
 
-def fast_range2parts_v3(r1, n1, sheet_id):
+def fast_range2parts_v3(r1, n1, sheet_id, anchor=''):
     c1 = _index2col(n1)
-    ref = '{}{}'.format(*_build_cel(c1, r1)).upper()
+    ref = '{}{}{}'.format(*_build_cel(c1, r1), anchor).upper()
     return {
         'r1': r1, 'r2': r1, 'c1': c1, 'c2': c1, 'n1': n1, 'n2': n1, 'ref': ref,
-        'name': _build_id(ref, sheet_id)
+        'name': _build_id(ref, sheet_id), 'anchor': anchor
     }
 
 
@@ -362,6 +371,10 @@ class Range(Operand):
                 pass
         ctx = (context or {}).copy()
         ctx.update(d)
+        if ctx.get('anchor'):
+            ctx['anchor'] = '#'
+            ctx['is_ranges'] = False
+            self.attr['is_reference'] = True
         if 'ref' in d:
             ctx.pop('sheet', None)
             self.attr['is_reference'] = True

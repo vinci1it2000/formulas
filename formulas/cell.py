@@ -69,11 +69,13 @@ class Cell:
     parser = Parser()
 
     def __init__(self, reference, value, context=None, check_formula=True,
-                 replace_missing_ref=True):
+                 replace_missing_ref=True, raise_anchor=False):
         self.func = self.range = self.inputs = self.output = None
         self.replace_missing_ref = replace_missing_ref
         if reference is not None:
-            self.range = Ranges().push(reference, context=context)
+            self.range = Ranges().push(
+                reference, context=context, raise_anchor=raise_anchor
+            )
             r = self.range.ranges[0]
             context = sh.combine_dicts(context or {}, base={
                 'cr': r['r1'], 'cc': r['n1']
@@ -114,7 +116,7 @@ class Cell:
         self.inputs = inp = collections.OrderedDict()
         references, get = references or set(), sh.get_nested_dicts
         for k, rng in self.func.inputs.items():
-            if k in references:
+            if k in references or rng is sh.NONE:
                 get(inp, k, default=list).append(k)
             else:
                 try:

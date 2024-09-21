@@ -14,7 +14,9 @@ import numpy as np
 from .tokens.operand import (
     _re_range, range2parts, _index2col, maxrow, maxcol, Error
 )
-from .errors import RangeValueError, InvalidRangeError, InvalidRangeName
+from .errors import (
+    RangeValueError, InvalidRangeError, InvalidRangeName, AnchorRangeName
+)
 from .functions import Array, _init_reshape
 import schedula as sh
 
@@ -155,19 +157,23 @@ class Ranges:
         return len(self.ranges) > 1
 
     @staticmethod
-    def get_range(ref, context):
-        ctx = context.copy()
+    def get_range(ref, context=None, raise_anchor=True):
+        ctx = (context or {}).copy()
         try:
-            ctx.update({
-                k: v for k, v in _re_range.match(ref).groupdict().items()
-                if v is not None and (k != 'ref' or InvalidRangeName()._raise())
-            })
+            for k, v in _re_range.match(ref).groupdict().items():
+                if v is None:
+                    continue
+                if k == 'ref':
+                    raise InvalidRangeName
+                if raise_anchor and k == 'anchor':
+                    raise AnchorRangeName
+                ctx[k] = v
         except AttributeError:
             raise InvalidRangeName
         return Ranges.format_range(('name', 'n1', 'n2'), **ctx)
 
-    def push(self, ref, value=sh.EMPTY, context=None):
-        return self.set_value(self.get_range(ref, context or {}), value)
+    def push(self, ref, value=sh.EMPTY, context=None, raise_anchor=True):
+        return self.set_value(self.get_range(ref, context, raise_anchor), value)
 
     def __add__(self, other):  # Expand.
         ranges = self.ranges[1:] + other.ranges
