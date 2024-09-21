@@ -18,7 +18,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from . import (
     get_error, raise_errors, is_number, flatten, wrap_ufunc, wrap_func,
     replace_empty, Error, xfilter, wrap_impure_func, COMPILING, to_number,
-    clean_values
+    clean_values, Array, XlError
 )
 
 # noinspection PyDictCreation
@@ -205,6 +205,34 @@ FUNCTIONS['LOG'] = wrap_ufunc(
 FUNCTIONS['LN'] = wrap_ufunc(np.log)
 
 
+def xmdeterm(x, func=np.linalg.det):
+    raise_errors(x)
+    if x.shape[0] != x.shape[1]:
+        return Error.errors['#VALUE!']
+    x = np.reshape(
+        tuple(flatten(x, lambda v: not isinstance(v, str) and is_number(v))),
+        x.shape
+    )
+    try:
+        return np.around(func(x.astype(float)), 15).view(Array)
+    except np.linalg.LinAlgError:
+        return Error.errors['#NUM!']
+
+
+FUNCTIONS['MDETERM'] = wrap_func(xmdeterm)
+FUNCTIONS['MINVERSE'] = wrap_func(
+    functools.partial(xmdeterm, func=np.linalg.inv)
+)
+
+
+def xmmult(x, y):
+    raise_errors(x, y)
+    return np.dot(x, y).astype(float).view(Array)
+
+
+FUNCTIONS['MMULT'] = wrap_func(xmmult)
+
+
 def xmod(x, y):
     return y == 0 and Error.errors['#DIV/0!'] or np.mod(x, y)
 
@@ -224,6 +252,30 @@ def xmround(*args):
 
 
 FUNCTIONS['MROUND'] = wrap_func(xmround)
+
+
+def return_func(res, inp):
+    shape = np.asarray(inp).shape
+    if len(shape) == 2:
+        return np.asarray([
+            v if isinstance(v, XlError) or v is 1.0 else v[0][0] for v in
+            res.ravel()
+        ], dtype=object).reshape(shape).view(Array)
+    return res
+
+
+def xmunit(x):
+    if x > 1:
+        return np.identity(x)
+    elif x == 1:
+        return 1.0
+    return Error.errors['#VALUE!']
+
+
+FUNCTIONS['_XLFN.MUNIT'] = FUNCTIONS['MUNIT'] = wrap_ufunc(
+    xmunit, input_parser=lambda *a: map(int, a), return_func=return_func,
+    check_nan=False
+)
 
 
 def xodd(x):
