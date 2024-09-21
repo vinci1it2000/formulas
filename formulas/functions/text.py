@@ -383,7 +383,9 @@ def xconcat(text, *args):
 
 
 FUNCTIONS['_XLFN.CONCAT'] = FUNCTIONS['CONCAT'] = wrap_func(xconcat)
-FUNCTIONS['CONCATENATE'] = wrap_ufunc(xconcat, return_func=value_return, **_kw0)
+FUNCTIONS['_XLFN.CONCATENATE'] = FUNCTIONS['CONCATENATE'] = wrap_ufunc(
+    xconcat, return_func=value_return, **_kw0
+)
 
 _re_format_code = regex.compile(
     r'(?P<text>"[^"]*")|'
