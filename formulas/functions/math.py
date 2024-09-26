@@ -258,8 +258,8 @@ def return_func(res, inp):
     shape = np.asarray(inp).shape
     if len(shape) == 2:
         return np.asarray([
-            v if isinstance(v, XlError) or v is 1.0 else v[0][0] for v in
-            res.ravel()
+            v if isinstance(v, XlError) or v is 1.0 else v[0][0]
+            for v in res.ravel()
         ], dtype=object).reshape(shape).view(Array)
     return res
 

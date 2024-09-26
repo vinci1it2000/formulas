@@ -32,12 +32,6 @@ def _get_type_id(obj):
     return 0
 
 
-def _yield_vals(type_id, array):
-    for i, v in enumerate(array, 1):
-        if type_id == _get_type_id(v):
-            yield i, v
-
-
 def _xref(func, cell=None, ref=None):
     try:
         return func((ref or cell).ranges[0]).view(Array)
@@ -164,9 +158,15 @@ def xindex(array, row_num, col_num=None, area_num=1):
 FUNCTIONS['INDEX'] = wrap_func(xindex, ranges=True)
 
 
-def xmatch(lookup_value, lookup_array, match_type=1):
+def xmatch(
+        lookup_value_type, lookup_value, lookup_array_index, lookup_array_type,
+        lookup_array, match_type=1
+):
     res = [Error.errors['#N/A']]
-    t_id = _get_type_id(lookup_value)
+    b = lookup_value_type == lookup_array_type
+    index = lookup_array_index[b]
+    array = lookup_array[b]
+
     if match_type > 0:
         def check(j, x, val, r):
             if x <= val:
@@ -182,45 +182,71 @@ def xmatch(lookup_value, lookup_array, match_type=1):
             return v == val
 
     else:
-        t_id = _get_type_id(lookup_value)
-        if t_id == 1:
+        if lookup_value_type == 1 and any(v in lookup_value for v in '*~?'):
             def sub(m):
                 return {'\\': '', '?': '.', '*': '.*'}[m.groups()[0]]
 
             match = regex.compile(r'^%s$' % regex.sub(
-                r'(?<!\\\~)\\(?P<sub>[\*\?])|(?P<sub>\\)\~(?=\\[\*\?])', sub,
+                r'(?<!\\\~)\\(?P<sub>[\*\?])|(?P<sub>\\)\~(?=\\[\*\?])',
+                sub,
                 regex.escape(lookup_value)
             ), regex.IGNORECASE).match
+
+            # noinspection PyUnusedLocal
+            def check(j, x, val, r):
+                if match(x):
+                    r[0] = j
+                    return True
         else:
-            match = lambda x: x == lookup_value
+            b = lookup_value == array
+            if b.any():
+                return index[b][0]
+            return Error.errors['#N/A']
 
-        # noinspection PyUnusedLocal
-        def check(j, x, val, r):
-            if match(x):
-                r[0] = j
-                return True
-
-    convert = lambda x: x
-    if t_id == 1:
-        convert = lambda x: x.upper()
-
-    lookup_value = convert(lookup_value)
-    for i, v in _yield_vals(t_id, lookup_array):
-        if check(i, convert(v), lookup_value, res):
+    for i, v in zip(index, array):
+        if check(i, v, lookup_value, res):
             break
     return res[0]
 
 
+_vect_get_type_id = np.vectorize(_get_type_id, otypes=[int])
+
+
+def args_parser_match_array(val, arr, match_type=1):
+    val = np.asarray(replace_empty(val), dtype=object).copy()
+    val_types = _vect_get_type_id(val)
+    b = val_types == 1
+    val[b] = np.char.upper(val[b].astype(str))
+    lookup_array = np.ravel(arr).copy()
+    arr_types = _vect_get_type_id(lookup_array)
+    b = arr_types == 1
+    lookup_array[b] = np.char.upper(lookup_array[b].astype(str))
+    index = np.arange(1, lookup_array.size + 1)
+    return val_types, val, index, arr_types, lookup_array, match_type
+
+
 FUNCTIONS['MATCH'] = wrap_ufunc(
-    xmatch, check_error=lambda *a: get_error(a[:1]), excluded={1, 2},
-    args_parser=lambda val, *a: (replace_empty(val),) + a,
-    input_parser=lambda val, vec, match_type=1: (val, np.ravel(vec), match_type)
+    xmatch, check_error=lambda *a: get_error(a[1]), excluded={2, 3, 4, 5},
+    args_parser=args_parser_match_array, input_parser=lambda *a: a
 )
 
 
-def xlookup(lookup_val, lookup_vec, result_vec=None, match_type=1):
-    result_vec = lookup_vec if result_vec is None else result_vec
-    r = xmatch(lookup_val, lookup_vec, match_type)
+def args_parser_lookup_array(
+        lookup_val, lookup_vec, result_vec=None, match_type=1):
+    result_vec = np.ravel(lookup_vec if result_vec is None else result_vec)
+    return args_parser_match_array(lookup_val, lookup_vec, match_type) + (
+        result_vec,
+    )
+
+
+def xlookup(
+        lookup_value_type, lookup_value, lookup_array_index, lookup_array_type,
+        lookup_array, match_type=1, result_vec=None
+):
+    r = xmatch(
+        lookup_value_type, lookup_value, lookup_array_index, lookup_array_type,
+        lookup_array, match_type
+    )
     if not isinstance(r, XlError):
         r = np.asarray(result_vec[r - 1], object).ravel()[0]
     return r
@@ -228,15 +254,13 @@ def xlookup(lookup_val, lookup_vec, result_vec=None, match_type=1):
 
 FUNCTIONS['LOOKUP'] = wrap_ufunc(
     xlookup,
-    input_parser=lambda val, vec, res=None: (
-        val, np.ravel(vec), res if res is None else np.ravel(res)
-    ),
-    args_parser=lambda val, *a: (replace_empty(val),) + a,
-    check_error=lambda *a: get_error(a[:1]), excluded={1, 2}
+    input_parser=lambda *a: a,
+    args_parser=args_parser_lookup_array,
+    check_error=lambda *a: get_error(a[1]), excluded={2, 3, 4, 5, 6}
 )
 
 
-def _hlookup_parser(val, vec, index, match_type=1, transpose=False):
+def args_parser_hlookup(val, vec, index, match_type=1, transpose=False):
     index = int(_text2num(np.ravel(index)[0]) - 1)
     vec = np.matrix(vec)
     if transpose:
@@ -246,16 +270,16 @@ def _hlookup_parser(val, vec, index, match_type=1, transpose=False):
     except IndexError:
         raise FoundError(err=Error.errors['#REF!'])
     vec = vec[0].A1.ravel()
-    return val, vec, ref, bool(match_type)
+    return args_parser_lookup_array(val, vec, ref, bool(match_type))
 
 
 FUNCTIONS['HLOOKUP'] = wrap_ufunc(
-    xlookup, input_parser=_hlookup_parser,
-    args_parser=lambda val, *a: (replace_empty(val),) + a,
-    check_error=lambda *a: get_error(a[:1]), excluded={1, 2, 3}
+    xlookup, input_parser=lambda *a: a,
+    args_parser=args_parser_hlookup,
+    check_error=lambda *a: get_error(a[1]), excluded={2, 3, 4, 5, 6}
 )
 FUNCTIONS['VLOOKUP'] = wrap_ufunc(
-    xlookup, input_parser=functools.partial(_hlookup_parser, transpose=True),
-    args_parser=lambda val, *a: (replace_empty(val),) + a,
-    check_error=lambda *a: get_error(a[:1]), excluded={1, 2, 3}
+    xlookup, input_parser=lambda *a: a,
+    args_parser=functools.partial(args_parser_hlookup, transpose=True),
+    check_error=lambda *a: get_error(a[1]), excluded={2, 3, 4, 5, 6}
 )

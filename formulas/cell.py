@@ -127,7 +127,10 @@ class Cell:
 
     def _args(self, *args):
         assert len(args) == len(self.inputs)
-        inputs = copy.deepcopy(self.func.inputs)
+        inputs = {
+            k: hasattr(r, 'ranges') and Ranges(r.ranges) or r
+            for k, r in self.func.inputs.items()
+        }
         for links, v in zip(self.inputs.values(), args):
             for k in links:
                 try:
