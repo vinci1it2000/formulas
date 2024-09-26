@@ -511,9 +511,8 @@ def _parse_format_code(format_code):
                 sh.get_nested_dicts(types, k, default=list).append(len(codes))
                 codes.append(v)
                 break
-    if len(suspended) > 1:
-        raise
-    elif len(suspended) == 1:
+
+    if len(suspended) == 1:
         sh.get_nested_dicts(types, 'date', default=list).append(
             suspended.pop()
         )

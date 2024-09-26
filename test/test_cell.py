@@ -23,6 +23,69 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
+        ('A1', '=TEXT(36852.98609953704, "yyyy-mm-dd-HH:MM:SS")', {},
+         "<Ranges>(A1)=[['2000-11-22-23:39:59']]"),
+        ('A1',
+         '=TEXT("4/30/1900  10:39:48 AM", "pp  yy MM \sal\e\s mm yy ss  trtrt mm mm dd mm ss mm hh mm ss ss mm mm")',
+         {},
+         "<Ranges>(A1)=[[#VALUE!]]"),
+        ('A1',
+         '=TEXT("4/30/1900  10:39:48 AM", "pp  yy MM \sal\e\s mm yy ss  trtrt mm mm dd mm ss mm hh mm ss ss mm")',
+         {},
+         "<Ranges>(A1)=[['pp  00 04 sales 04 00 48  trtrt 39 04 30 39 48 04 10 39 48 48 04']]"),
+        ('A1', '=SUBSTITUTE("0, 1.9,2.3,10,-1,ciao, TRUE",B1,"")', {
+            'B1': (sh.EMPTY,)
+        }, "<Ranges>(A1)=[['0, 1.9,2.3,10,-1,ciao, TRUE']]"),
+        ('A1', '=T("A")', {}, "<Ranges>(A1)=[['A']]"),
+        ('A1', '=T(TRUE)', {}, "<Ranges>(A1)=[['']]"),
+        ('A1:A2', '=FILTER({"a";2.1},TRUE)', {},
+         "<Ranges>(A1:A2)=[['a']\n [2.1]]"),
+        ('A1:B1', '=FILTER({"a",2.1},TRUE)', {}, "<Ranges>(A1:B1)=[['a' 2.1]]"),
+        ('A1', '=FILTER({"a",2.1,"b",4.1},{FALSE,FALSE,FALSE,FALSE})', {},
+         "<Ranges>(A1)=[[#VALUE!]]"),
+        ('A1:C1', '=FILTER({1,2,3;4,5,6},A2:C3)', {
+            'A2:C3': [[1, 1, 1], [1, 1, 1]]
+        }, "<Ranges>(A1:C1)=[[#VALUE! #VALUE! #VALUE!]]"),
+        ('A1:C1', '=FILTER({1,2,3},A2:C2)', {
+            'A2:C2': (1, 1, sh.EMPTY)
+        }, "<Ranges>(A1:C1)=[[1 2 #N/A]]"),
+        ('A1:C1', '=FILTER({1,2,3},A2:C2)', {
+            'A2:C2': (1, sh.EMPTY, 1)
+        }, "<Ranges>(A1:C1)=[[1 3 #N/A]]"),
+        ('A1', '=TEXTJOIN(" ",FALSE, B2:B5)', {
+            'B2:B5': (sh.EMPTY, "sun", sh.EMPTY, "come")
+        }, "<Ranges>(A1)=[[' sun  come']]"),
+        ('A1', '=TEXTJOIN(" ",TRUE, "The", "sun", "will", "come.")', {},
+         "<Ranges>(A1)=[['The sun will come.']]"),
+        ('A1:B2', '=FILTER({#VALUE!,2,"b",0;"a",3,"b",4.3},{FALSE,-2,0,4.1})',
+         {}, "<Ranges>(A1:B2)=[[2 0]\n [3 4.3]]"),
+        ('A1', '=FILTER({"a",2.1,"b",4.1},{FALSE,FALSE,FALSE,FALSE})', {},
+         "<Ranges>(A1)=[[#VALUE!]]"),
+        ('A1', '=FILTER({"a",2.1,"b",4.1},{FALSE,FALSE,FALSE,FALSE},2)', {},
+         "<Ranges>(A1)=[[2]]"),
+        ('A1:D1', '=FILTER({"a",2.1,"b",4.1},{TRUE,-2.1,7,4.1})', {},
+         "<Ranges>(A1:D1)=[['a' 2.1 'b' 4.1]]"),
+        ('A1', '=LOOKUP("b",{"a",2.1,"b",4.1})', {}, "<Ranges>(A1)=[['b']]"),
+        ('A1', '=SUM(B1:D1  (  B1:B2  ,  D1:D2  ))',
+         {'B1': 1, 'D1': 1}, '<Ranges>(A1)=[[2.0]]'),
+        ('A1', '=SUM(MUNIT({1,#NUM!;3,4;7,8}))', {}, '<Ranges>(A1)=[[#NUM!]]'),
+        ('A1', '=SUM(MUNIT({1,2;3,4;7,8}))', {}, '<Ranges>(A1)=[[6.0]]'),
+        ('A1', '=MUNIT(0)', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=MUNIT(1)', {}, '<Ranges>(A1)=[[1.0]]'),
+        ('A1', '=MINVERSE({1,3,8,5;1,3,6,1})', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=MDETERM({1,3,8,5;1,3,6,1;1,1,1,0;7,3,10,2})', {},
+         '<Ranges>(A1)=[[87.99999999999996]]'),
+        ('A1', '=MDETERM({1,3,8,5;1,3,6,1})', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=MDETERM({3,6;1,1})', {}, '<Ranges>(A1)=[[-3.0]]'),
+        ('A1', '=MDETERM({3,6,1;1,1,0;3,10,2})', {}, '<Ranges>(A1)=[[1.0]]'),
+        ('A1', '=SUM(MINVERSE({1,1;1,1}))', {}, '<Ranges>(A1)=[[#NUM!]]'),
+        ('A1', '=SUM(MINVERSE({1,"2",-1;3,4,-1;0,2,0}))', {},
+         '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=SUM(MINVERSE({1,2,-1;3,4,-1;0,2,0}))', {},
+         '<Ranges>(A1)=[[-0.5]]'),
+        ('A1', '=MMULT({0,-10},{0.9;9})', {}, '<Ranges>(A1)=[[-90.]]'),
+        ('A1', '=MMULT({"0",-10},{0.9;9})', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=MMULT({0,-10, 1},{0.9;9})', {}, '<Ranges>(A1)=[[#VALUE!]]'),
         ('A1', '=PERCENTILE.INC({0,-10,0.9,0.1,-0.1},0.9)', {},
          '<Ranges>(A1)=[[0.5800000000000001]]'),
         ('A1', '=NORM.S.INV(0.7)', {}, '<Ranges>(A1)=[[0.5244005127080407]]'),
@@ -336,8 +399,7 @@ class TestCell(unittest.TestCase):
         ('A1', '=STDEV.P(2, 3)', {}, '<Ranges>(A1)=[[0.5]]'),
         ('A1', '=STDEV.S(1, 2, 3)', {}, '<Ranges>(A1)=[[1.0]]'),
         ('A1', '=CONCAT(1, TRUE, 3)', {}, '<Ranges>(A1)=[[\'1TRUE3\']]'),
-        ('A1', '=SUM(B1:D1  (  B1:B2  ,  D1:D2  ))',
-         {'B1': 1, 'D1': 1}, '<Ranges>(A1)=[[2.0]]'),
+
         ('A1', '=LARGE({-1.1,10.1;"40",-2},1.1)', {}, '<Ranges>(A1)=[[-1.1]]'),
         ('A1', '=LARGE(A2:H2,"01/01/1900")', {
             'A2:H2': [[0.1, -10, 0.9, 2.2, -0.1, sh.EMPTY, "02/01/1900", True]]
