@@ -19,6 +19,7 @@
 
     doc
     contrib
+    sponsors
     api
     change
 
