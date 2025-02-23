@@ -315,7 +315,7 @@ _kw0 = {
 FUNCTIONS['FIND'] = wrap_ufunc(xfind, **_kw0)
 
 
-def xleft(from_str, num_chars):
+def xleft(from_str, num_chars=1):
     i = int(num_chars or 0)
     if i >= 0:
         return _str(from_str)[:i]
@@ -355,7 +355,7 @@ def xreplace(old_text, start_num, num_chars, new_text):
 FUNCTIONS['REPLACE'] = wrap_ufunc(xreplace, **_kw0)
 
 
-def xright(from_str, num_chars):
+def xright(from_str, num_chars=1):
     res = xleft(_str(from_str)[::-1], num_chars)
     return res if isinstance(res, XlError) else res[::-1]
 
