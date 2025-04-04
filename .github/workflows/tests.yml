@@ -14,11 +14,11 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         extra: [ base, excel, plot, all, dev ]
-        python-version: [ '3.9', '3.10', '3.11' ]
+        python-version: [ '3.11', '3.12', '3.13' ]
         include:
           - os: windows-latest
             extra: all
-            python-version: '3.10'
+            python-version: '3.12'
     env:
       EXTRAS: ${{ matrix.extra }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -42,6 +42,6 @@ jobs:
         run: pip install -e .[${{ matrix.extra }}]
       - name: Run Test
         run: coverage run --source=formulas -m unittest discover -s test -p 'test_*.py'
-      - if: matrix.python-version == '3.11' && matrix.extra == 'all' && matrix.os == 'ubuntu-latest'
+      - if: matrix.python-version == '3.12' && matrix.extra == 'all' && matrix.os == 'ubuntu-latest'
         name: Run Coveralls
         run: coveralls --service=github
