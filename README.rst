@@ -95,7 +95,7 @@ To visualize formula model and get the input order you can do the following:
     >>> list(func.inputs)
     ['A2', 'B3']
     >>> func.plot(view=False)  # Set view=True to plot in the default browser.
-    SiteMap([(=((1 + 1) + (B3 / A2)), SiteMap())])
+    SiteMap({=((1 + 1) + (B3 / A2)): SiteMap({})})
 
 Finally to execute the formula and plot the workflow:
 
@@ -106,7 +106,7 @@ Finally to execute the formula and plot the workflow:
     >>> func(1, 5)
     Array(7.0, dtype=object)
     >>> func.plot(workflow=True, view=False)  # Set view=True to plot in the default browser.
-    SiteMap([(=((1 + 1) + (B3 / A2)), SiteMap())])
+    SiteMap({=((1 + 1) + (B3 / A2)): SiteMap({})})
 
 Excel workbook
 --------------
@@ -139,7 +139,7 @@ To plot the dependency graph that depict relationships between Excel cells:
 
     >>> dsp = xl_model.dsp
     >>> dsp.plot(view=False)  # Set view=True to plot in the default browser.
-    SiteMap([(ExcelModel, SiteMap(...))])
+    SiteMap({ExcelModel: SiteMap(...)})
 
 To overwrite the default inputs that are defined by the excel file or to impose
 some value to a specific cell:
@@ -153,17 +153,20 @@ some value to a specific cell:
     ...        "'[excel.xlsx]DATA'!C2", "'[excel.xlsx]DATA'!C4"
     ...     ] # To define the outputs that you want to calculate.
     ... )
-    Solution([("'[excel.xlsx]'!INPUT_A", <Ranges>('[excel.xlsx]DATA'!A2)=[[3]]),
-              ("'[excel.xlsx]DATA'!B3", <Ranges>('[excel.xlsx]DATA'!B3)=[[1]]),
-              ("'[excel.xlsx]DATA'!A2", <Ranges>('[excel.xlsx]DATA'!A2)=[[3]]),
-              ("'[excel.xlsx]DATA'!A3", <Ranges>('[excel.xlsx]DATA'!A3)=[[6]]),
-              ("'[excel.xlsx]DATA'!D2", <Ranges>('[excel.xlsx]DATA'!D2)=[[1]]),
-              ("'[excel.xlsx]'!INPUT_B", <Ranges>('[excel.xlsx]DATA'!A3)=[[6]]),
-              ("'[excel.xlsx]DATA'!B2", <Ranges>('[excel.xlsx]DATA'!B2)=[[9.0]]),
-              ("'[excel.xlsx]DATA'!D3", <Ranges>('[excel.xlsx]DATA'!D3)=[[2.0]]),
-              ("'[excel.xlsx]DATA'!C2", <Ranges>('[excel.xlsx]DATA'!C2)=[[10.0]]),
-              ("'[excel.xlsx]DATA'!D4", <Ranges>('[excel.xlsx]DATA'!D4)=[[3.0]]),
-              ("'[excel.xlsx]DATA'!C4", <Ranges>('[excel.xlsx]DATA'!C4)=[[4.0]])])
+     Solution({"'[excel.xlsx]'!INPUT_A": <Ranges>('[excel.xlsx]DATA'!A2)=[[3]],
+               "'[excel.xlsx]DATA'!B3": <Ranges>('[excel.xlsx]DATA'!B3)=[[1]],
+               "'[excel.xlsx]DATA'!A2": <Ranges>('[excel.xlsx]DATA'!A2)=[[3]],
+               "'[excel.xlsx]DATA'!A3": <Ranges>('[excel.xlsx]DATA'!A3)=[[6]],
+               "'[excel.xlsx]DATA'!A4": <Ranges>('[excel.xlsx]DATA'!A4)=[[5]],
+               "'[excel.xlsx]DATA'!D2": <Ranges>('[excel.xlsx]DATA'!D2)=[[1]],
+               "'[excel.xlsx]'!INPUT_B": <Ranges>('[excel.xlsx]DATA'!A3)=[[6]],
+               "'[excel.xlsx]'!INPUT_C": <Ranges>('[excel.xlsx]DATA'!A4)=[[5]],
+               "'[excel.xlsx]DATA'!A3:A4": <Ranges>('[excel.xlsx]DATA'!A3:A4)=[[6] [5]],
+               "'[excel.xlsx]DATA'!B2": <Ranges>('[excel.xlsx]DATA'!B2)=[[9.0]],
+               "'[excel.xlsx]DATA'!D3": <Ranges>('[excel.xlsx]DATA'!D3)=[[2.0]],
+               "'[excel.xlsx]DATA'!C2": <Ranges>('[excel.xlsx]DATA'!C2)=[[10.0]],
+               "'[excel.xlsx]DATA'!D4": <Ranges>('[excel.xlsx]DATA'!D4)=[[3.0]],
+               "'[excel.xlsx]DATA'!C4": <Ranges>('[excel.xlsx]DATA'!C4)=[[4.0]]})
 
 
 To build a single function out of an excel model with fixed inputs and outputs,
@@ -188,7 +191,7 @@ the data node ids (i.e., cell references).
     >>> [v.value[0, 0] for v in func(3, 1)]  # To retrieve the data.
     [10.0, 4.0]
     >>> func.plot(view=False)  # Set view=True to plot in the default browser.
-    SiteMap([(ExcelModel, SiteMap(...))])
+    SiteMap({ExcelModel: SiteMap(...)})
 
 .. _DispatchPipe: https://schedula.readthedocs.io/en/master/_build/schedula/utils/dsp/schedula.utils.dsp.DispatchPipe.html#schedula.utils.dsp.DispatchPipe
 
