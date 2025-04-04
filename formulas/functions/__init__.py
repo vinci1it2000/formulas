@@ -46,11 +46,16 @@ from formulas.tokens.operand import Error, XlError
 COMPILING = sh.Token('Run')
 
 
-def _init_reshape(base_shape, value):
-    res, (r, c) = np.empty(base_shape, object), value.shape
-    res[:, :] = getattr(value, '_default', Error.errors['#N/A'])
+def get_shape(r=1, c=1):
     r = None if r == 1 else r
     c = None if c == 1 else c
+    return r, c
+
+
+def _init_reshape(base_shape, value):
+    res = np.empty(base_shape, object)
+    res[:, :] = getattr(value, '_default', Error.errors['#N/A'])
+    r, c = get_shape(*value.shape)
     return res, r, c
 
 
@@ -110,7 +115,7 @@ def replace_empty(x, empty=0):
     if isinstance(x, np.ndarray):
         obj = np.array(sh.EMPTY, dtype=object)
         if obj in x:
-            x = np.where(obj == x, empty, x)
+            x = np.where(obj == x, empty, x).view(x.__class__)
     elif x is sh.EMPTY:
         return empty
     return x

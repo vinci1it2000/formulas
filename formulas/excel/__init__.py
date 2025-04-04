@@ -28,7 +28,7 @@ import os.path as osp
 import schedula as sh
 from ..ranges import Ranges
 from ..errors import InvalidRangeName
-from ..cell import Cell, RangesAssembler, Ref, CellWrapper
+from ..cell import Cell, RangesAssembler, Ref, CellWrapper, InvRangesAssembler
 from ..tokens.operand import XlError, _re_sheet_id, _re_build_id
 from ..functions.text import HexValue
 
@@ -408,8 +408,8 @@ class ExcelModel:
                     break
             ra.push(get(cells, 'cell', rng['sheet_id']))
             ranges.append(ra)
-
-        for ra in sorted(ranges, key=lambda x: len(x.missing)):
+        ranges = sorted(ranges, key=lambda x: len(x.missing))
+        for ra in ranges:
             ra.add(dsp)
 
     def assemble(self, compact=1):
@@ -444,7 +444,7 @@ class ExcelModel:
                             '=%s' % inp, sh.bypass, inputs=[inp], outputs=[out]
                         )
                         d = nodes[inp]
-                        d['inv-ref'] = out
+                        d['inv-data'] = {out}
                         if 'filters' in nodes[out]:
                             sh.get_nested_dicts(
                                 d, 'filters', default=list
@@ -577,7 +577,9 @@ class ExcelModel:
     def compile(self, inputs, outputs):
         dsp = self.dsp.shrink_dsp(inputs=inputs, outputs=outputs)
         inp = set(inputs)
-        inp.update({dsp.nodes.get(i, {}).get('inv-ref', None) for i in inputs})
+        nodes = dsp.nodes
+        for i in inputs:
+            inp.update(nodes.get(i, {}).get('inv-data', ()))
         dsp.default_values = {
             k: v for k, v in dsp.default_values.items() if k not in inp
         }
@@ -607,7 +609,12 @@ class ExcelModel:
         from collections import Counter
         mod, dsp = {}, self.dsp
         f_nodes, d_nodes, dmap = dsp.function_nodes, dsp.data_nodes, dsp.dmap
-        cycles = list(simple_cycles(dmap.succ))
+        skip_nodes = {
+            k for k, node in f_nodes.items()
+            if isinstance(node['function'], InvRangesAssembler)
+        }
+
+        cycles = list(simple_cycles(dmap.succ, skip_nodes=skip_nodes))
         cycles_nodes = Counter(sum(cycles, []))
         for cycle in sorted(map(set, cycles)):
             cycles_nodes.subtract(cycle)

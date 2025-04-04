@@ -74,12 +74,18 @@ def _unblock(thisnode, blocked, no_circuit):
             no_circuit[node].clear()
 
 
-def simple_cycles(graph, copy=True):
+def simple_cycles(graph, copy=True, skip_nodes=()):
     # Yield every elementary cycle in python graph G exactly once
     # Expects a dictionary mapping from vertices to iterables of vertices
 
-    if copy:
-        graph = {v: set(nbrs) for v, nbrs in graph.items()}
+    if copy or skip_nodes:
+        skip_nodes = set(skip_nodes)
+        graph = {
+            v: set(nbrs) - skip_nodes
+            for v, nbrs in graph.items()
+            if v not in skip_nodes
+        }
+
     sccs = _strongly_connected_components(graph)
     while sccs:
         scc = sccs.pop()

@@ -44,7 +44,15 @@ class CellWrapper(sh.add_args):
         from .excel.cycle import simple_cycles
         fn, k, cells = self.func, 'solve_cycle', set()
         f_nodes, o, inputs = fn.dsp.function_nodes, fn.outputs[0], fn.inputs
-        dmap = {v: set(nbrs) for v, nbrs in fn.dsp.dmap.succ.items()}
+        skip_nodes = {
+            k for k, node in f_nodes.items()
+            if isinstance(node['function'], InvRangesAssembler)
+        }
+        dmap = {
+            v: set(nbrs) - skip_nodes
+            for v, nbrs in fn.dsp.dmap.succ.items()
+            if v not in skip_nodes
+        }
         dmap[o] = set(cycle).intersection(inputs)
         for c in map(set, simple_cycles(dmap, False)):
             for n in map(f_nodes.get, c.intersection(f_nodes)):
@@ -210,8 +218,10 @@ class RangesAssembler:
 
     def __init__(self, ref, context=None, compact=1):
         self.range = Ranges().push(ref, context=context)
-        self.missing = self._range_indices(self.range)
+        self.indices = self._range_indices(self.range)
+        self.missing = set(self.indices)
         self.inputs = collections.OrderedDict()
+        self.outputs = collections.OrderedDict()
         self.compact = compact or 1
 
     @property
@@ -222,8 +232,11 @@ class RangesAssembler:
         it = {i for i in self.missing if i in indices}
         if it:
             self.missing.difference_update(it)
-            it = (indices[i] for i in it) if output is None else (output,)
+            it = {indices[i]: i for i in it} \
+                if output is None else {output: indices}
             self.inputs.update(dict.fromkeys(it, None))
+            if output is None or indices.issubset(self.indices):
+                self.outputs.update(it)
         return self.missing
 
     def add(self, dsp):
@@ -258,6 +271,16 @@ class RangesAssembler:
         if list(self.inputs) != [self.output]:
             dsp.add_function(None, self, self.inputs or None, [self.output])
 
+            if len(self.outputs) >= 1:
+                inputs = [self.output]
+                if sh.SELF in self.inputs:
+                    inputs.append(sh.SELF)
+                dsp.add_function(
+                    None, InvRangesAssembler(self), inputs, self.outputs
+                )
+                d = dsp.nodes[self.output]
+                d['inv-data'] = set(self.outputs)
+
     @property
     def __name__(self):
         return '=%s' % self.output
@@ -287,3 +310,46 @@ class RangesAssembler:
             else:
                 _assemble_values(base, c.values, out)
         return out
+
+
+class InvRangesAssembler(RangesAssembler):
+    def __init__(self, assembler):
+        self.assembler = assembler
+        self.inputs = [assembler.output]
+
+    @property
+    def __name__(self):
+        return f'INV({self.assembler.output})'
+
+    def __call__(self, value, dsp=None):
+        res = []
+        base = self.assembler.range.ranges[0]
+        sheet_id = base['sheet_id']
+        _name = f'{sheet_id}!%s' if sheet_id else '%s'
+        for d in self.assembler.outputs.values():
+            if isinstance(d, tuple):
+                c, r = d
+                res.append(value.value[r - int(base['r1']), c - base['n1']])
+            else:
+                ranges = []
+                for n, r in d:
+                    c = _index2col(n)
+                    ref = '{}{}'.format(c, r)
+                    name = _name % ref
+                    ranges.append({
+                        'r1': r, 'r2': r, 'c1': c, 'c2': c, 'n1': n, 'n2': n,
+                        'ref': ref, 'name': name, 'sheet_id': sheet_id
+                    })
+
+                res.append(Ranges(ranges, value.values)._merge())
+        if dsp is not None:
+            sol = dsp.solution
+            for n, r in self.assembler.missing:
+                c = _index2col(n)
+                ref = '{}{}'.format(c, r)
+                name = _name % ref
+                sol[name] = Ranges().set_value({
+                    'r1': r, 'r2': r, 'c1': c, 'c2': c, 'n1': n, 'n2': n,
+                    'ref': ref, 'name': name, 'sheet_id': sheet_id
+                }, value.value[r - int(base['r1']), n - base['n1']])
+        return res
