@@ -16,7 +16,7 @@ import numpy as np
 import schedula as sh
 from . import (
     wrap_func, wrap_ufunc, Error, get_error, XlError, FoundError, Array,
-    parse_ranges, value_return, _text2num, replace_empty
+    parse_ranges, value_return, _text2num, replace_empty, raise_errors
 )
 from ..ranges import Ranges
 from ..cell import CELL
@@ -25,9 +25,9 @@ FUNCTIONS = {}
 
 
 def _get_type_id(obj):
-    if isinstance(obj, bool):
+    if isinstance(obj, (bool, np.bool_)):
         return 2
-    elif isinstance(obj, str) and not isinstance(obj, XlError):
+    elif isinstance(obj, (str, np.str_)) and not isinstance(obj, XlError):
         return 1
     return 0
 
@@ -231,6 +231,48 @@ FUNCTIONS['MATCH'] = wrap_ufunc(
 )
 
 
+def xfilter(array, condition, if_empty=Error.errors['#VALUE!']):
+    raise_errors(condition)
+    array = np.asarray(array, object)
+    b = np.asarray(condition, object)
+    a_shp = array.shape
+    c_shp = b.shape or (1,)
+    if not ((len(c_shp) == 1 or (
+            len(c_shp) == 2 and 1 in c_shp
+    )) and 1 <= len(a_shp) <= 2):
+        return Error.errors['#VALUE!']
+    b = b.ravel()
+    str_type = _vect_get_type_id(b) == 1
+    is_empty = np.array(sh.EMPTY, dtype=object) == b
+    str_type[is_empty] = False
+    b[is_empty] = False
+
+    if str_type.any():
+        return Error.errors['#VALUE!']
+
+    b = b.astype(bool)
+
+    for i in (0, 1):
+        j = 1 - i
+        if len(c_shp) == 1:
+            if c_shp[0] != a_shp[i]:
+                continue
+        elif not (c_shp[i] == a_shp[i] and c_shp[j] == 1):
+            continue
+        res = array[b, :] if i == 0 else array[:, b]
+        break
+    else:
+        return Error.errors['#VALUE!']
+
+    if res.size == 0:
+        return if_empty
+
+    return res.view(Array)
+
+
+FUNCTIONS['_XLFN._XLWS.FILTER'] = FUNCTIONS['FILTER'] = wrap_func(xfilter)
+
+
 def args_parser_lookup_array(
         lookup_val, lookup_vec, result_vec=None, match_type=1):
     result_vec = np.ravel(lookup_vec if result_vec is None else result_vec)
@@ -283,3 +325,10 @@ FUNCTIONS['VLOOKUP'] = wrap_ufunc(
     args_parser=functools.partial(args_parser_hlookup, transpose=True),
     check_error=lambda *a: get_error(a[1]), excluded={2, 3, 4, 5, 6}
 )
+
+
+def xtranspose(array):
+    return np.transpose(array).view(Array)
+
+
+FUNCTIONS['TRANSPOSE'] = wrap_func(xtranspose)

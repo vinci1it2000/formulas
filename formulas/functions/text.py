@@ -376,6 +376,31 @@ def xsearch(find_text, within_text, start_num=1):
 FUNCTIONS['SEARCH'] = wrap_ufunc(xsearch, **_kw0)
 
 
+def xsubstitute(text, old_text, new_text, instance_num=None):
+    text, old_text, new_text = tuple(map(_str, (text, old_text, new_text)))
+    if instance_num is None:
+        return text.replace(old_text, new_text)
+    elif isinstance(instance_num, (
+            bool, np.bool_, str, np.str_
+    )) or instance_num < 1:
+        return Error.errors['#VALUE!']
+
+    parts = text.split(old_text)
+    instance_num = int(instance_num)
+    if instance_num > len(parts) - 1:
+        return text
+
+    return old_text.join(parts[:instance_num]) + new_text + old_text.join(
+        parts[instance_num:]
+    )
+
+
+FUNCTIONS['SUBSTITUTE'] = wrap_ufunc(
+    xsubstitute, input_parser=lambda *a: a,
+    args_parser=lambda *a: (replace_empty(v, '') for v in a)
+)
+
+
 def xconcat(text, *args):
     it = list(flatten((text,) + args, is_not_empty))
     raise_errors(it)
@@ -387,6 +412,18 @@ FUNCTIONS['_XLFN.CONCATENATE'] = FUNCTIONS['CONCATENATE'] = wrap_ufunc(
     xconcat, return_func=value_return, **_kw0
 )
 
+
+def xtextjoin(delimiter, ignore_empty, text, *args):
+    raise_errors(delimiter, ignore_empty, text, *args)
+
+    if ignore_empty:
+        it = (flatten((text,) + args, is_not_empty))
+    else:
+        it = (replace_empty(v, '') for v in flatten((text,) + args, None))
+    return _str(next(flatten(delimiter, None))).join(map(_str, it))
+
+
+FUNCTIONS['_XLFN.TEXTJOIN'] = FUNCTIONS['TEXTJOIN'] = wrap_func(xtextjoin)
 _re_format_code = regex.compile(
     r'(?P<text>"[^"]*")|'
     r'(?P<percentage>\%)|'
@@ -563,6 +600,18 @@ def _format_number(value, codes, types, fstr, mul):
         else:
             codes[i] = parts['exp_sign']
     return [parts['sign']] + codes
+
+
+def xt(value):
+    value = np.asarray(value, dtype=object).ravel()[0]
+    raise_errors(value)
+
+    if isinstance(value, (np.str_, str)):
+        return value
+    return ''
+
+
+FUNCTIONS['T'] = wrap_func(xt)
 
 
 def xtext(value, format_code):
