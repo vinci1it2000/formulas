@@ -111,9 +111,14 @@ class Separator(Operator):
     _re_process = regex.compile(r'^\s*(?P<name>,)$')
 
     def ast(self, tokens, stack, builder):
-        if tokens and (isinstance(tokens[-1], Separator) or tokens[-1].get_name == '('):
-            from .operand import Empty
-            Empty().ast(tokens, stack, builder)
+        if tokens:
+            lt = tokens[-1]
+            from .operand import String
+            if isinstance(lt, Separator) or (
+                    lt.get_name == '(' and not isinstance(lt, String)
+            ):
+                from .operand import Empty
+                Empty().ast(tokens, stack, builder)
         super(Operator, self).ast(tokens, stack, builder)
         while stack and not stack[-1].has_start:
             builder.append(stack.pop())
