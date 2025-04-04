@@ -16,7 +16,7 @@ import numpy as np
 import schedula as sh
 from . import (
     wrap_func, wrap_ufunc, Error, get_error, XlError, FoundError, Array,
-    parse_ranges, value_return, _text2num, replace_empty, raise_errors
+    parse_ranges, _text2num, replace_empty, raise_errors
 )
 from ..ranges import Ranges
 from ..cell import CELL
@@ -78,8 +78,7 @@ def xaddress(row_num, column_num, abs_num=1, a1=True, sheet_text=None):
 
 
 FUNCTIONS['ADDRESS'] = wrap_ufunc(
-    xaddress, input_parser=lambda *a: a, args_parser=lambda *a: a,
-    return_func=value_return
+    xaddress, input_parser=lambda *a: a, args_parser=lambda *a: a
 )
 
 

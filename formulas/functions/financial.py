@@ -13,8 +13,7 @@ import functools
 import numpy as np
 from . import (
     get_error, Error, wrap_func, raise_errors, text2num, flatten, Array,
-    replace_empty, _text2num, wrap_ufunc, convert2float, value_return,
-    _get_single_args
+    replace_empty, _text2num, wrap_ufunc, convert2float, _get_single_args
 )
 
 FUNCTIONS = {}
@@ -62,7 +61,7 @@ def xnpv(rate, values, dates=None):
             return get_error(r, e) or func(r)
 
         rate = text2num(replace_empty(rate))
-        return value_return(np.vectorize(_, otypes=[object])(rate).view(Array))
+        return np.vectorize(_, otypes=[object])(rate).view(Array)
 
 
 def xxnpv(rate, values, dates):
@@ -94,7 +93,7 @@ FUNCTIONS['FV'] = wrap_ufunc(
     check_error=lambda *args: None,
     input_parser=lambda rate, nper, pmt, pv=0, type=0: convert2float(
         rate, nper, pmt, pv, type
-    ), return_func=value_return
+    )
 )
 
 
@@ -117,7 +116,7 @@ def xcumipmt(rate, nper, pv, start_period, end_period, type):
 
 FUNCTIONS['CUMIPMT'] = wrap_func(xcumipmt)
 
-_kw = {'input_parser': convert2float, 'return_func': value_return}
+_kw = {'input_parser': convert2float}
 FUNCTIONS['PV'] = wrap_ufunc(functools.partial(_npf, 'pv'), **_kw)
 FUNCTIONS['IPMT'] = wrap_ufunc(functools.partial(
     _npf, 'ipmt', freturn=lambda x: x > 0 and Error.errors['#NUM!'] or x,
@@ -168,7 +167,7 @@ def xirr(values, guess=0.1):
             return get_error(g, e) or res
 
         guess = text2num(replace_empty(guess))
-        return value_return(np.vectorize(_, otypes=[object])(guess).view(Array))
+        return np.vectorize(_, otypes=[object])(guess).view(Array)
 
 
 FUNCTIONS['IRR'] = wrap_func(xirr)

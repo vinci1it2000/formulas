@@ -12,8 +12,7 @@ Python equivalents of logical Excel functions.
 import functools
 import numpy as np
 from . import (
-    wrap_ufunc, Error, flatten, get_error, value_return, wrap_func, XlError,
-    raise_errors
+    wrap_ufunc, Error, flatten, get_error, wrap_func, XlError, raise_errors
 )
 
 FUNCTIONS = {}
@@ -31,7 +30,7 @@ def solve_cycle(*args):
 
 FUNCTIONS['IF'] = {
     'function': wrap_ufunc(
-        xif, input_parser=lambda *a: a, return_func=value_return,
+        xif, input_parser=lambda *a: a,
         check_error=lambda cond, *a: get_error(cond)
     ),
     'solve_cycle': solve_cycle
@@ -54,7 +53,7 @@ def xifs(*cond_vals):
 
 FUNCTIONS['_XLFN.IFS'] = FUNCTIONS['IFS'] = {
     'function': wrap_ufunc(
-        xifs, input_parser=lambda *a: a, return_func=value_return,
+        xifs, input_parser=lambda *a: a,
         check_error=lambda *a: None
     ),
     'solve_cycle': lambda *a: not any(a[::2])
@@ -74,8 +73,7 @@ def xiferror_return(res, val, val_if_error):
 
 FUNCTIONS['IFERROR'] = {
     'function': wrap_ufunc(
-        xiferror, input_parser=lambda *a: a, check_error=lambda *a: False,
-        return_func=xiferror_return
+        xiferror, input_parser=lambda *a: a, check_error=lambda *a: False
     ),
     'solve_cycle': solve_cycle
 }
@@ -88,8 +86,7 @@ def xifna(val, val_if_error):
 
 FUNCTIONS['_XLFN.IFNA'] = FUNCTIONS['IFNA'] = {
     'function': wrap_ufunc(
-        xifna, input_parser=lambda *a: a, check_error=lambda *a: False,
-        return_func=value_return
+        xifna, input_parser=lambda *a: a, check_error=lambda *a: False
     ),
     'solve_cycle': solve_cycle
 }
@@ -111,7 +108,7 @@ def xswitch(val, *args):
 
 FUNCTIONS["_XLFN.SWITCH"] = FUNCTIONS["SWITCH"] = {
     'function': wrap_ufunc(
-        xswitch, input_parser=lambda *a: a, return_func=value_return,
+        xswitch, input_parser=lambda *a: a,
         check_error=lambda first, *a: get_error(first),
     )
 }
@@ -134,7 +131,7 @@ FUNCTIONS['_XLFN.XOR'] = FUNCTIONS['XOR'] = {'function': wrap_func(
 )}
 
 FUNCTIONS['NOT'] = {'function': wrap_ufunc(
-    np.logical_not, input_parser=lambda *a: a, return_func=value_return
+    np.logical_not, input_parser=lambda *a: a,
 )}
 
 

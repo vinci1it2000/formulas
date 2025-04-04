@@ -16,7 +16,7 @@ import schedula as sh
 from . import (
     raise_errors, flatten, wrap_func, Error, is_number, _text2num, xfilter,
     XlError, wrap_ufunc, replace_empty, get_error, is_not_empty, _convert_args,
-    convert_nan, FoundError, value_return
+    convert_nan, FoundError
 )
 from statistics import NormalDist
 
@@ -109,12 +109,12 @@ def _sort_parser(values, k):
 
 FUNCTIONS['LARGE'] = wrap_ufunc(
     xsort, args_parser=_sort_parser, excluded={0}, check_error=lambda *a: None,
-    input_parser=lambda *a: a, return_func=value_return
+    input_parser=lambda *a: a
 )
 
 FUNCTIONS['SMALL'] = wrap_ufunc(
     xsort, args_parser=_sort_parser, excluded={0}, check_error=lambda *a: None,
-    input_parser=lambda values, k: (values, k, False), return_func=value_return
+    input_parser=lambda values, k: (values, k, False)
 )
 FUNCTIONS['MAX'] = wrap_func(xfunc)
 FUNCTIONS['MAXA'] = wrap_func(functools.partial(
@@ -187,8 +187,7 @@ def xforecast(x, a=None, b=None):
 
 FUNCTIONS['_XLFN.FORECAST.LINEAR'] = FUNCTIONS['FORECAST'] = wrap_ufunc(
     xforecast, args_parser=_args_parser_forecast, excluded={1, 2},
-    input_parser=lambda x, a, b: (_convert_args(x), a, b),
-    return_func=value_return
+    input_parser=lambda x, a, b: (_convert_args(x), a, b)
 )
 FUNCTIONS['FORECAST.LINEAR'] = FUNCTIONS['FORECAST']
 
@@ -214,23 +213,19 @@ def xnorminv(z, mu=0, sigma=1):
 
 FUNCTIONS['_XLFN.NORM.DIST'] = FUNCTIONS['NORM.DIST'] = wrap_ufunc(
     xnormdist,
-    input_parser=lambda *a: tuple(map(_convert_args, a[:-1])) + a[-1:],
-    return_func=value_return
+    input_parser=lambda *a: tuple(map(_convert_args, a[:-1])) + a[-1:]
 )
 FUNCTIONS['_XLFN.NORM.INV'] = FUNCTIONS['NORM.INV'] = wrap_ufunc(
     xnorminv,
-    input_parser=lambda *a: tuple(map(_convert_args, a)),
-    return_func=value_return
+    input_parser=lambda *a: tuple(map(_convert_args, a))
 )
 FUNCTIONS['_XLFN.NORM.S.DIST'] = FUNCTIONS['NORM.S.DIST'] = wrap_ufunc(
     xnormdist,
-    input_parser=lambda x, *a: (_convert_args(x), 0, 1) + a,
-    return_func=value_return
+    input_parser=lambda x, *a: (_convert_args(x), 0, 1) + a
 )
 FUNCTIONS['_XLFN.NORM.S.INV'] = FUNCTIONS['NORM.S.INV'] = wrap_ufunc(
     xnorminv,
-    input_parser=lambda x: (_convert_args(x),),
-    return_func=value_return
+    input_parser=lambda x: (_convert_args(x),)
 )
 _percentile_kw = {
     'excluded': {0},
@@ -238,8 +233,7 @@ _percentile_kw = {
     'check_error': lambda *a: get_error(*a[::-1]),
     'args_parser': lambda v, q: (
         list(flatten(v, drop_empty=True)), replace_empty(q)
-    ),
-    'return_func': value_return
+    )
 }
 
 
@@ -284,8 +278,7 @@ _quartile_kw = sh.combine_dicts(_percentile_kw, {
     'check_error': lambda *a: get_error(*a[::-1]),
     'args_parser': lambda v, q: (
         list(flatten(v, drop_empty=True)), replace_empty(q)
-    ),
-    'return_func': value_return
+    )
 })
 FUNCTIONS['_XLFN.QUARTILE.EXC'] = FUNCTIONS['QUARTILE.EXC'] = wrap_ufunc(
     functools.partial(xquartile, exclusive=True), **_quartile_kw

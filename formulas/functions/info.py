@@ -20,9 +20,12 @@ from . import (
 FUNCTIONS = {}
 
 
-class IsErrArray(Array):
+class FalseArray(Array):
     _default = False
-    _collapse_value = True
+
+
+class TrueArray(Array):
+    _default = True
 
 
 def iserr(val):
@@ -30,19 +33,15 @@ def iserr(val):
         b = np.asarray([isinstance(v, XlError) and v is not Error.errors['#N/A']
                         for v in val.ravel().tolist()], bool)
         b.resize(val.shape)
-        return b.view(IsErrArray)
+        return b.view(FalseArray)
     except AttributeError:  # val is not an array.
-        return iserr(np.asarray([[val]], object))[0][0].view(IsErrArray)
+        return iserr(np.asarray([[val]], object))[0][0].view(FalseArray)
 
 
 FUNCTIONS['ISERR'] = wrap_ranges_func(iserr)
 
 
-class IsErrorArray(IsErrArray):
-    _default = True
-
-
-def iserror(val, check=lambda x: isinstance(x, XlError), array=IsErrorArray):
+def iserror(val, check=lambda x: isinstance(x, XlError), array=TrueArray):
     try:
         b = np.asarray([check(v) for v in val.ravel().tolist()], bool)
         b.resize(val.shape)
@@ -51,15 +50,6 @@ def iserror(val, check=lambda x: isinstance(x, XlError), array=IsErrorArray):
         return iserror(
             np.asarray([[val]], object), check, array
         )[0][0].view(array)
-
-
-class IsNumberArray(IsErrArray):
-    _collapse_value = False
-
-
-class IsNaArray(IsErrArray):
-    _collapse_value = False
-    _default = True
 
 
 def isna(value):
@@ -83,24 +73,24 @@ FUNCTIONS['ISODD'] = wrap_ranges_func(functools.partial(xiseven_odd, odd=True))
 FUNCTIONS['ISEVEN'] = wrap_ranges_func(xiseven_odd)
 FUNCTIONS['ISERROR'] = wrap_ranges_func(iserror)
 FUNCTIONS['ISNUMBER'] = wrap_ranges_func(functools.partial(
-    iserror, check=lambda x: is_number(x, xl_return=False), array=IsNumberArray
+    iserror, check=lambda x: is_number(x, xl_return=False), array=FalseArray
 ))
 FUNCTIONS['ISBLANK'] = wrap_ranges_func(functools.partial(
-    iserror, check=lambda x: x is sh.EMPTY, array=IsNumberArray
+    iserror, check=lambda x: x is sh.EMPTY, array=FalseArray
 ))
 FUNCTIONS['ISTEXT'] = wrap_ranges_func(functools.partial(
     iserror, check=lambda x: isinstance(x, str) and not isinstance(x, sh.Token),
-    array=IsNumberArray
+    array=FalseArray
 ))
 FUNCTIONS['ISNONTEXT'] = wrap_ranges_func(functools.partial(
     iserror, check=lambda x: not isinstance(x, str) or isinstance(x, sh.Token),
-    array=IsErrorArray
+    array=TrueArray
 ))
 FUNCTIONS['ISLOGICAL'] = wrap_ranges_func(functools.partial(
-    iserror, check=lambda x: isinstance(x, bool), array=IsNumberArray
+    iserror, check=lambda x: isinstance(x, bool), array=FalseArray
 ))
 FUNCTIONS['ISNA'] = wrap_ranges_func(functools.partial(
-    iserror, check=isna, array=IsNaArray
+    iserror, check=isna, array=TrueArray
 ))
 
 

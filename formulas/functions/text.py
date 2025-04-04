@@ -15,8 +15,8 @@ import functools
 import numpy as np
 import schedula as sh
 from . import (
-    wrap_ufunc, Error, replace_empty, XlError, value_return, flatten, wrap_func,
-    is_not_empty, raise_errors, _text2num
+    wrap_ufunc, Error, replace_empty, XlError, flatten, wrap_func, is_not_empty,
+    raise_errors, _text2num
 )
 
 FUNCTIONS = {}
@@ -268,7 +268,7 @@ def xchar(number):
     return Error.errors['#VALUE!']
 
 
-FUNCTIONS['CHAR'] = wrap_ufunc(xchar, return_func=value_return)
+FUNCTIONS['CHAR'] = wrap_ufunc(xchar)
 
 
 def xcode(character) -> int:
@@ -289,8 +289,7 @@ def xcode(character) -> int:
 
 
 FUNCTIONS["CODE"] = wrap_ufunc(
-    xcode, args_parser=lambda *a: a, input_parser=lambda *a: a,
-    return_func=value_return
+    xcode, args_parser=lambda *a: a, input_parser=lambda *a: a
 )
 
 
@@ -325,7 +324,7 @@ def xleft(from_str, num_chars=1):
 FUNCTIONS['LEFT'] = wrap_ufunc(xleft, **_kw0)
 
 _kw1 = {
-    'input_parser': lambda text: [_str(text)], 'return_func': value_return,
+    'input_parser': lambda text: [_str(text)],
     'args_parser': lambda *a: map(functools.partial(replace_empty, empty=''), a)
 }
 FUNCTIONS['LEN'] = wrap_ufunc(str.__len__, **_kw1)
@@ -409,7 +408,7 @@ def xconcat(text, *args):
 
 FUNCTIONS['_XLFN.CONCAT'] = FUNCTIONS['CONCAT'] = wrap_func(xconcat)
 FUNCTIONS['_XLFN.CONCATENATE'] = FUNCTIONS['CONCATENATE'] = wrap_ufunc(
-    xconcat, return_func=value_return, **_kw0
+    xconcat, **_kw0
 )
 
 
@@ -633,9 +632,7 @@ def xtext(value, format_code):
     raise
 
 
-FUNCTIONS['TEXT'] = wrap_ufunc(
-    xtext, return_func=value_return, input_parser=lambda *a: a
-)
+FUNCTIONS['TEXT'] = wrap_ufunc(xtext, input_parser=lambda *a: a)
 
 
 def xvalue(value):
@@ -651,6 +648,4 @@ def xvalue(value):
     return float(value)
 
 
-FUNCTIONS['VALUE'] = wrap_ufunc(
-    xvalue, return_func=value_return, input_parser=lambda *a: a
-)
+FUNCTIONS['VALUE'] = wrap_ufunc(xvalue, input_parser=lambda *a: a)
