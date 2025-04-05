@@ -2,6 +2,46 @@ Changelog
 =========
 
 
+v1.2.9 (2025-04-05)
+-------------------
+
+Feat
+~~~~
+- (core): Update test cases.
+
+- (core): Update python versions.
+
+- (excel): Add `InvRangesAssembler`.
+
+- (functions): Add `FILTER`, `TRANSPOSE`, `SUBSTITUTE`, `TEXTJOIN`, `T`.
+
+- (doc): Add JetBrains sponsor.
+
+- (look): Improve performances of `MATCH` and `LOOKUP`.
+
+- (math): Add `MDETERM`, `MINVERSE`, and `MMULT` functions.
+
+- (core): Add ANCHORARRAY functionality.
+
+
+Fix
+~~~
+- (text) :gh:`146`: Correct TEXT function date formatter logic.
+
+- (functions) :gh:`147`: Correct array collapse behaviour.
+
+- (text) :gh:`149`, :gh:`158`: Add default value of LEFT and RIGHT
+  functions.
+
+- (core) :gh:`159`: Correct parsing error.
+
+- (doc): Correct doctests.
+
+- (text): Add missing function `_XLFN.CONCATENATE`.
+
+- (doc): Correct documentation issue.
+
+
 v1.2.8 (2024-07-16)
 -------------------
 
