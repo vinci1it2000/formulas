@@ -425,10 +425,12 @@ def xtextjoin(delimiter, ignore_empty, text, *args):
 FUNCTIONS['_XLFN.TEXTJOIN'] = FUNCTIONS['TEXTJOIN'] = wrap_func(xtextjoin)
 _re_format_code = regex.compile(
     r'(?P<text>"[^"]*")|'
+    r'(?P<escape>\\.)|'
     r'(?P<percentage>\%)|'
     r'(?P<thousand>(?<=[#0]),(?=[#0]))|'
-    r'(?P<time>[Aa][mM]/[Pp][mM]|[Aa]/[Pp]|(?<=[hH])[mM]{1,2}(?![mM])|(?<![mM])[mM]{1,2}(?=[sS])|[hH]+|[sS]+)|'
-    r'(?P<date>[mM]+|[Yy]+|[dD]+)|'
+    r'(?P<time>[Aa][mM]/[Pp][mM]|[Aa]/[Pp]|[hH]+|[sS]+)|'
+    r'(?P<date>[Yy]+|[dD]+)|'
+    r'(?P<months_minutes>[mM]+)|'
     r'(?P<exp>E[+-]?)|'
     r'(?P<wrong>[e"])|'
     r'(?P<number>[#0])|'
@@ -447,6 +449,8 @@ def _parse_format_code(format_code):
     types = {}
     code = []
     str_index = 0
+    minutes = None
+    suspended = []
     for match in _re_format_code.finditer(format_code):
         # noinspection PyUnresolvedReferences
         span = match.span()
@@ -455,9 +459,10 @@ def _parse_format_code(format_code):
             sh.get_nested_dicts(types, 'extra', default=list).append(len(codes))
             codes.append(v)
         str_index = span[1]
+
         # noinspection PyUnresolvedReferences
         for k, v in match.groupdict().items():
-            if v is not None:
+            if v:
                 if k == 'decimal' and k in types:
                     k = 'extra'
                 elif k == 'number' and 'exp' in types:
@@ -475,9 +480,43 @@ def _parse_format_code(format_code):
                     types = {}
                     formats.append((v, codes, types))
                     break
+                elif k == 'time':
+                    if suspended:
+                        sh.get_nested_dicts(
+                            types, 's' in v.lower() and k or 'date',
+                            default=list
+                        ).append(suspended.pop())
+                    if minutes is None or 'h' in v.lower():
+                        minutes = True
+                elif k == 'date':
+                    if suspended:
+                        sh.get_nested_dicts(types, k, default=list).append(
+                            suspended.pop()
+                        )
+                elif k == 'months_minutes':
+                    if len(v) <= 2:
+                        if minutes:
+                            k = 'time'
+                            minutes = False
+                        elif minutes is None:
+                            k = 'date'
+                        elif len(suspended) > 0:
+                            raise
+                        else:
+                            suspended.append(len(codes))
+                            codes.append(v)
+                            break
+                    else:
+                        k = 'date'
                 sh.get_nested_dicts(types, k, default=list).append(len(codes))
                 codes.append(v)
                 break
+    if len(suspended) > 1:
+        raise
+    elif len(suspended) == 1:
+        sh.get_nested_dicts(types, 'date', default=list).append(
+            suspended.pop()
+        )
     code.extend(codes)
     assert ''.join(code) == format_code
     if not formats:
@@ -515,6 +554,8 @@ def _parse_format_code(format_code):
             fotmat_string = ''
         for i in types.get('text', []):
             codes[i] = codes[i][1:-1]
+        for i in types.get('escape', []):
+            codes[i] = codes[i][1]
         for i in types.get('date', []):
             codes[i] = codes[i].lower()
         for i in types.get('time', []):
