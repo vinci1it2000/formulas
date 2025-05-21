@@ -18,7 +18,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from . import (
     get_error, raise_errors, is_number, flatten, wrap_ufunc, wrap_func,
     replace_empty, Error, xfilter, wrap_impure_func, COMPILING, to_number,
-    clean_values, Array, XlError
+    clean_values, Array, XlError, xfilters
 )
 
 # noinspection PyDictCreation
@@ -419,6 +419,8 @@ def xsum(*args, func=np.sum):
 FUNCTIONS['PRODUCT'] = wrap_func(functools.partial(xsum, func=np.prod))
 FUNCTIONS['SUM'] = wrap_func(xsum)
 FUNCTIONS['SUMIF'] = wrap_func(functools.partial(xfilter, xsum))
+FUNCTIONS['SUMIFS'] = wrap_func(functools.partial(xfilters, xsum))
+
 FUNCTIONS['SUMSQ'] = wrap_func(functools.partial(
     xsum, func=lambda v: np.sum(np.square(v))
 ))

@@ -212,7 +212,7 @@ FUNCTIONS['DATEDIF'] = wrap_ufunc(
 )
 
 
-def xedate(start_date, months):
+def _xedate(start_date, months):
     raise_errors(start_date, months)
     args = [start_date, text2num(months)]
     for i, v in enumerate(args):
@@ -228,6 +228,11 @@ def xedate(start_date, months):
         date = _text2datetime(start_date)[:3]
     else:
         date = _int2date(int(start_date))
+    return date, months
+
+
+def xedate(start_date, months):
+    date, months = _xedate(start_date, months)
     dt = 0
     if date == (1900, 1, 0):
         date = 1900, 1, 1
@@ -237,6 +242,19 @@ def xedate(start_date, months):
 
 
 FUNCTIONS['EDATE'] = wrap_func(xedate)
+
+
+def xeomonth(start_date, months):
+    date, months = _xedate(start_date, months)
+    if date == (1900, 1, 0):
+        date = 1900, 1, 1
+    date = datetime.datetime(*date) + relativedelta(months=months + 1, day=1)
+    if date.year < 1900:
+        return Error.errors['#NUM!']
+    return xdate(date.year, date.month, date.day) - 1
+
+
+FUNCTIONS['EOMONTH'] = wrap_func(xeomonth)
 
 
 def xtoday():

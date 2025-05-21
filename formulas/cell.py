@@ -229,7 +229,7 @@ class RangesAssembler:
         return self.range.ranges[0]['name']
 
     def push(self, indices, output=None):
-        it = {i for i in self.missing if i in indices}
+        it = set(indices) & self.missing
         if it:
             self.missing.difference_update(it)
             it = {indices[i]: i for i in it} \

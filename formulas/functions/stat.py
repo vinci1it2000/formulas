@@ -16,7 +16,7 @@ import schedula as sh
 from . import (
     raise_errors, flatten, wrap_func, Error, is_number, _text2num, xfilter,
     XlError, wrap_ufunc, replace_empty, get_error, is_not_empty, _convert_args,
-    convert_nan, FoundError
+    convert_nan, FoundError, xfilters
 )
 from statistics import NormalDist
 
@@ -51,6 +51,7 @@ FUNCTIONS['AVERAGEA'] = wrap_func(functools.partial(
     xfunc, convert=_convert, check=is_not_empty, func=_xaverage, default=None
 ))
 FUNCTIONS['AVERAGEIF'] = wrap_func(functools.partial(xfilter, xaverage))
+FUNCTIONS['AVERAGEIFS'] = wrap_func(functools.partial(xfilters, xaverage))
 
 
 def xcorrel(arr1, arr2):
@@ -75,6 +76,9 @@ FUNCTIONS['COUNTBLANK'] = wrap_func(functools.partial(
 ))
 FUNCTIONS['COUNTIF'] = wrap_func(functools.partial(
     xfilter, len, operating_range=None
+))
+FUNCTIONS['COUNTIFS'] = wrap_func(functools.partial(
+    xfilters, len, None
 ))
 
 
@@ -120,6 +124,9 @@ FUNCTIONS['MAX'] = wrap_func(xfunc)
 FUNCTIONS['MAXA'] = wrap_func(functools.partial(
     xfunc, convert=_convert, check=is_not_empty
 ))
+FUNCTIONS['_XLFN.MAXIFS'] = FUNCTIONS['MAXIFS'] = wrap_func(
+    functools.partial(xfilters, xfunc)
+)
 
 FUNCTIONS['MEDIAN'] = wrap_func(functools.partial(
     xfunc, func=lambda x: convert_nan(np.median(x) if x else np.nan),
@@ -128,6 +135,9 @@ FUNCTIONS['MEDIAN'] = wrap_func(functools.partial(
 FUNCTIONS['MIN'] = wrap_func(functools.partial(xfunc, func=min))
 FUNCTIONS['MINA'] = wrap_func(functools.partial(
     xfunc, convert=_convert, check=is_not_empty, func=min
+))
+FUNCTIONS['_XLFN.MINIFS'] = FUNCTIONS['MINIFS'] = wrap_func(functools.partial(
+    xfilters, functools.partial(xfunc, func=min)
 ))
 
 

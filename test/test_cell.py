@@ -23,6 +23,9 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
+        ('A1', '=EOMONTH(1,-3)', {}, "<Ranges>(A1)=[[#NUM!]]"),
+        ('A1', '=EOMONTH(444,3)', {}, "<Ranges>(A1)=[[547]]"),
+        ('A1', '=EOMONTH(444,-3)', {}, "<Ranges>(A1)=[[366]]"),
         ('A1', '=TEXT(36852.98609953704, "yyyy-mm-dd-HH:MM:SS")', {},
          "<Ranges>(A1)=[['2000-11-22-23:39:59']]"),
         ('A1',

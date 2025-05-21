@@ -292,9 +292,9 @@ def _get_single_args(*args):
 _re_condition = re.compile('(?<!~)[?*]')
 
 
-def _xfilter(accumulator, test_range, condition, operating_range):
+def __xfilter(test_range, condition):
     from .operators import LOGIC_OPERATORS
-    operator, operating_range = '=', np.asarray(operating_range)
+    operator = '='
     if isinstance(condition, str):
         for k in LOGIC_OPERATORS:
             if condition.startswith(k) and condition != k:
@@ -311,7 +311,7 @@ def _xfilter(accumulator, test_range, condition, operating_range):
                 f = lambda v: isinstance(v, str) and bool(match(v))
                 b = np.vectorize(f, otypes=[bool])(test_range['raw'])
                 try:
-                    return accumulator(operating_range[b])
+                    return b
                 except FoundError as ex:
                     return ex.err
             elif any(v in condition for v in ('~?', '~*')):
@@ -330,7 +330,11 @@ def _xfilter(accumulator, test_range, condition, operating_range):
         condition = _text2num(condition)
 
     from .operators import _get_type_id
-    type_id, operator = _get_type_id(condition), LOGIC_OPERATORS[operator]
+    type_id = _get_type_id(condition)
+    if operator == '=' and type_id ==1:
+        operator = lambda x, y: x == y or x.lower() == y.lower()
+    else:
+        operator = LOGIC_OPERATORS[operator]
 
     @functools.lru_cache()
     def check(value):
@@ -343,19 +347,50 @@ def _xfilter(accumulator, test_range, condition, operating_range):
     else:
         b = np.vectorize(check, otypes=[bool])(test_range['raw'])
     try:
+        return b
+    except FoundError as ex:
+        return ex.err
+
+
+def _xfilter(accumulator, operating_range, test_ranges, *conditions):
+    operating_range = np.asarray(operating_range)
+    try:
+        b = None
+        for test_range, condition in zip(test_ranges, conditions):
+            if b is None:
+                b = __xfilter(test_range, condition)
+            else:
+                b &= __xfilter(test_range, condition)
         return accumulator(operating_range[b])
     except FoundError as ex:
         return ex.err
 
 
-_xfilter = np.vectorize(_xfilter, otypes=[object], excluded={0, 1, 3})
+_xfilter = np.vectorize(_xfilter, otypes=[object], excluded={0, 1, 2})
 
 
 def xfilter(accumulator, test_range, condition, operating_range=None):
     operating_range = test_range if operating_range is None else operating_range
     # noinspection PyTypeChecker
     test_range = {'raw': replace_empty(test_range, '')}
-    res = _xfilter(accumulator, test_range, condition, operating_range)
+    res = _xfilter(accumulator, operating_range, [test_range], condition)
+    return res.view(Array)
+
+
+def xfilters(accumulator, operating_range, test_range, condition, *args):
+    # sanity-check: the rest has to be even-length
+    if len(args) % 2:
+        raise ValueError(
+            "Additional arguments must be supplied in (test_range, condition) pairs."
+        )
+    test_ranges = [test_range, *args[0::2]]
+    operating_range = test_range if operating_range is None else operating_range
+
+    # noinspection PyTypeChecker
+    test_ranges = [{'raw': replace_empty(v, '')} for v in test_ranges]
+    res = _xfilter(
+        accumulator, operating_range, test_ranges, condition, *args[1::2]
+    )
     return res.view(Array)
 
 
