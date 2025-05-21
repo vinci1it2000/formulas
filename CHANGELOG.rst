@@ -2,6 +2,15 @@ Changelog
 =========
 
 
+v1.2.10 (2025-05-21)
+--------------------
+
+Feat
+~~~~
+- (functions): Add `EOMONTH`, `SUMIFS`, `AVERAGEIFS`, `COUNTIFS`,
+  `MAXIFS`, `MINIFS`.
+
+
 v1.2.9 (2025-04-05)
 -------------------
 
