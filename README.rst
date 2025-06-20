@@ -319,11 +319,11 @@ Supported by
     :target: https://mybinder.org/v2/gh/vinci1it2000/formulas/master?urlpath=lab%2Ftree%2Fbinder%2Findex.ipynb
     :alt: Live Demo
 
-.. |downloads| image:: https://static.pepy.tech/badge/schedula
-    :target: https://pepy.tech/project/schedula
+.. |downloads| image:: https://static.pepy.tech/badge/formulas
+    :target: https://pepy.tech/project/formulas
     :alt: Total Downloads
 
-.. |month_downloads| image:: https://static.pepy.tech/badge/schedula/month
-    :target: https://pepy.tech/project/schedula
+.. |month_downloads| image:: https://static.pepy.tech/badge/formulas/month
+    :target: https://pepy.tech/project/formulas
     :alt: Downloads per Month
 .. _end-badges:
