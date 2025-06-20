@@ -314,10 +314,7 @@ def xrandbetween(bottom, top):
     return bottom + dx * np.random.rand()
 
 
-FUNCTIONS['RANDBETWEEN'] = wrap_ufunc(
-    xrandbetween, input_parser=lambda *a: a,
-    check_error=lambda *a: get_error(*a[::-1])
-)
+FUNCTIONS['RANDBETWEEN'] = wrap_ufunc(xrandbetween, input_parser=lambda *a: a)
 
 
 def _xroman(form):
