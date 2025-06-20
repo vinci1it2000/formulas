@@ -151,6 +151,8 @@ def xindex(array, row_num, col_num=None, area_num=1):
     )
     if not res.shape:
         res = res.reshape(1, 1)
+        if isinstance(res[0, 0], np.ndarray):
+            res = res[0, 0]
     return res.view(Array)
 
 
