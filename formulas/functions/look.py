@@ -212,16 +212,18 @@ def xmatch(
 
 _vect_get_type_id = np.vectorize(_get_type_id, otypes=[int])
 
-
+_casefold = np.vectorize(str.casefold)
 def args_parser_match_array(val, arr, match_type=1):
     val = np.asarray(replace_empty(val), dtype=object).copy()
     val_types = _vect_get_type_id(val)
     b = val_types == 1
-    val[b] = np.char.upper(val[b].astype(str))
+    if b.any():
+        val[b] = _casefold(val[b].astype(str))
     lookup_array = np.ravel(arr).copy()
     arr_types = _vect_get_type_id(lookup_array)
     b = arr_types == 1
-    lookup_array[b] = np.char.upper(lookup_array[b].astype(str))
+    if b.any():
+        lookup_array[b] = _casefold(lookup_array[b].astype(str))
     index = np.arange(1, lookup_array.size + 1)
     return val_types, val, index, arr_types, lookup_array, match_type
 
@@ -305,14 +307,14 @@ FUNCTIONS['LOOKUP'] = wrap_ufunc(
 
 def args_parser_hlookup(val, vec, index, match_type=1, transpose=False):
     index = int(_text2num(np.ravel(index)[0]) - 1)
-    vec = np.matrix(vec)
+    vec = np.atleast_2d(vec)
     if transpose:
         vec = vec.T
     try:
-        ref = vec[index].A1.ravel()
+        ref = vec[index].ravel()
     except IndexError:
         raise FoundError(err=Error.errors['#REF!'])
-    vec = vec[0].A1.ravel()
+    vec = vec[0].ravel()
     return args_parser_lookup_array(val, vec, ref, bool(match_type))
 
 

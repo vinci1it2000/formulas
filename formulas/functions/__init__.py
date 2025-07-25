@@ -331,8 +331,9 @@ def __xfilter(test_range, condition):
 
     from .operators import _get_type_id
     type_id = _get_type_id(condition)
-    if operator == '=' and type_id ==1:
-        operator = lambda x, y: x == y or x.lower() == y.lower()
+    if operator == '=' and type_id == 1:
+        condition = condition.casefold()
+        operator = lambda x, y: x.casefold() == y
     else:
         operator = LOGIC_OPERATORS[operator]
 

@@ -23,6 +23,11 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
+        ('A1', '=MATCH("ß",{"ß","ss"})', {}, '<Ranges>(A1)=[[2]]'),
+        ('A1', '=MATCH("1",{1,"1"})', {}, '<Ranges>(A1)=[[2]]'),
+        ('A1', '=MATCH(1,{1,"1"})', {}, '<Ranges>(A1)=[[1]]'),
+        ('A1', '=SEARCH("ß","prtessr")', {}, '<Ranges>(A1)=[[#VALUE!]]'),
+        ('A1', '=SUMIFS({1, 2}, {"ß","ss"}, "ß")', {}, '<Ranges>(A1)=[[3.0]]'),
         ('A1', '=EOMONTH(1,-3)', {}, "<Ranges>(A1)=[[#NUM!]]"),
         ('A1', '=EOMONTH(444,3)', {}, "<Ranges>(A1)=[[547]]"),
         ('A1', '=EOMONTH(444,-3)', {}, "<Ranges>(A1)=[[366]]"),
