@@ -2,6 +2,22 @@ Changelog
 =========
 
 
+v1.2.11 (2025-07-28)
+--------------------
+
+Fix
+~~~
+- (test): Update test cases.
+
+- (look) :gh:`170`: Correct  `MATCH` and `SUMIFS` behaviour.
+
+- (math): Update `RANDBETWEEN` error handling.
+
+- (look): Correct INDEX function bug beacuse of new numpy 2.4.
+
+- (doc): Correct readme badges.
+
+
 v1.2.10 (2025-05-21)
 --------------------
 
