@@ -30,7 +30,8 @@ from ..ranges import Ranges
 from ..errors import InvalidRangeName
 from ..cell import Cell, RangesAssembler, Ref, CellWrapper, InvRangesAssembler
 from ..tokens.operand import XlError, _re_sheet_id, _re_build_id
-from ..functions.text import HexValue
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+from openpyxl.utils.exceptions import IllegalCharacterError
 
 log = logging.getLogger(__name__)
 BOOK = sh.Token('Book')
@@ -78,12 +79,16 @@ def _res2books(res):
     return {k.upper(): _book2dict(v[BOOK]) for k, v in res.items()}
 
 
-def _file2books(*fpaths):
+def _file2books(*fpaths, _raw_data=False):
     from .xlreader import load_workbook
     d = osp.dirname(fpaths[0])
     return {osp.relpath(fp, d).upper().replace('\\', '/'): _book2dict(
-        load_workbook(fp, data_only=True)
+        load_workbook(fp, data_only=True, _raw_data=_raw_data)
     ) for fp in fpaths}
+
+
+def escape_char(m):
+    return f"_x{ord(m.group(0)):04X}_"
 
 
 class ExcelModel:
@@ -475,9 +480,7 @@ class ExcelModel:
             for k, v in nodes.items()
         }
         nodes = {
-            k: {
-                'type': 'HexValue', 'value': v
-            } if isinstance(v, HexValue) else v
+            k: v
             for k, v in nodes.items()
         }
         for d in self.dsp.function_nodes.values():
@@ -489,9 +492,6 @@ class ExcelModel:
     def from_dict(self, adict, context=None, assemble=True, ref=True):
         refs, cells, nodes, get = {}, {}, set(), sh.get_nested_dicts
         for k, v in adict.items():
-            if isinstance(v, dict):
-                if v['type'] == 'HexValue':
-                    v = HexValue(v['value'])
             if isinstance(v, str) and v.upper() == '#EMPTY':
                 v = [[sh.EMPTY]]
             try:
@@ -563,7 +563,12 @@ class ExcelModel:
                         v = v.item()
                     elif isinstance(v, XlError):
                         v = str(v)
-                    c.value = v
+                    if isinstance(v, str):
+                        v = v.replace('\r', '_x000D_')
+                    try:
+                        c.value = v
+                    except IllegalCharacterError:
+                        c.value = ILLEGAL_CHARACTERS_RE.sub(escape_char, v)
                     if c.data_type == 'f':
                         c.data_type = 's'
                 except AttributeError:
