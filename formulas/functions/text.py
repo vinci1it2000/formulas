@@ -9,18 +9,24 @@
 """
 Python equivalents of text Excel functions.
 """
+import re
 import json
 import regex
 import functools
+import unicodedata
 import numpy as np
 import schedula as sh
+from ..errors import FoundError
 from . import (
     wrap_ufunc, Error, replace_empty, XlError, flatten, wrap_func, is_not_empty,
-    raise_errors, _text2num
+    raise_errors, _text2num, Array, get_error
 )
 
 FUNCTIONS = {}
-
+_kw0 = {
+    'input_parser': lambda *a: a,
+    'args_parser': lambda *a: map(functools.partial(replace_empty, empty=''), a)
+}
 codes = {
     1: "\x01",
     2: "\x02",
@@ -280,45 +286,126 @@ codes = {
 }
 inverse_codes = {v: k for k, v in codes.items()}
 
+# Full-width ASCII block → ASCII (plus ideographic space)
+_FULLWIDTH_ASCII = {chr(cp): chr(cp - 0xFEE0) for cp in range(0xFF01, 0xFF5F)}
+_FULLWIDTH_ASCII['\u3000'] = ' '  # ideographic space → space
 
-class HexValue(str):
-    pass
+# Base Katakana → Halfwidth Katakana
+_KATAKANA_BASE_TO_HALF = {
+    'ァ': 'ｧ', 'ア': 'ｱ', 'ィ': 'ｨ', 'イ': 'ｲ', 'ゥ': 'ｩ', 'ウ': 'ｳ', 'ェ': 'ｪ',
+    'エ': 'ｴ', 'ォ': 'ｫ', 'オ': 'ｵ',
+    'カ': 'ｶ', 'キ': 'ｷ', 'ク': 'ｸ', 'ケ': 'ｹ', 'コ': 'ｺ', 'サ': 'ｻ', 'シ': 'ｼ',
+    'ス': 'ｽ', 'セ': 'ｾ', 'ソ': 'ｿ',
+    'タ': 'ﾀ', 'チ': 'ﾁ', 'ツ': 'ﾂ', 'テ': 'ﾃ', 'ト': 'ﾄ', 'ナ': 'ﾅ', 'ニ': 'ﾆ',
+    'ヌ': 'ﾇ', 'ネ': 'ﾈ', 'ノ': 'ﾉ',
+    'ハ': 'ﾊ', 'ヒ': 'ﾋ', 'フ': 'ﾌ', 'ヘ': 'ﾍ', 'ホ': 'ﾎ', 'マ': 'ﾏ', 'ミ': 'ﾐ',
+    'ム': 'ﾑ', 'メ': 'ﾒ', 'モ': 'ﾓ',
+    'ヤ': 'ﾔ', 'ユ': 'ﾕ', 'ヨ': 'ﾖ', 'ラ': 'ﾗ', 'リ': 'ﾘ', 'ル': 'ﾙ', 'レ': 'ﾚ',
+    'ロ': 'ﾛ', 'ワ': 'ﾜ', 'ヲ': 'ｦ', 'ン': 'ﾝ',
+    'ャ': 'ｬ', 'ュ': 'ｭ', 'ョ': 'ｮ', 'ッ': 'ｯ',
+    # Small kana & specials
+    'ヵ': 'ｶ', 'ヶ': 'ｹ',
+    '・': '･', 'ー': 'ｰ',  # punctuation
+    '。': '｡', '、': '､', '「': '｢', '」': '｣',
+}
+
+# Combining voice marks → Halfwidth voice marks
+_COMB_DAKUTEN = '\u3099'  # ◌゙
+_COMB_HANDAKUTEN = '\u309A'  # ◌゚
+_HALF_DAKUTEN = 'ﾞ'  # FF9E
+_HALF_HANDAKUTEN = 'ﾟ'  # FF9F
 
 
-_re_hex = regex.compile("^_x([0-9A-Z]{4})_$")
+def xasc(value):
+    """
+    Excel-like ASC: convert full-width ASCII & Katakana to half-width.
+    Leaves hiragana/kanji unchanged.
+    """
+    s = _str(value)
+
+    out = []
+    for ch in s:
+        # Fast path: full-width ASCII / punctuation
+        if ch in _FULLWIDTH_ASCII:
+            out.append(_FULLWIDTH_ASCII[ch])
+            continue
+
+        # Decompose to catch precomposed voiced kana (e.g., ガ = カ + ◌゙)
+        decomp = unicodedata.normalize('NFD', ch)
+
+        # If no change after NFD, decomp is typically just ch
+        for d in decomp:
+            if d in _KATAKANA_BASE_TO_HALF:
+                out.append(_KATAKANA_BASE_TO_HALF[d])
+            elif d == _COMB_DAKUTEN:
+                out.append(_HALF_DAKUTEN)
+            elif d == _COMB_HANDAKUTEN:
+                out.append(_HALF_HANDAKUTEN)
+            else:
+                # Not a target for conversion: keep as-is
+                out.append(d)
+
+    return ''.join(out)
+
+
+FUNCTIONS['ASC'] = wrap_ufunc(xasc, **_kw0)
+
+
+def xbahttext(value):
+    from bahttext import bahttext
+    return bahttext(value)
+
+
+FUNCTIONS['BAHTTEXT'] = wrap_ufunc(xbahttext)
+
+_CLEAN_TRANS = {cp: None for cp in range(0, 32)}
+
+
+def xclean(value):
+    return _str(value).translate(_CLEAN_TRANS)
+
+
+FUNCTIONS['CLEAN'] = wrap_ufunc(xclean, **_kw0)
+
+_re_hex = regex.compile("_x([0-9A-Z]{4})_")
 
 
 def xchar(number):
-    number = int(number)
-    if 0 < number <= 255:
-        if number in codes:
-            return codes[number]
-        return HexValue(f'_x{hex(number)[2:].upper():0>4}_')
-    return Error.errors['#VALUE!']
+    return codes.get(int(number), Error.errors['#VALUE!'])
 
 
 FUNCTIONS['CHAR'] = wrap_ufunc(xchar)
 
 
-def xcode(character) -> int:
-    """
-    Returns the  code of a character based on codes dictionary. Input must be a singular character
-    """
+def xunichar(number):
+    number = int(number)
+    if number:
+        return chr(number)
+    return Error.errors['#VALUE!']
 
-    if isinstance(character, HexValue):
-        try:
-            number = int(f'0{character[1:-1]}', 16)
-            if 0 < number <= 255:
-                return number
-        except ValueError:
-            pass
-    elif isinstance(character, sh.Token):
+
+FUNCTIONS['UNICHAR'] = FUNCTIONS['_XLFN.UNICHAR'] = wrap_ufunc(xunichar)
+
+
+def xcode(character):
+    if isinstance(character, sh.Token):
         raise ValueError
     return inverse_codes.get(str(character)[0], None)
 
 
 FUNCTIONS["CODE"] = wrap_ufunc(
     xcode, args_parser=lambda *a: a, input_parser=lambda *a: a
+)
+
+
+def xunicode(character):
+    if isinstance(character, sh.Token):
+        raise ValueError
+    return ord(str(character)[0])
+
+
+FUNCTIONS["UNICODE"] = FUNCTIONS["_XLFN.UNICODE"] = wrap_ufunc(
+    xunicode, args_parser=lambda *a: a, input_parser=lambda *a: a
 )
 
 
@@ -330,17 +417,20 @@ def _str(text):
     return str(text)
 
 
+def xexact(text1, text2):
+    return _str(text1) == _str(text2)
+
+
+FUNCTIONS['EXACT'] = wrap_ufunc(xexact, **_kw0)
+
+
 def xfind(find_text, within_text, start_num=1):
     i = int(start_num or 0) - 1
     res = i >= 0 and _str(within_text).find(_str(find_text), i) + 1 or 0
     return res or Error.errors['#VALUE!']
 
 
-_kw0 = {
-    'input_parser': lambda *a: a,
-    'args_parser': lambda *a: map(functools.partial(replace_empty, empty=''), a)
-}
-FUNCTIONS['FIND'] = wrap_ufunc(xfind, **_kw0)
+FUNCTIONS['FIND'] = FUNCTIONS['FINDB'] = wrap_ufunc(xfind, **_kw0)
 
 
 def xleft(from_str, num_chars=1):
@@ -350,13 +440,13 @@ def xleft(from_str, num_chars=1):
     return Error.errors['#VALUE!']
 
 
-FUNCTIONS['LEFT'] = wrap_ufunc(xleft, **_kw0)
+FUNCTIONS['LEFT'] = FUNCTIONS['LEFTB'] = wrap_ufunc(xleft, **_kw0)
 
 _kw1 = {
     'input_parser': lambda text: [_str(text)],
     'args_parser': lambda *a: map(functools.partial(replace_empty, empty=''), a)
 }
-FUNCTIONS['LEN'] = wrap_ufunc(str.__len__, **_kw1)
+FUNCTIONS['LEN'] = FUNCTIONS['LENB'] = wrap_ufunc(str.__len__, **_kw1)
 FUNCTIONS['LOWER'] = wrap_ufunc(str.lower, **_kw1)
 
 
@@ -368,7 +458,102 @@ def xmid(from_str, start_num, num_chars):
     return Error.errors['#VALUE!']
 
 
-FUNCTIONS['MID'] = wrap_ufunc(xmid, **_kw0)
+FUNCTIONS['MID'] = FUNCTIONS['MIDB'] = wrap_ufunc(xmid, **_kw0)
+
+
+def xnumbervalue(text, decimal_sep=None, group_sep=None):
+    text = _str(replace_empty(text, '0'))
+    g = ',' if group_sep is None else replace_empty(group_sep)[0]
+    d = '.' if decimal_sep is None else replace_empty(decimal_sep)[0]
+    if g == d and group_sep is not None and decimal_sep is not None:
+        return Error.errors['#VALUE!']
+    g_esc = re.escape(g)
+    d_esc = re.escape(d)
+    number = rf'\s*[\d{g_esc}]+(?:{d_esc}[\s\d]*)?(?:\s*[eE]\s*[+-]\s*\d[\s\d]*)?[\s%]*'
+    if {'(', ')'}.intersection({g, d}):
+        m = re.match(f'^\s*[+-]?{number}$', text)
+    else:
+        m = re.match(
+            f'(?:^\s*[+-]?{number}$)|(?:^\s*\({number}\)[\s%]*$)', text
+        )
+    if not m:
+        return Error.errors['#VALUE!']
+    return float(text.translate(str.maketrans({
+        ' ': '', '%': '', '(': '-', ')': '', g: '', d: '.'
+    }))) * 0.01 ** text.count('%')
+
+
+FUNCTIONS['NUMBERVALUE'] = FUNCTIONS['_XLFN.NUMBERVALUE'] = wrap_ufunc(
+    xnumbervalue, args_parser=lambda *a: a, input_parser=lambda *a: a
+)
+FUNCTIONS['PROPER'] = wrap_ufunc(str.title, **_kw1)
+
+
+def _xregex(text, pattern, case_sensitivity=0):
+    case_sensitivity = int(float(replace_empty(case_sensitivity)))
+    if case_sensitivity not in (0, 1):
+        raise FoundError(err=Error.errors['#VALUE!'])
+    rx = re.compile(
+        _str(pattern), re.IGNORECASE if case_sensitivity == 1 else 0
+    )
+    return rx, _str(text)
+
+
+_get_first = np.vectorize(
+    lambda x: x[0] if isinstance(x, list) else x, otypes=[object]
+)
+
+
+def _xregexextract_return_func(res, *args):
+    if not res.shape:
+        res = res.item()
+        res = np.asarray(res, object).view(Array)
+    elif res.shape == (1, 1):
+        res = res[0, 0]
+        res = np.asarray(res, object).view(Array)
+    else:
+        res = _get_first(res)
+    return res
+
+
+def xregexextract(text, pattern, return_mode=0, case_sensitivity=0):
+    rx, text = _xregex(text, pattern, case_sensitivity)
+    return_mode = int(float(replace_empty(return_mode)))
+    if return_mode == 0:
+        m = rx.search(text)
+        r = [m.group(0) if m else None]
+    elif return_mode == 1:
+        r = [m.group(0) for m in rx.finditer(text)] or [None]
+    elif return_mode == 2:
+        m = rx.search(text)
+        r = list(m.groups() or [Error.errors['#VALUE!']]) if m else [None]
+    else:
+        return Error.errors['#VALUE!']
+    return [Error.errors['#N/A'] if v is None else v for v in r]
+
+
+def xregexreplace(text, pattern, replacement, occurrence=0, case_sensitivity=0):
+    rx, text = _xregex(text, pattern, case_sensitivity)
+    return rx.sub(
+        _str(replacement), text, count=int(float(replace_empty(occurrence)))
+    )
+
+
+def xregextest(text, pattern, case_sensitivity=0):
+    rx, text = _xregex(text, pattern, case_sensitivity)
+    return rx.match(text) is not None
+
+
+FUNCTIONS['REGEXEXTRACT'] = FUNCTIONS['_XLFN.REGEXEXTRACT'] = wrap_ufunc(
+    xregexextract, return_func=_xregexextract_return_func, check_nan=False,
+    **_kw0
+)
+FUNCTIONS['REGEXREPLACE'] = FUNCTIONS['_XLFN.REGEXREPLACE'] = wrap_ufunc(
+    xregexreplace, check_nan=False, **_kw0
+)
+FUNCTIONS['REGEXTEST'] = FUNCTIONS['_XLFN.REGEXTEST'] = wrap_ufunc(
+    xregextest, check_nan=False, **_kw0
+)
 
 
 def xreplace(old_text, start_num, num_chars, new_text):
@@ -380,7 +565,14 @@ def xreplace(old_text, start_num, num_chars, new_text):
     return Error.errors['#VALUE!']
 
 
-FUNCTIONS['REPLACE'] = wrap_ufunc(xreplace, **_kw0)
+FUNCTIONS['REPLACE'] = FUNCTIONS['REPLACEB'] = wrap_ufunc(xreplace, **_kw0)
+
+
+def xrept(text, number_times):
+    return _str(text) * int(float(replace_empty(number_times)))
+
+
+FUNCTIONS['REPT'] = wrap_ufunc(xrept, **_kw0)
 
 
 def xright(from_str, num_chars=1):
@@ -388,7 +580,7 @@ def xright(from_str, num_chars=1):
     return res if isinstance(res, XlError) else res[::-1]
 
 
-FUNCTIONS['RIGHT'] = wrap_ufunc(xright, **_kw0)
+FUNCTIONS['RIGHT'] = FUNCTIONS['RIGHTB'] = wrap_ufunc(xright, **_kw0)
 FUNCTIONS['TRIM'] = wrap_ufunc(str.strip, **_kw1)
 FUNCTIONS['UPPER'] = wrap_ufunc(str.upper, **_kw1)
 
@@ -401,7 +593,7 @@ def xsearch(find_text, within_text, start_num=1):
     return n + 1
 
 
-FUNCTIONS['SEARCH'] = wrap_ufunc(xsearch, **_kw0)
+FUNCTIONS['SEARCH'] = FUNCTIONS['SEARCHB'] = wrap_ufunc(xsearch, **_kw0)
 
 
 def xsubstitute(text, old_text, new_text, instance_num=None):
@@ -718,3 +910,225 @@ def xvalue(value):
 
 
 FUNCTIONS['VALUE'] = wrap_ufunc(xvalue, input_parser=lambda *a: a)
+
+
+def _fmt_number_short(x):
+    # Excel-like compact numeric text (no unnecessary trailing zeros)
+    s = f"{x:.15g}"
+    return s
+
+
+def _xvaluetotext(text, format_type):
+    if isinstance(text, sh.Token):
+        if text is sh.EMPTY:
+            return ''
+        return _str(text)
+    r = _str(text)
+    if format_type and isinstance(text, str):
+        return f'"{r}"'
+    return r
+
+
+def xvaluetotext(text, format_type=0):
+    format_type = int(float(replace_empty(format_type)))
+    if format_type not in (0, 1):
+        return Error.errors['#VALUE!']
+    return _xvaluetotext(text, format_type)
+
+
+FUNCTIONS['VALUETOTEXT'] = FUNCTIONS['_XLFN.VALUETOTEXT'] = wrap_ufunc(
+    xvaluetotext, input_parser=lambda *a: a, args_parser=lambda *a: a,
+    check_error=lambda a, format_type=0: get_error(format_type)
+)
+
+
+def xarraytotext(array, format_type=0):
+    format_type = int(float(replace_empty(format_type)))
+    array = np.asarray(array, object)
+    if format_type == 0:
+        return ', '.join(
+            _xvaluetotext(v, format_type)
+            for v in flatten(array, None)
+        )
+    elif format_type == 1:
+        if len(array.shape) == 1:
+            r = ', '.join(
+                _xvaluetotext(v, format_type)
+                for v in flatten(array, None)
+            )
+        elif len(array.shape) == 2:
+            r = ';'.join(
+                ','.join(_xvaluetotext(v, format_type) for v in row)
+                for row in array
+            )
+        return f'{{{r}}}' if r else Error.errors['#VALUE!']
+    return Error.errors['#VALUE!']
+
+
+FUNCTIONS['ARRAYTOTEXT'] = FUNCTIONS['_XLFN.ARRAYTOTEXT'] = wrap_ufunc(
+    xarraytotext, input_parser=lambda *a: a, args_parser=lambda *a: a,
+    check_error=lambda a, format_type=0: get_error(format_type), excluded={0}
+)
+
+
+def xfixed(number, decimals=2, no_commas=False):
+    number = float(replace_empty(number))
+    decimals = int(float(replace_empty(decimals)))
+    no_commas = replace_empty(no_commas, False)
+    if isinstance(no_commas, str):
+        if no_commas.upper() == "TRUE":
+            no_commas = True
+        elif no_commas.upper() == "FALSE":
+            no_commas = False
+        else:
+            return Error.errors['#VALUE!']
+    else:
+        no_commas = bool(no_commas)
+    if decimals > 127:
+        return Error.errors['#VALUE!']
+    fmt = f"{',' if not no_commas else ''}.{max(decimals, 0)}f"
+
+    from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP, localcontext
+    number = Decimal(number)
+    prec = len(number.as_tuple().digits) + decimals
+    if prec <= 0:
+        r = 0
+    else:
+        if number >= 1e16:
+            quant = Decimal(1).scaleb(number.adjusted() - (15 - 1))
+            number = number.quantize(quant, rounding=ROUND_DOWN)
+        q = Decimal(1).scaleb(-decimals)
+        with localcontext() as ctx:
+            ctx.rounding = ROUND_HALF_UP
+            ctx.prec = prec
+            r = number.quantize(q)
+
+        if r.is_zero():
+            r = abs(r)
+    return format(r, fmt)
+
+
+FUNCTIONS['FIXED'] = wrap_ufunc(
+    xfixed, input_parser=lambda *a: a, args_parser=lambda *a: a
+)
+
+
+def _xtextsplit_return_func(res, *args):
+    if not res.shape:
+        res = res.item()
+        res = np.asarray(res, object).view(Array)
+    elif res.shape == (1, 1):
+        res = res[0, 0]
+        res = np.asarray(res, object).view(Array)
+    else:
+        res = _get_first_xtextsplit(res)
+    return res
+
+
+def xtextsplit(
+        text, col_delimiter, row_delimiter=None, ignore_empty=False,
+        match_mode=0, pad_with=Error.errors['#N/A']
+):
+    ignore_empty = replace_empty(ignore_empty, False)
+    match_mode = int(float(replace_empty(match_mode)))
+    if match_mode == 1:
+        flags = re.IGNORECASE
+    elif match_mode == 0:
+        flags = 0
+    else:
+        return Error.errors['#VALUE!']
+    text = replace_empty(text, Error.errors['#VALUE!'])
+    raise_errors(text)
+    text = _str(text)
+    col_delimiter = tuple(map(_str, flatten(col_delimiter, None, True)))
+    if not col_delimiter or any(not v for v in col_delimiter):
+        return Error.errors['#VALUE!']
+    re_col = re.compile('|'.join(map(re.escape, col_delimiter)), flags=flags)
+    if isinstance(ignore_empty, str):
+        if ignore_empty.upper() == "TRUE":
+            ignore_empty = True
+        elif ignore_empty.upper() == "FALSE":
+            ignore_empty = False
+        else:
+            return Error.errors['#VALUE!']
+    if row_delimiter is None:
+        rows = [text]
+    else:
+        row_delimiter = tuple(map(_str, flatten(row_delimiter, None, True)))
+        if not row_delimiter or any(not v for v in row_delimiter):
+            return Error.errors['#VALUE!']
+        rows = re.split('|'.join(map(
+            re.escape, row_delimiter
+        )), text, flags=flags)
+
+    rows = [re_col.split(row) for row in rows]
+
+    if ignore_empty:
+        rows = [[v for v in row if v] for row in rows]
+        rows = [row for row in rows if row]
+
+    maxcols = max(map(len, rows))
+    for row in rows:
+        if len(row) < maxcols:
+            row.extend([pad_with] * (maxcols - len(row)))
+
+    return rows
+
+
+_get_first_xtextsplit = np.vectorize(
+    lambda x: x[0][0] if isinstance(x, list) else x, otypes=[object]
+)
+
+FUNCTIONS['TEXTSPLIT'] = FUNCTIONS['_XLFN.TEXTSPLIT'] = wrap_ufunc(
+    xtextsplit, input_parser=lambda *a: a, args_parser=lambda *a: a,
+    excluded={1, 2, 5}, return_func=_xtextsplit_return_func, check_nan=False
+)
+
+
+def xtextafterbefore(
+        after, text, delimiter, instance_num=1, match_mode=0, match_end=0,
+        if_not_found=Error.errors['#N/A']
+):
+    instance_num = int(float(replace_empty(instance_num)))
+    match_mode = int(float(replace_empty(match_mode)))
+    match_end = int(float(replace_empty(match_end)))
+    if match_mode == 1:
+        flags = re.IGNORECASE
+    elif match_mode == 0:
+        flags = 0
+    else:
+        return Error.errors['#VALUE!']
+    text = replace_empty(text, Error.errors['#VALUE!'])
+    raise_errors(text)
+    text = _str(text)
+    if match_end not in (0, 1) or instance_num == 0 or instance_num > len(text):
+        return Error.errors['#VALUE!']
+    delimiter = tuple(map(_str, flatten(delimiter, None, True)))
+    if not delimiter or any(not v for v in delimiter):
+        return Error.errors['#VALUE!']
+    if match_end:
+        text = text + delimiter[0]
+    r = list(re.finditer('|'.join(map(
+        re.escape, delimiter
+    )), text, flags=flags))
+    try:
+        m = r[instance_num - 1 if instance_num > 0 else instance_num]
+        return text[m.end():] if after else text[:m.start()]
+    except IndexError:
+        return if_not_found
+
+
+FUNCTIONS['TEXTAFTER'] = FUNCTIONS['_XLFN.TEXTAFTER'] = wrap_ufunc(
+    functools.partial(xtextafterbefore, True),
+    input_parser=lambda *a: a,
+    args_parser=lambda *a: a,
+    excluded={1, 5},
+    check_nan=False
+)
+FUNCTIONS['TEXTBEFORE'] = FUNCTIONS['_XLFN.TEXTBEFORE'] = wrap_ufunc(
+    functools.partial(xtextafterbefore, False),
+    input_parser=lambda *a: a,
+    args_parser=lambda *a: a,
+    excluded={1, 5},
+    check_nan=False
+)
