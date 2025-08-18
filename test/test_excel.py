@@ -26,6 +26,7 @@ EXTRAS = os.environ.get('EXTRAS', 'all')
 
 mydir = osp.join(osp.dirname(__file__), 'test_files')
 _filename = 'test.xlsx'
+_filename_ods = 'test.ods'
 _filename_compile = 'excel.xlsx'
 _filename_full_range = 'full-range.xlsx'
 _link_filename = 'test_link.xlsx'
@@ -40,9 +41,13 @@ class TestExcelModel(unittest.TestCase):
         self.filename_compile = osp.join(mydir, _filename_compile)
         self.filename_circular = osp.join(mydir, _filename_circular)
         self.filename_full_range = osp.join(mydir, _filename_full_range)
+        self.filename_ods = osp.join(mydir, _filename_ods)
 
         self.results = _file2books(
             self.filename, self.link_filename, _raw_data=True
+        )
+        self.results_ods = _file2books(
+            self.filename_ods, _raw_data=True
         )
         sh.get_nested_dicts(self.results, 'EXTRA.XLSX', 'EXTRA').update({
             'A1': 1, 'B1': 1
@@ -89,6 +94,51 @@ class TestExcelModel(unittest.TestCase):
             'Errors({}):\n{}\n'.format(len(errors), '\n'.join(errors))
         )
         return len(it)
+
+    def test_ods_model(self):
+        start = time.time()
+        _msg = '[info] test_ods_model: '
+        xl_mdl = ExcelModel()
+
+        print('\n%sLoading ods-model.' % _msg)
+        s = time.time()
+
+        xl_mdl.loads(self.filename_ods)
+
+        msg = '%sLoaded ods-model in %.2fs.\n%sFinishing ods-model.'
+        print(msg % (_msg, time.time() - s, _msg))
+        s = time.time()
+
+        xl_mdl.finish()
+
+        print('%sFinished ods-model in %.2fs.' % (_msg, time.time() - s))
+
+        n_test = 0
+
+        print('%sCalculate ods-model.' % _msg)
+        s = time.time()
+
+        xl_mdl.calculate({"'[EXTRA.XLSX]EXTRA'!A1:B1": [[1, 1]]})
+
+        msg = '%sCalculated ods-model in %.2fs.\n%s' \
+              'Comparing overwritten results.'
+        print(msg % (_msg, time.time() - s, _msg))
+        s = time.time()
+
+        books = _res2books(xl_mdl.write(xl_mdl.books))
+        n_test += self._compare(books, self.results_ods)
+
+        msg = '%sCompared overwritten results in %.2fs.\n' \
+              '%sComparing fresh written results.'
+        print(msg % (_msg, time.time() - s, _msg))
+        s = time.time()
+
+        n_test += self._compare(
+            _res2books(xl_mdl.write()), self.results_ods
+        )
+
+        msg = '%sCompared fresh written results in %.2fs.\n%sRan %d tests in %.2fs'
+        print(msg % (_msg, time.time() - s, _msg, n_test, time.time() - start))
 
     def test_excel_model(self):
         start = time.time()
