@@ -18,7 +18,7 @@ from .parenthesis import Parenthesis
 
 
 class Function(Token):
-    _re = regex.compile(r'^\s*@?(?P<name>[A-Z_][\w\.]*)\(\s*', regex.IGNORECASE)
+    _re = regex.compile(r'^\s*(?P<name>[A-Z_][\w\.]*)\(\s*', regex.IGNORECASE)
 
     def ast(self, tokens, stack, builder, check_n=lambda *args: True):
         super(Function, self).ast(tokens, stack, builder)

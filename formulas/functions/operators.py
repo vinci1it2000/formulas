@@ -14,7 +14,7 @@ import functools
 import collections
 from . import replace_empty, not_implemented, wrap_func, wrap_ufunc, Error
 from .text import _str
-from .look import _get_type_id
+from .look import _get_type_id, FUNCTIONS
 
 OPERATORS = collections.defaultdict(lambda: not_implemented)
 
@@ -70,3 +70,5 @@ OPERATORS.update({k: wrap_func(v, ranges=True) for k, v in {
     ' ': lambda x, y: x & y,
     ':': lambda x, y: x + y
 }.items()})
+
+OPERATORS['@'] = FUNCTIONS['SINGLE']

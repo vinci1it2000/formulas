@@ -16,7 +16,8 @@ import numpy as np
 import schedula as sh
 from . import (
     wrap_func, wrap_ufunc, Error, get_error, XlError, FoundError, Array,
-    parse_ranges, _text2num, replace_empty, raise_errors
+    parse_ranges, _text2num, replace_empty, raise_errors, COMPILING,
+    wrap_impure_func
 )
 from ..ranges import Ranges
 from ..cell import CELL
@@ -83,6 +84,10 @@ FUNCTIONS['ADDRESS'] = wrap_ufunc(
 
 
 def xsingle(cell, rng):
+    if not isinstance(rng, Ranges):
+        if isinstance(rng, Array):
+            return rng.ravel()[0]
+        return rng
     if len(rng.ranges) == 1 and not rng.is_set and rng.value.shape[1] == 1:
         rng = rng & Ranges((sh.combine_dicts(
             rng.ranges[0], sh.selector(('r1', 'r2'), cell.ranges[0])
@@ -93,8 +98,8 @@ def xsingle(cell, rng):
 
 
 FUNCTIONS['_XLFN.SINGLE'] = FUNCTIONS['SINGLE'] = {
-    'extra_inputs': collections.OrderedDict([(CELL, None)]),
-    'function': wrap_func(xsingle, ranges=True)
+    'extra_inputs': collections.OrderedDict([(COMPILING, False), (CELL, None)]),
+    'function': wrap_impure_func(wrap_func(xsingle, ranges=True))
 }
 
 
@@ -213,6 +218,8 @@ def xmatch(
 _vect_get_type_id = np.vectorize(_get_type_id, otypes=[int])
 
 _casefold = np.vectorize(str.casefold)
+
+
 def args_parser_match_array(val, arr, match_type=1):
     val = np.asarray(replace_empty(val), dtype=object).copy()
     val_types = _vect_get_type_id(val)

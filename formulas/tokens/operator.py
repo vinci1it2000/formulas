@@ -22,12 +22,12 @@ class Operator(Token):
     # http://office.microsoft.com/en-us/excel-help/calculation-operators-and-
     # precedence-HP010078886.aspx
     _precedences = {
-        ':': 8, ' ': 8, ',': 8, 'u-': 7, 'u+': 7, '%': 6, '^': 5, '*': 4,
-        '/': 4, '+': 3, '-': 3, '&': 2, '=': 1, '<': 1, '>': 1, '<=': 1,
+        ':': 8, ' ': 8, ',': 8, 'u-': 7, 'u+': 7, '@': 7, '%': 6, '^': 5,
+        '*': 4, '/': 4, '+': 3, '-': 3, '&': 2, '=': 1, '<': 1, '>': 1, '<=': 1,
         '>=': 1, '<>': 1
     }
     _n_args = collections.defaultdict(lambda: 2)
-    _n_args.update({'u-': 1, 'u+': 1, '%': 1})
+    _n_args.update({'u-': 1, 'u+': 1, '@': 1, '%': 1})
 
     _re_process = None
     _replace = ' '
@@ -55,6 +55,8 @@ class Operator(Token):
             expr = '{}%'.format(*expr)
         elif name in ('u-', 'u+'):
             expr = '{}{}'.format(name[1], *expr)
+        elif name == '@':
+            expr = '@{}'.format(*expr)
         elif name in ' ,:':
             expr = '(%s)' % ('%s ' % name.strip(' ')).join(expr)
         else:
@@ -86,6 +88,15 @@ class Operator(Token):
             if not (b or isinstance(t, Operand)):
                 self.attr['name'] = 'u%s' % self.name
                 _update_n_args(stack)
+        elif self.name == '@':
+            from .operand import Operand
+            t = tokens[max(tokens.index(self) - 1, 0)]
+            b = isinstance(t, Parenthesis) and t.has_end
+            b |= isinstance(t, Operator) and t.name == '%'
+            if not (b or isinstance(t, Operand)):
+                self.attr['name'] = '%s' % self.name
+                _update_n_args(stack)
+
 
     def ast(self, tokens, stack, builder):
         super(Operator, self).ast(tokens, stack, builder)
@@ -128,10 +139,10 @@ class Separator(Operator):
 
 class OperatorToken(Operator):
     _re = regex.compile(
-        r'^(\s*([<>]=|<>|[\*\/\^&<>=])(?=\s*[\+\-])|\s*%+|[\+\-\*\/\^&<>=\s:]+)'
+        r'^(\s*([<>]=|<>|[\*\/\^&<>=])(?=\s*[\+\-])|\s*%+|[\+\-\*\/\^&<>=\s:@]+)'
     )
     _re_process = regex.compile(
-        r'^\s*(?P<name>(?P<sum_minus>[\+\s\-]+)|[<>]?=|<>|[\*\/\^&\%:<>])$'
+        r'^\s*(?P<name>(?P<sum_minus>[\+\s\-]+)|[<>]?=|<>|[\*\/\^&\%:<>@])$'
     )
 
     def process(self, match, context=None):
