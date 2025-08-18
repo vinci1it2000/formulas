@@ -85,7 +85,7 @@ class Error(Operand):
     errors = {str(k): k for k in (NULL, DIV, VALUE, REF, NUM, NAME, NA)}
 
     def compile(self):
-        return self.errors[self.name]
+        return self.errors[self.name.upper()]
 
 
 class Number(Operand):
