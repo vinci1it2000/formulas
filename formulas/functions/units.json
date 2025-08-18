@@ -1,0 +1,3714 @@
+{
+  "g": {
+    "mass": 1
+  },
+  "sg": {
+    "mass": 14593.9029372064
+  },
+  "lbm": {
+    "mass": 453.59237
+  },
+  "u": {
+    "mass": 1.660538782e-24
+  },
+  "ozm": {
+    "mass": 28.349523125
+  },
+  "grain": {
+    "mass": 0.06479891
+  },
+  "cwt": {
+    "mass": 45359.237
+  },
+  "shweight": {
+    "mass": 45359.237
+  },
+  "uk_cwt": {
+    "mass": 50802.34544
+  },
+  "lcwt": {
+    "mass": 50802.34544
+  },
+  "hweight": {
+    "mass": 50802.34544
+  },
+  "stone": {
+    "mass": 6350.29318
+  },
+  "ton": {
+    "mass": 907184.74
+  },
+  "uk_ton": {
+    "mass": 1016046.9088
+  },
+  "LTON": {
+    "mass": 1016046.9088
+  },
+  "brton": {
+    "mass": 1016046.9088
+  },
+  "Yu": {
+    "mass": 1.660538782
+  },
+  "Zu": {
+    "mass": 0.001660538782
+  },
+  "Eu": {
+    "mass": 1.660538782e-06
+  },
+  "Pu": {
+    "mass": 1.660538782e-09
+  },
+  "Tu": {
+    "mass": 1.660538782e-12
+  },
+  "Gu": {
+    "mass": 1.660538782e-15
+  },
+  "Mu": {
+    "mass": 1.660538782e-18
+  },
+  "ku": {
+    "mass": 1.660538782e-21
+  },
+  "hu": {
+    "mass": 1.660538782e-22
+  },
+  "dau": {
+    "mass": 1.660538782e-23
+  },
+  "eu": {
+    "mass": 1.660538782e-23
+  },
+  "du": {
+    "mass": 1.660538782e-25
+  },
+  "cu": {
+    "mass": 1.660538782e-26
+  },
+  "mu": {
+    "mass": 1.660538782e-27
+  },
+  "uu": {
+    "mass": 1.660538782e-30
+  },
+  "nu": {
+    "mass": 1.660538782e-33
+  },
+  "pu": {
+    "mass": 1.660538782e-36
+  },
+  "fu": {
+    "mass": 1.660538782e-39
+  },
+  "au": {
+    "mass": 1.660538782e-42
+  },
+  "zu": {
+    "mass": 1.6605387819999998e-45
+  },
+  "yu": {
+    "mass": 1.660538782e-48
+  },
+  "Yg": {
+    "mass": 1e+24
+  },
+  "Zg": {
+    "mass": 1e+21
+  },
+  "Eg": {
+    "mass": 1e+18
+  },
+  "Pg": {
+    "mass": 1000000000000000
+  },
+  "Tg": {
+    "mass": 1000000000000
+  },
+  "Gg": {
+    "mass": 1000000000
+  },
+  "Mg": {
+    "mass": 1000000
+  },
+  "kg": {
+    "mass": 1000
+  },
+  "hg": {
+    "mass": 100
+  },
+  "dag": {
+    "mass": 10
+  },
+  "eg": {
+    "mass": 10
+  },
+  "dg": {
+    "mass": 0.1
+  },
+  "cg": {
+    "mass": 0.01
+  },
+  "mg": {
+    "mass": 0.001
+  },
+  "ug": {
+    "mass": 1e-06
+  },
+  "ng": {
+    "mass": 1e-09
+  },
+  "pg": {
+    "mass": 1e-12
+  },
+  "fg": {
+    "mass": 1e-15
+  },
+  "ag": {
+    "mass": 1e-18
+  },
+  "zg": {
+    "mass": 1e-21
+  },
+  "yg": {
+    "mass": 1e-24
+  },
+  "m": {
+    "distance": 1
+  },
+  "mi": {
+    "distance": 1609.344
+  },
+  "Nmi": {
+    "distance": 1852
+  },
+  "in": {
+    "distance": 0.0254
+  },
+  "ft": {
+    "distance": 0.3048
+  },
+  "yd": {
+    "distance": 0.9144
+  },
+  "ang": {
+    "distance": 1e-10
+  },
+  "ell": {
+    "distance": 1.143
+  },
+  "ly": {
+    "distance": 9460730472580800
+  },
+  "parsec": {
+    "distance": 3.0856775812815532e+16
+  },
+  "pc": {
+    "distance": 3.0856775812815532e+16,
+    "energy": 4.184e-12
+  },
+  "Picapt": {
+    "distance": 0.000352777777777778
+  },
+  "Pica": {
+    "distance": 0.000352777777777778
+  },
+  "pica": {
+    "distance": 0.00423333333333333
+  },
+  "survey_mi": {
+    "distance": 1609.34721869444
+  },
+  "Ym": {
+    "distance": 1e+24
+  },
+  "Zm": {
+    "distance": 1e+21
+  },
+  "Em": {
+    "distance": 1e+18
+  },
+  "Pm": {
+    "distance": 1000000000000000
+  },
+  "Tm": {
+    "distance": 1000000000000
+  },
+  "Gm": {
+    "distance": 1000000000
+  },
+  "Mm": {
+    "distance": 1000000
+  },
+  "km": {
+    "distance": 1000
+  },
+  "hm": {
+    "distance": 100
+  },
+  "dam": {
+    "distance": 10
+  },
+  "em": {
+    "distance": 10
+  },
+  "dm": {
+    "distance": 0.1
+  },
+  "cm": {
+    "distance": 0.01
+  },
+  "mm": {
+    "distance": 0.001
+  },
+  "um": {
+    "distance": 1e-06
+  },
+  "nm": {
+    "distance": 1e-09
+  },
+  "pm": {
+    "distance": 1e-12
+  },
+  "fm": {
+    "distance": 1e-15
+  },
+  "am": {
+    "distance": 1e-18
+  },
+  "zm": {
+    "distance": 1e-21
+  },
+  "ym": {
+    "distance": 1e-24
+  },
+  "Ypc": {
+    "distance": 3.085677581281553e+40
+  },
+  "Zpc": {
+    "distance": 3.085677581281553e+37
+  },
+  "Epc": {
+    "distance": 3.085677581281553e+34
+  },
+  "Ppc": {
+    "distance": 3.0856775812815534e+31
+  },
+  "Tpc": {
+    "distance": 3.0856775812815532e+28
+  },
+  "Gpc": {
+    "distance": 3.0856775812815534e+25
+  },
+  "Mpc": {
+    "distance": 3.085677581281553e+22
+  },
+  "kpc": {
+    "distance": 3.085677581281553e+19
+  },
+  "hpc": {
+    "distance": 3.0856775812815534e+18
+  },
+  "dapc": {
+    "distance": 3.085677581281553e+17
+  },
+  "epc": {
+    "distance": 3.085677581281553e+17
+  },
+  "dpc": {
+    "distance": 3085677581281553.5
+  },
+  "cpc": {
+    "distance": 308567758128155.3
+  },
+  "mpc": {
+    "distance": 30856775812815.53
+  },
+  "upc": {
+    "distance": 30856775812.81553
+  },
+  "npc": {
+    "distance": 30856775.812815532
+  },
+  "ppc": {
+    "distance": 30856.77581491367
+  },
+  "fpc": {
+    "distance": 30.856775814913675
+  },
+  "apc": {
+    "distance": 0.030856775814913674
+  },
+  "zpc": {
+    "distance": 3.085677581491367e-05
+  },
+  "ypc": {
+    "distance": 3.085677581491367e-08
+  },
+  "Yparsec": {
+    "distance": 3.085677581281553e+40
+  },
+  "Zparsec": {
+    "distance": 3.085677581281553e+37
+  },
+  "Eparsec": {
+    "distance": 3.085677581281553e+34
+  },
+  "Pparsec": {
+    "distance": 3.0856775812815534e+31
+  },
+  "Tparsec": {
+    "distance": 3.0856775812815532e+28
+  },
+  "Gparsec": {
+    "distance": 3.0856775812815534e+25
+  },
+  "Mparsec": {
+    "distance": 3.085677581281553e+22
+  },
+  "kparsec": {
+    "distance": 3.085677581281553e+19
+  },
+  "hparsec": {
+    "distance": 3.0856775812815534e+18
+  },
+  "daparsec": {
+    "distance": 3.085677581281553e+17
+  },
+  "eparsec": {
+    "distance": 3.085677581281553e+17
+  },
+  "dparsec": {
+    "distance": 3085677581281553.5
+  },
+  "cparsec": {
+    "distance": 308567758128155.3
+  },
+  "mparsec": {
+    "distance": 30856775812815.53
+  },
+  "uparsec": {
+    "distance": 30856775812.81553
+  },
+  "nparsec": {
+    "distance": 30856775.812815532
+  },
+  "pparsec": {
+    "distance": 30856.77581491367
+  },
+  "fparsec": {
+    "distance": 30.856775814913675
+  },
+  "aparsec": {
+    "distance": 0.030856775814913674
+  },
+  "zparsec": {
+    "distance": 3.085677581491367e-05
+  },
+  "yparsec": {
+    "distance": 3.085677581491367e-08
+  },
+  "Yang": {
+    "distance": 100000000000000.0
+  },
+  "Zang": {
+    "distance": 100000000000.0
+  },
+  "Eang": {
+    "distance": 100000000.0
+  },
+  "Pang": {
+    "distance": 100000.0
+  },
+  "Tang": {
+    "distance": 100.0
+  },
+  "Gang": {
+    "distance": 0.1
+  },
+  "Mang": {
+    "distance": 0.0001
+  },
+  "kang": {
+    "distance": 1e-07
+  },
+  "hang": {
+    "distance": 1e-08
+  },
+  "daang": {
+    "distance": 1e-09
+  },
+  "eang": {
+    "distance": 1e-09
+  },
+  "dang": {
+    "distance": 1e-11
+  },
+  "cang": {
+    "distance": 1e-12
+  },
+  "mang": {
+    "distance": 1e-13
+  },
+  "uang": {
+    "distance": 1e-16
+  },
+  "nang": {
+    "distance": 1e-19
+  },
+  "pang": {
+    "distance": 1e-22
+  },
+  "fang": {
+    "distance": 1e-25
+  },
+  "aang": {
+    "distance": 1e-28
+  },
+  "zang": {
+    "distance": 1e-31
+  },
+  "yang": {
+    "distance": 1e-34
+  },
+  "Yly": {
+    "distance": 9.4607304725808e+39
+  },
+  "Zly": {
+    "distance": 9.4607304725808e+36
+  },
+  "Ely": {
+    "distance": 9.4607304725808e+33
+  },
+  "Ply": {
+    "distance": 9.4607304725808e+30
+  },
+  "Tly": {
+    "distance": 9460730472580800000000000000
+  },
+  "Gly": {
+    "distance": 9460730472580800000000000
+  },
+  "Mly": {
+    "distance": 9460730472580800000000
+  },
+  "kly": {
+    "distance": 9460730472580800000
+  },
+  "hly": {
+    "distance": 946073047258080000
+  },
+  "daly": {
+    "distance": 94607304725808000
+  },
+  "ely": {
+    "distance": 94607304725808000
+  },
+  "dly": {
+    "distance": 946073047258080.0
+  },
+  "cly": {
+    "distance": 94607304725808.0
+  },
+  "mly": {
+    "distance": 9460730472580.8
+  },
+  "uly": {
+    "distance": 9460730472.5808
+  },
+  "nly": {
+    "distance": 9460730.4725808
+  },
+  "ply": {
+    "distance": 9460.730472580799
+  },
+  "fly": {
+    "distance": 9.460730472580801
+  },
+  "aly": {
+    "distance": 0.009460730472580801
+  },
+  "zly": {
+    "distance": 9.460730472580799e-06
+  },
+  "yly": {
+    "distance": 9.460730472580799e-09
+  },
+  "yr": {
+    "time": 31557600
+  },
+  "day": {
+    "time": 86400
+  },
+  "d": {
+    "time": 86400
+  },
+  "hr": {
+    "time": 3600
+  },
+  "mn": {
+    "time": 60
+  },
+  "min": {
+    "time": 60
+  },
+  "sec": {
+    "time": 1
+  },
+  "s": {
+    "time": 1
+  },
+  "Ys": {
+    "time": 1e+24
+  },
+  "Zs": {
+    "time": 1e+21
+  },
+  "Es": {
+    "time": 1e+18
+  },
+  "Ps": {
+    "time": 1e+15
+  },
+  "Ts": {
+    "time": 1e+12
+  },
+  "Gs": {
+    "time": 1e+9
+  },
+  "Ms": {
+    "time": 1e+6
+  },
+  "ks": {
+    "time": 1e+3
+  },
+  "hs": {
+    "time": 100
+  },
+  "das": {
+    "time": 10
+  },
+  "es": {
+    "time": 10
+  },
+  "ds": {
+    "time": 0.1
+  },
+  "cs": {
+    "time": 0.01
+  },
+  "ms": {
+    "time": 0.001
+  },
+  "us": {
+    "time": 1e-6
+  },
+  "ns": {
+    "time": 1e-9
+  },
+  "ps": {
+    "time": 1e-12
+  },
+  "fs": {
+    "time": 1e-15
+  },
+  "as": {
+    "time": 1e-18
+  },
+  "zs": {
+    "time": 1e-21
+  },
+  "ys": {
+    "time": 1e-24
+  },
+  "Ysec": {
+    "time": 1e+24
+  },
+  "Zsec": {
+    "time": 1e+21
+  },
+  "Esec": {
+    "time": 1e+18
+  },
+  "Psec": {
+    "time": 1e+15
+  },
+  "Tsec": {
+    "time": 1e+12
+  },
+  "Gsec": {
+    "time": 1e+9
+  },
+  "Msec": {
+    "time": 1e+6
+  },
+  "ksec": {
+    "time": 1e+3
+  },
+  "hsec": {
+    "time": 100
+  },
+  "dasec": {
+    "time": 10
+  },
+  "esec": {
+    "time": 10
+  },
+  "dsec": {
+    "time": 0.1
+  },
+  "csec": {
+    "time": 0.01
+  },
+  "msec": {
+    "time": 0.001
+  },
+  "usec": {
+    "time": 1e-6
+  },
+  "nsec": {
+    "time": 1e-9
+  },
+  "psec": {
+    "time": 1e-12
+  },
+  "fsec": {
+    "time": 1e-15
+  },
+  "asec": {
+    "time": 1e-18
+  },
+  "zsec": {
+    "time": 1e-21
+  },
+  "ysec": {
+    "time": 1e-24
+  },
+  "Pa": {
+    "pressure": 1
+  },
+  "p": {
+    "pressure": 1
+  },
+  "atm": {
+    "pressure": 101325
+  },
+  "at": {
+    "pressure": 101325
+  },
+  "mmHg": {
+    "pressure": 133.322
+  },
+  "psi": {
+    "pressure": 6894.75729316836
+  },
+  "Torr": {
+    "pressure": 133.322368421053
+  },
+  "Yatm": {
+    "pressure": 1.01325e+29
+  },
+  "Zatm": {
+    "pressure": 1.01325e+26
+  },
+  "Eatm": {
+    "pressure": 1.01325e+23
+  },
+  "Patm": {
+    "pressure": 101325000000000000000
+  },
+  "Tatm": {
+    "pressure": 101325000000000000
+  },
+  "Gatm": {
+    "pressure": 101325000000000
+  },
+  "Matm": {
+    "pressure": 101325000000
+  },
+  "katm": {
+    "pressure": 101325000
+  },
+  "hatm": {
+    "pressure": 10132500
+  },
+  "daatm": {
+    "pressure": 1013250
+  },
+  "eatm": {
+    "pressure": 1013250
+  },
+  "datm": {
+    "pressure": 10132.5
+  },
+  "catm": {
+    "pressure": 1013.25
+  },
+  "matm": {
+    "pressure": 101.325
+  },
+  "uatm": {
+    "pressure": 0.101325
+  },
+  "natm": {
+    "pressure": 0.00010132500000000001
+  },
+  "patm": {
+    "pressure": 1.01325e-07
+  },
+  "fatm": {
+    "pressure": 1.0132500000000001e-10
+  },
+  "aatm": {
+    "pressure": 1.0132500000000001e-13
+  },
+  "zatm": {
+    "pressure": 1.0132499999999999e-16
+  },
+  "yatm": {
+    "pressure": 1.0132499999999999e-19
+  },
+  "Yp": {
+    "pressure": 1e+24
+  },
+  "Zp": {
+    "pressure": 1e+21
+  },
+  "Ep": {
+    "pressure": 1e+18
+  },
+  "Pp": {
+    "pressure": 1000000000000000
+  },
+  "Tp": {
+    "pressure": 1000000000000
+  },
+  "Gp": {
+    "pressure": 1000000000
+  },
+  "Mp": {
+    "pressure": 1000000
+  },
+  "kp": {
+    "pressure": 1000
+  },
+  "hp": {
+    "pressure": 100
+  },
+  "dap": {
+    "pressure": 10
+  },
+  "ep": {
+    "pressure": 10
+  },
+  "dp": {
+    "pressure": 0.1
+  },
+  "cp": {
+    "pressure": 0.01
+  },
+  "mp": {
+    "pressure": 0.001
+  },
+  "up": {
+    "pressure": 1e-06
+  },
+  "np": {
+    "pressure": 1e-09
+  },
+  "pp": {
+    "pressure": 1e-12
+  },
+  "fp": {
+    "pressure": 1e-15
+  },
+  "ap": {
+    "pressure": 1e-18
+  },
+  "zp": {
+    "pressure": 1e-21
+  },
+  "yp": {
+    "pressure": 1e-24
+  },
+  "YmmHg": {
+    "pressure": 1.33322e+26
+  },
+  "ZmmHg": {
+    "pressure": 1.33322e+23
+  },
+  "EmmHg": {
+    "pressure": 1.33322e+20
+  },
+  "PmmHg": {
+    "pressure": 1.33322e+17
+  },
+  "TmmHg": {
+    "pressure": 133322000000000.0
+  },
+  "GmmHg": {
+    "pressure": 133322000000.0
+  },
+  "MmmHg": {
+    "pressure": 133322000.0
+  },
+  "kmmHg": {
+    "pressure": 133322.0
+  },
+  "hmmHg": {
+    "pressure": 13332.2
+  },
+  "dammHg": {
+    "pressure": 1333.22
+  },
+  "emmHg": {
+    "pressure": 1333.22
+  },
+  "dmmHg": {
+    "pressure": 13.3322
+  },
+  "cmmHg": {
+    "pressure": 1.33322
+  },
+  "mmmHg": {
+    "pressure": 0.133322
+  },
+  "ummHg": {
+    "pressure": 0.000133322
+  },
+  "nmmHg": {
+    "pressure": 1.33322e-07
+  },
+  "pmmHg": {
+    "pressure": 1.33322e-10
+  },
+  "fmmHg": {
+    "pressure": 1.3332200000000003e-13
+  },
+  "ammHg": {
+    "pressure": 1.3332200000000002e-16
+  },
+  "zmmHg": {
+    "pressure": 1.33322e-19
+  },
+  "ymmHg": {
+    "pressure": 1.3332199999999998e-22
+  },
+  "Yat": {
+    "pressure": 1.01325e+29
+  },
+  "Zat": {
+    "pressure": 1.01325e+26
+  },
+  "Eat": {
+    "pressure": 1.01325e+23
+  },
+  "Pat": {
+    "pressure": 101325000000000000000
+  },
+  "Tat": {
+    "pressure": 101325000000000000
+  },
+  "Gat": {
+    "pressure": 101325000000000
+  },
+  "Mat": {
+    "pressure": 101325000000
+  },
+  "kat": {
+    "pressure": 101325000
+  },
+  "hat": {
+    "pressure": 10132500
+  },
+  "daat": {
+    "pressure": 1013250
+  },
+  "eat": {
+    "pressure": 1013250
+  },
+  "dat": {
+    "pressure": 10132.5
+  },
+  "cat": {
+    "pressure": 1013.25
+  },
+  "mat": {
+    "pressure": 101.325
+  },
+  "uat": {
+    "pressure": 0.101325
+  },
+  "nat": {
+    "pressure": 0.00010132500000000001
+  },
+  "pat": {
+    "pressure": 1.01325e-07
+  },
+  "fat": {
+    "pressure": 1.0132500000000001e-10
+  },
+  "aat": {
+    "pressure": 1.0132500000000001e-13
+  },
+  "zat": {
+    "pressure": 1.0132499999999999e-16
+  },
+  "yat": {
+    "pressure": 1.0132499999999999e-19
+  },
+  "YPa": {
+    "pressure": 1e+24
+  },
+  "ZPa": {
+    "pressure": 1e+21
+  },
+  "EPa": {
+    "pressure": 1e+18
+  },
+  "PPa": {
+    "pressure": 1000000000000000
+  },
+  "TPa": {
+    "pressure": 1000000000000
+  },
+  "GPa": {
+    "pressure": 1000000000
+  },
+  "MPa": {
+    "pressure": 1000000
+  },
+  "kPa": {
+    "pressure": 1000
+  },
+  "hPa": {
+    "pressure": 100
+  },
+  "daPa": {
+    "pressure": 10
+  },
+  "ePa": {
+    "pressure": 10
+  },
+  "dPa": {
+    "pressure": 0.1
+  },
+  "cPa": {
+    "pressure": 0.01
+  },
+  "mPa": {
+    "pressure": 0.001
+  },
+  "uPa": {
+    "pressure": 1e-06
+  },
+  "nPa": {
+    "pressure": 1e-09
+  },
+  "pPa": {
+    "pressure": 1e-12
+  },
+  "fPa": {
+    "pressure": 1e-15
+  },
+  "aPa": {
+    "pressure": 1e-18
+  },
+  "zPa": {
+    "pressure": 1e-21
+  },
+  "yPa": {
+    "pressure": 1e-24
+  },
+  "N": {
+    "force": 1
+  },
+  "dyn": {
+    "force": 1e-05
+  },
+  "dy": {
+    "force": 1e-05
+  },
+  "lbf": {
+    "force": 4.4482216152605
+  },
+  "YN": {
+    "force": 1e+24
+  },
+  "ZN": {
+    "force": 1e+21
+  },
+  "EN": {
+    "force": 1e+18
+  },
+  "PN": {
+    "force": 1000000000000000
+  },
+  "TN": {
+    "force": 1000000000000
+  },
+  "GN": {
+    "force": 1000000000
+  },
+  "MN": {
+    "force": 1000000
+  },
+  "kN": {
+    "force": 1000
+  },
+  "hN": {
+    "force": 100
+  },
+  "daN": {
+    "force": 10
+  },
+  "eN": {
+    "force": 10
+  },
+  "dN": {
+    "force": 0.1
+  },
+  "cN": {
+    "force": 0.01
+  },
+  "mN": {
+    "force": 0.001
+  },
+  "uN": {
+    "force": 1e-06
+  },
+  "nN": {
+    "force": 1e-09
+  },
+  "pN": {
+    "force": 1e-12
+  },
+  "fN": {
+    "force": 1e-15
+  },
+  "aN": {
+    "force": 1e-18
+  },
+  "zN": {
+    "force": 1e-21
+  },
+  "yN": {
+    "force": 1e-24
+  },
+  "Ydy": {
+    "force": 1e+19
+  },
+  "Zdy": {
+    "force": 1e+16
+  },
+  "Edy": {
+    "force": 10000000000000.0
+  },
+  "Pdy": {
+    "force": 10000000000.0
+  },
+  "Tdy": {
+    "force": 10000000.0
+  },
+  "Gdy": {
+    "force": 10000.0
+  },
+  "Mdy": {
+    "force": 10.0
+  },
+  "kdy": {
+    "force": 0.01
+  },
+  "hdy": {
+    "force": 0.001
+  },
+  "dady": {
+    "force": 0.0001
+  },
+  "edy": {
+    "force": 0.0001
+  },
+  "ddy": {
+    "force": 1e-06
+  },
+  "cdy": {
+    "force": 1e-07
+  },
+  "mdy": {
+    "force": 1e-08
+  },
+  "udy": {
+    "force": 1e-11
+  },
+  "ndy": {
+    "force": 1e-14
+  },
+  "pdy": {
+    "force": 1e-17
+  },
+  "fdy": {
+    "force": 1e-20
+  },
+  "ady": {
+    "force": 1e-23
+  },
+  "zdy": {
+    "force": 1e-26
+  },
+  "ydy": {
+    "force": 1e-29
+  },
+  "Ydyn": {
+    "force": 1e+19
+  },
+  "Zdyn": {
+    "force": 1e+16
+  },
+  "Edyn": {
+    "force": 10000000000000.0
+  },
+  "Pdyn": {
+    "force": 10000000000.0
+  },
+  "Tdyn": {
+    "force": 10000000.0
+  },
+  "Gdyn": {
+    "force": 10000.0
+  },
+  "Mdyn": {
+    "force": 10.0
+  },
+  "kdyn": {
+    "force": 0.01
+  },
+  "hdyn": {
+    "force": 0.001
+  },
+  "dadyn": {
+    "force": 0.0001
+  },
+  "edyn": {
+    "force": 0.0001
+  },
+  "ddyn": {
+    "force": 1e-06
+  },
+  "cdyn": {
+    "force": 1e-07
+  },
+  "mdyn": {
+    "force": 1e-08
+  },
+  "udyn": {
+    "force": 1e-11
+  },
+  "ndyn": {
+    "force": 1e-14
+  },
+  "pdyn": {
+    "force": 1e-17
+  },
+  "fdyn": {
+    "force": 1e-20
+  },
+  "adyn": {
+    "force": 1e-23
+  },
+  "zdyn": {
+    "force": 1e-26
+  },
+  "ydyn": {
+    "force": 1e-29
+  },
+  "J": {
+    "energy": 1
+  },
+  "e": {
+    "energy": 1e-07
+  },
+  "c": {
+    "energy": 4.184
+  },
+  "cal": {
+    "energy": 4.1868
+  },
+  "eV": {
+    "energy": 1.602176487e-19
+  },
+  "ev": {
+    "energy": 1.602176487e-19
+  },
+  "HPh": {
+    "energy": 2684519.53769617
+  },
+  "hh": {
+    "energy": 2684519.53769617
+  },
+  "Wh": {
+    "energy": 3600
+  },
+  "wh": {
+    "energy": 3600
+  },
+  "flb": {
+    "energy": 1.3558179483314
+  },
+  "BTU": {
+    "energy": 1055.05585262
+  },
+  "btu": {
+    "energy": 1055.05585262
+  },
+  "Yc": {
+    "energy": 4.184e+24
+  },
+  "Zc": {
+    "energy": 4.184e+21
+  },
+  "Ec": {
+    "energy": 4.184e+18
+  },
+  "Pc": {
+    "energy": 4184000000000000.0
+  },
+  "Tc": {
+    "energy": 4184000000000.0
+  },
+  "Gc": {
+    "energy": 4184000000.0
+  },
+  "Mc": {
+    "energy": 4184000.0
+  },
+  "kc": {
+    "energy": 4184.0
+  },
+  "hc": {
+    "energy": 418.40000000000003
+  },
+  "dac": {
+    "energy": 41.84
+  },
+  "ec": {
+    "energy": 41.84
+  },
+  "dc": {
+    "energy": 0.41840000000000005
+  },
+  "cc": {
+    "energy": 0.04184
+  },
+  "mc": {
+    "energy": 0.004184
+  },
+  "uc": {
+    "energy": 4.184e-06
+  },
+  "nc": {
+    "energy": 4.1840000000000004e-09
+  },
+  "fc": {
+    "energy": 4.184e-15
+  },
+  "ac": {
+    "energy": 4.184e-18
+  },
+  "zc": {
+    "energy": 4.184e-21
+  },
+  "yc": {
+    "energy": 4.184e-24
+  },
+  "YJ": {
+    "energy": 1e+24
+  },
+  "ZJ": {
+    "energy": 1e+21
+  },
+  "EJ": {
+    "energy": 1e+18
+  },
+  "PJ": {
+    "energy": 1000000000000000
+  },
+  "TJ": {
+    "energy": 1000000000000
+  },
+  "GJ": {
+    "energy": 1000000000
+  },
+  "MJ": {
+    "energy": 1000000
+  },
+  "kJ": {
+    "energy": 1000
+  },
+  "hJ": {
+    "energy": 100
+  },
+  "daJ": {
+    "energy": 10
+  },
+  "eJ": {
+    "energy": 10
+  },
+  "dJ": {
+    "energy": 0.1
+  },
+  "cJ": {
+    "energy": 0.01
+  },
+  "mJ": {
+    "energy": 0.001
+  },
+  "uJ": {
+    "energy": 1e-06
+  },
+  "nJ": {
+    "energy": 1e-09
+  },
+  "pJ": {
+    "energy": 1e-12
+  },
+  "fJ": {
+    "energy": 1e-15
+  },
+  "aJ": {
+    "energy": 1e-18
+  },
+  "zJ": {
+    "energy": 1e-21
+  },
+  "yJ": {
+    "energy": 1e-24
+  },
+  "YWh": {
+    "energy": 3.6e+27
+  },
+  "ZWh": {
+    "energy": 3.6e+24
+  },
+  "EWh": {
+    "energy": 3.6e+21
+  },
+  "PWh": {
+    "energy": 3.6e+18
+  },
+  "TWh": {
+    "energy": 3600000000000000
+  },
+  "GWh": {
+    "energy": 3600000000000
+  },
+  "MWh": {
+    "energy": 3600000000
+  },
+  "kWh": {
+    "energy": 3600000
+  },
+  "hWh": {
+    "energy": 360000
+  },
+  "daWh": {
+    "energy": 36000
+  },
+  "eWh": {
+    "energy": 36000
+  },
+  "dWh": {
+    "energy": 360.0
+  },
+  "cWh": {
+    "energy": 36.0
+  },
+  "mWh": {
+    "energy": 3.6
+  },
+  "uWh": {
+    "energy": 0.0036
+  },
+  "nWh": {
+    "energy": 3.6000000000000003e-06
+  },
+  "pWh": {
+    "energy": 3.6e-09
+  },
+  "fWh": {
+    "energy": 3.6000000000000004e-12
+  },
+  "aWh": {
+    "energy": 3.6e-15
+  },
+  "zWh": {
+    "energy": 3.599999999999999e-18
+  },
+  "yWh": {
+    "energy": 3.6e-21
+  },
+  "YeV": {
+    "energy": 160217.6487
+  },
+  "ZeV": {
+    "energy": 160.2176487
+  },
+  "EeV": {
+    "energy": 0.1602176487
+  },
+  "PeV": {
+    "energy": 0.0001602176487
+  },
+  "TeV": {
+    "energy": 1.602176487e-07
+  },
+  "GeV": {
+    "energy": 1.602176487e-10
+  },
+  "MeV": {
+    "energy": 1.602176487e-13
+  },
+  "keV": {
+    "energy": 1.602176487e-16
+  },
+  "heV": {
+    "energy": 1.602176487e-17
+  },
+  "daeV": {
+    "energy": 1.602176487e-18
+  },
+  "eeV": {
+    "energy": 1.602176487e-18
+  },
+  "deV": {
+    "energy": 1.6021764870000002e-20
+  },
+  "ceV": {
+    "energy": 1.6021764870000001e-21
+  },
+  "meV": {
+    "energy": 1.6021764870000001e-22
+  },
+  "ueV": {
+    "energy": 1.6021764869999998e-25
+  },
+  "neV": {
+    "energy": 1.6021764870000002e-28
+  },
+  "peV": {
+    "energy": 1.602176487e-31
+  },
+  "feV": {
+    "energy": 1.6021764870000002e-34
+  },
+  "aeV": {
+    "energy": 1.602176487e-37
+  },
+  "zeV": {
+    "energy": 1.602176487e-40
+  },
+  "yeV": {
+    "energy": 1.6021764869999999e-43
+  },
+  "Yev": {
+    "energy": 160217.6487
+  },
+  "Zev": {
+    "energy": 160.2176487
+  },
+  "Eev": {
+    "energy": 0.1602176487
+  },
+  "Pev": {
+    "energy": 0.0001602176487
+  },
+  "Tev": {
+    "energy": 1.602176487e-07
+  },
+  "Gev": {
+    "energy": 1.602176487e-10
+  },
+  "Mev": {
+    "energy": 1.602176487e-13
+  },
+  "kev": {
+    "energy": 1.602176487e-16
+  },
+  "hev": {
+    "energy": 1.602176487e-17
+  },
+  "daev": {
+    "energy": 1.602176487e-18
+  },
+  "eev": {
+    "energy": 1.602176487e-18
+  },
+  "dev": {
+    "energy": 1.6021764870000002e-20
+  },
+  "cev": {
+    "energy": 1.6021764870000001e-21
+  },
+  "mev": {
+    "energy": 1.6021764870000001e-22
+  },
+  "uev": {
+    "energy": 1.6021764869999998e-25
+  },
+  "nev": {
+    "energy": 1.6021764870000002e-28
+  },
+  "pev": {
+    "energy": 1.602176487e-31
+  },
+  "fev": {
+    "energy": 1.6021764870000002e-34
+  },
+  "aev": {
+    "energy": 1.602176487e-37
+  },
+  "zev": {
+    "energy": 1.602176487e-40
+  },
+  "yev": {
+    "energy": 1.6021764869999999e-43
+  },
+  "Ywh": {
+    "energy": 3.6e+27
+  },
+  "Zwh": {
+    "energy": 3.6e+24
+  },
+  "Ewh": {
+    "energy": 3.6e+21
+  },
+  "Pwh": {
+    "energy": 3.6e+18
+  },
+  "Twh": {
+    "energy": 3600000000000000
+  },
+  "Gwh": {
+    "energy": 3600000000000
+  },
+  "Mwh": {
+    "energy": 3600000000
+  },
+  "kwh": {
+    "energy": 3600000
+  },
+  "hwh": {
+    "energy": 360000
+  },
+  "dawh": {
+    "energy": 36000
+  },
+  "ewh": {
+    "energy": 36000
+  },
+  "dwh": {
+    "energy": 360.0
+  },
+  "cwh": {
+    "energy": 36.0
+  },
+  "mwh": {
+    "energy": 3.6
+  },
+  "uwh": {
+    "energy": 0.0036
+  },
+  "nwh": {
+    "energy": 3.6000000000000003e-06
+  },
+  "pwh": {
+    "energy": 3.6e-09
+  },
+  "fwh": {
+    "energy": 3.6000000000000004e-12
+  },
+  "awh": {
+    "energy": 3.6e-15
+  },
+  "zwh": {
+    "energy": 3.599999999999999e-18
+  },
+  "ywh": {
+    "energy": 3.6e-21
+  },
+  "Ycal": {
+    "energy": 4.1868e+24
+  },
+  "Zcal": {
+    "energy": 4.1868e+21
+  },
+  "Ecal": {
+    "energy": 4.1868e+18
+  },
+  "Pcal": {
+    "energy": 4186800000000000.0
+  },
+  "Tcal": {
+    "energy": 4186800000000.0
+  },
+  "Gcal": {
+    "energy": 4186800000.0
+  },
+  "Mcal": {
+    "energy": 4186800.0
+  },
+  "kcal": {
+    "energy": 4186.8
+  },
+  "hcal": {
+    "energy": 418.68
+  },
+  "dacal": {
+    "energy": 41.868
+  },
+  "ecal": {
+    "energy": 41.868
+  },
+  "dcal": {
+    "energy": 0.41868
+  },
+  "ccal": {
+    "energy": 0.041868
+  },
+  "mcal": {
+    "energy": 0.0041868
+  },
+  "ucal": {
+    "energy": 4.1868e-06
+  },
+  "ncal": {
+    "energy": 4.1868e-09
+  },
+  "pcal": {
+    "energy": 4.1868e-12
+  },
+  "fcal": {
+    "energy": 4.1868e-15
+  },
+  "acal": {
+    "energy": 4.1868e-18
+  },
+  "zcal": {
+    "energy": 4.1868e-21
+  },
+  "ycal": {
+    "energy": 4.1868e-24
+  },
+  "Ye": {
+    "energy": 1e+17
+  },
+  "Ze": {
+    "energy": 100000000000000.0
+  },
+  "Ee": {
+    "energy": 100000000000.0
+  },
+  "Pe": {
+    "energy": 100000000.0
+  },
+  "Te": {
+    "energy": 100000.0
+  },
+  "Ge": {
+    "energy": 100.0
+  },
+  "Me": {
+    "energy": 0.1
+  },
+  "ke": {
+    "energy": 1e-04
+  },
+  "he": {
+    "energy": 1e-05
+  },
+  "dae": {
+    "energy": 1e-06
+  },
+  "ee": {
+    "energy": 1e-06
+  },
+  "de": {
+    "energy": 1e-08
+  },
+  "ce": {
+    "energy": 1e-09
+  },
+  "me": {
+    "energy": 1e-10
+  },
+  "ue": {
+    "energy": 1e-13
+  },
+  "ne": {
+    "energy": 1e-16
+  },
+  "pe": {
+    "energy": 1e-19
+  },
+  "fe": {
+    "energy": 1e-22
+  },
+  "ae": {
+    "energy": 1e-25
+  },
+  "ze": {
+    "energy": 1e-28
+  },
+  "ye": {
+    "energy": 1e-31
+  },
+  "HP": {
+    "power": 745.69987158227
+  },
+  "h": {
+    "power": 745.69987158227
+  },
+  "PS": {
+    "power": 735.49875
+  },
+  "W": {
+    "power": 1
+  },
+  "w": {
+    "power": 1
+  },
+  "Yw": {
+    "power": 1e+24
+  },
+  "Zw": {
+    "power": 1e+21
+  },
+  "Ew": {
+    "power": 1e+18
+  },
+  "Pw": {
+    "power": 1e+15
+  },
+  "Tw": {
+    "power": 1e+12
+  },
+  "Gw": {
+    "power": 1e+9
+  },
+  "Mw": {
+    "power": 1e+6
+  },
+  "kw": {
+    "power": 1e+3
+  },
+  "hw": {
+    "power": 100
+  },
+  "daw": {
+    "power": 10
+  },
+  "ew": {
+    "power": 10
+  },
+  "dw": {
+    "power": 0.1
+  },
+  "cw": {
+    "power": 0.01
+  },
+  "mw": {
+    "power": 0.001
+  },
+  "uw": {
+    "power": 1e-6
+  },
+  "nw": {
+    "power": 1e-9
+  },
+  "pw": {
+    "power": 1e-12
+  },
+  "fw": {
+    "power": 1e-15
+  },
+  "aw": {
+    "power": 1e-18
+  },
+  "zw": {
+    "power": 1e-21
+  },
+  "yw": {
+    "power": 1e-24
+  },
+  "YW": {
+    "power": 1e+24
+  },
+  "ZW": {
+    "power": 1e+21
+  },
+  "EW": {
+    "power": 1e+18
+  },
+  "PW": {
+    "power": 1e+15
+  },
+  "TW": {
+    "power": 1e+12
+  },
+  "GW": {
+    "power": 1e+9
+  },
+  "MW": {
+    "power": 1e+6
+  },
+  "kW": {
+    "power": 1e+3
+  },
+  "hW": {
+    "power": 100
+  },
+  "daW": {
+    "power": 10
+  },
+  "eW": {
+    "power": 10
+  },
+  "dW": {
+    "power": 0.1
+  },
+  "cW": {
+    "power": 0.01
+  },
+  "mW": {
+    "power": 0.001
+  },
+  "uW": {
+    "power": 1e-6
+  },
+  "nW": {
+    "power": 1e-9
+  },
+  "pW": {
+    "power": 1e-12
+  },
+  "fW": {
+    "power": 1e-15
+  },
+  "aW": {
+    "power": 1e-18
+  },
+  "zW": {
+    "power": 1e-21
+  },
+  "yW": {
+    "power": 1e-24
+  },
+  "T": {
+    "magnetism": 1
+  },
+  "ga": {
+    "magnetism": 0.0001
+  },
+  "YT": {
+    "magnetism": 1e+24
+  },
+  "ZT": {
+    "magnetism": 1e+21
+  },
+  "ET": {
+    "magnetism": 1e+18
+  },
+  "PT": {
+    "magnetism": 1000000000000000
+  },
+  "TT": {
+    "magnetism": 1000000000000
+  },
+  "GT": {
+    "magnetism": 1000000000
+  },
+  "MT": {
+    "magnetism": 1000000
+  },
+  "kT": {
+    "magnetism": 1000
+  },
+  "hT": {
+    "magnetism": 100
+  },
+  "daT": {
+    "magnetism": 10
+  },
+  "eT": {
+    "magnetism": 10
+  },
+  "dT": {
+    "magnetism": 0.1
+  },
+  "cT": {
+    "magnetism": 0.01
+  },
+  "mT": {
+    "magnetism": 0.001
+  },
+  "uT": {
+    "magnetism": 1e-06
+  },
+  "nT": {
+    "magnetism": 1e-09
+  },
+  "pT": {
+    "magnetism": 1e-12
+  },
+  "fT": {
+    "magnetism": 1e-15
+  },
+  "aT": {
+    "magnetism": 1e-18
+  },
+  "zT": {
+    "magnetism": 1e-21
+  },
+  "yT": {
+    "magnetism": 1e-24
+  },
+  "Yga": {
+    "magnetism": 1e+20
+  },
+  "Zga": {
+    "magnetism": 1e+17
+  },
+  "Ega": {
+    "magnetism": 100000000000000.0
+  },
+  "Pga": {
+    "magnetism": 100000000000.0
+  },
+  "Tga": {
+    "magnetism": 100000000.0
+  },
+  "Gga": {
+    "magnetism": 100000.0
+  },
+  "Mga": {
+    "magnetism": 100.0
+  },
+  "kga": {
+    "magnetism": 0.1
+  },
+  "hga": {
+    "magnetism": 0.01
+  },
+  "daga": {
+    "magnetism": 0.001
+  },
+  "ega": {
+    "magnetism": 0.001
+  },
+  "dga": {
+    "magnetism": 1e-05
+  },
+  "cga": {
+    "magnetism": 1e-06
+  },
+  "mga": {
+    "magnetism": 1e-07
+  },
+  "uga": {
+    "magnetism": 1e-10
+  },
+  "nga": {
+    "magnetism": 1e-13
+  },
+  "pga": {
+    "magnetism": 1e-16
+  },
+  "fga": {
+    "magnetism": 1e-19
+  },
+  "aga": {
+    "magnetism": 1e-22
+  },
+  "zga": {
+    "magnetism": 1e-25
+  },
+  "yga": {
+    "magnetism": 1e-28
+  },
+  "C": {
+    "temperature": 1
+  },
+  "cel": {
+    "temperature": 1
+  },
+  "F": {
+    "temperature": 1
+  },
+  "fah": {
+    "temperature": 1
+  },
+  "K": {
+    "temperature": 1
+  },
+  "kel": {
+    "temperature": 1
+  },
+  "Rank": {
+    "temperature": 1
+  },
+  "Reau": {
+    "temperature": 1
+  },
+  "YK": {
+    "temperature": 1e+24
+  },
+  "ZK": {
+    "temperature": 1e+21
+  },
+  "EK": {
+    "temperature": 1e+18
+  },
+  "PK": {
+    "temperature": 1000000000000000
+  },
+  "TK": {
+    "temperature": 1000000000000
+  },
+  "GK": {
+    "temperature": 1000000000
+  },
+  "MK": {
+    "temperature": 1000000
+  },
+  "kK": {
+    "temperature": 1000
+  },
+  "hK": {
+    "temperature": 100
+  },
+  "daK": {
+    "temperature": 10
+  },
+  "eK": {
+    "temperature": 10
+  },
+  "dK": {
+    "temperature": 0.1
+  },
+  "cK": {
+    "temperature": 0.01
+  },
+  "mK": {
+    "temperature": 0.001
+  },
+  "uK": {
+    "temperature": 1e-06
+  },
+  "nK": {
+    "temperature": 1e-09
+  },
+  "pK": {
+    "temperature": 1e-12
+  },
+  "fK": {
+    "temperature": 1e-15
+  },
+  "aK": {
+    "temperature": 1e-18
+  },
+  "zK": {
+    "temperature": 1e-21
+  },
+  "yK": {
+    "temperature": 1e-24
+  },
+  "Ykel": {
+    "temperature": 1e+24
+  },
+  "Zkel": {
+    "temperature": 1e+21
+  },
+  "Ekel": {
+    "temperature": 1e+18
+  },
+  "Pkel": {
+    "temperature": 1000000000000000
+  },
+  "Tkel": {
+    "temperature": 1000000000000
+  },
+  "Gkel": {
+    "temperature": 1000000000
+  },
+  "Mkel": {
+    "temperature": 1000000
+  },
+  "kkel": {
+    "temperature": 1000
+  },
+  "hkel": {
+    "temperature": 100
+  },
+  "dakel": {
+    "temperature": 10
+  },
+  "ekel": {
+    "temperature": 10
+  },
+  "dkel": {
+    "temperature": 0.1
+  },
+  "ckel": {
+    "temperature": 0.01
+  },
+  "mkel": {
+    "temperature": 0.001
+  },
+  "ukel": {
+    "temperature": 1e-06
+  },
+  "nkel": {
+    "temperature": 1e-09
+  },
+  "pkel": {
+    "temperature": 1e-12
+  },
+  "fkel": {
+    "temperature": 1e-15
+  },
+  "akel": {
+    "temperature": 1e-18
+  },
+  "zkel": {
+    "temperature": 1e-21
+  },
+  "ykel": {
+    "temperature": 1e-24
+  },
+  "tsp": {
+    "volume": 0.00492892159375
+  },
+  "tspm": {
+    "volume": 0.005
+  },
+  "tbs": {
+    "volume": 0.01478676478125
+  },
+  "oz": {
+    "volume": 0.0295735295625
+  },
+  "cup": {
+    "volume": 0.2365882365
+  },
+  "pt": {
+    "volume": 0.473176473
+  },
+  "us_pt": {
+    "volume": 0.473176473
+  },
+  "uk_pt": {
+    "volume": 0.56826125
+  },
+  "qt": {
+    "volume": 0.946352946
+  },
+  "uk_qt": {
+    "volume": 1.1365225
+  },
+  "gal": {
+    "volume": 3.785411784
+  },
+  "uk_gal": {
+    "volume": 4.54609
+  },
+  "l": {
+    "volume": 1
+  },
+  "L": {
+    "volume": 1
+  },
+  "lt": {
+    "volume": 1
+  },
+  "ang3": {
+    "volume": 1e-27
+  },
+  "ang^3": {
+    "volume": 1e-27
+  },
+  "barrel": {
+    "volume": 158.987294928
+  },
+  "bushel": {
+    "volume": 35.23907016688
+  },
+  "ft3": {
+    "volume": 28.316846592
+  },
+  "ft^3": {
+    "volume": 28.316846592
+  },
+  "in3": {
+    "volume": 0.016387064
+  },
+  "in^3": {
+    "volume": 0.016387064
+  },
+  "ly3": {
+    "volume": 8.467866646237152e+50
+  },
+  "ly^3": {
+    "volume": 8.467866646237152e+50
+  },
+  "m3": {
+    "volume": 1000
+  },
+  "m^3": {
+    "volume": 1000
+  },
+  "mi3": {
+    "volume": 4168181825440.5796
+  },
+  "mi^3": {
+    "volume": 4168181825440.5796
+  },
+  "yd3": {
+    "volume": 764.554857984
+  },
+  "yd^3": {
+    "volume": 764.554857984
+  },
+  "Nmi3": {
+    "volume": 6352182208000
+  },
+  "Nmi^3": {
+    "volume": 6352182208000
+  },
+  "Picapt3": {
+    "volume": 4.39039566186557e-08
+  },
+  "Picapt^3": {
+    "volume": 4.39039566186557e-08
+  },
+  "Pica3": {
+    "volume": 4.39039566186557e-08
+  },
+  "Pica^3": {
+    "volume": 4.39039566186557e-08
+  },
+  "regton": {
+    "volume": 2831.6846592
+  },
+  "MTON": {
+    "volume": 1132.67386368
+  },
+  "Yuk_pt": {
+    "volume": 5.6826125000000004e+23
+  },
+  "Zuk_pt": {
+    "volume": 5.6826125000000006e+20
+  },
+  "Euk_pt": {
+    "volume": 5.6826125000000006e+17
+  },
+  "Puk_pt": {
+    "volume": 568261250000000.0
+  },
+  "Tuk_pt": {
+    "volume": 568261250000.0
+  },
+  "Guk_pt": {
+    "volume": 568261250.0
+  },
+  "Muk_pt": {
+    "volume": 568261.25
+  },
+  "kuk_pt": {
+    "volume": 568.26125
+  },
+  "huk_pt": {
+    "volume": 56.826125000000005
+  },
+  "dauk_pt": {
+    "volume": 5.6826125
+  },
+  "euk_pt": {
+    "volume": 5.6826125
+  },
+  "duk_pt": {
+    "volume": 0.056826125000000005
+  },
+  "cuk_pt": {
+    "volume": 0.005682612500000001
+  },
+  "muk_pt": {
+    "volume": 0.0005682612500000001
+  },
+  "uuk_pt": {
+    "volume": 5.682612500000001e-07
+  },
+  "nuk_pt": {
+    "volume": 5.6826125e-10
+  },
+  "puk_pt": {
+    "volume": 5.682612500000001e-13
+  },
+  "fuk_pt": {
+    "volume": 5.682612500000001e-16
+  },
+  "auk_pt": {
+    "volume": 5.682612500000001e-19
+  },
+  "zuk_pt": {
+    "volume": 5.6826125e-22
+  },
+  "yuk_pt": {
+    "volume": 5.6826125e-25
+  },
+  "Yang3": {
+    "volume": 1e+45
+  },
+  "Zang3": {
+    "volume": 1e+36
+  },
+  "Eang3": {
+    "volume": 1e+27
+  },
+  "Pang3": {
+    "volume": 1e+18
+  },
+  "Tang3": {
+    "volume": 1000000000
+  },
+  "Gang3": {
+    "volume": 1.0
+  },
+  "Mang3": {
+    "volume": 1e-09
+  },
+  "kang3": {
+    "volume": 1e-18
+  },
+  "hang3": {
+    "volume": 1e-21
+  },
+  "daang3": {
+    "volume": 1e-24
+  },
+  "eang3": {
+    "volume": 1e-24
+  },
+  "dang3": {
+    "volume": 1e-30
+  },
+  "cang3": {
+    "volume": 1e-33
+  },
+  "mang3": {
+    "volume": 1e-36
+  },
+  "uang3": {
+    "volume": 1e-45
+  },
+  "nang3": {
+    "volume": 1e-54
+  },
+  "pang3": {
+    "volume": 1e-63
+  },
+  "fang3": {
+    "volume": 1e-72
+  },
+  "aang3": {
+    "volume": 1e-81
+  },
+  "zang3": {
+    "volume": 1e-90
+  },
+  "yang3": {
+    "volume": 1e-99
+  },
+  "Yang^3": {
+    "volume": 1e+45
+  },
+  "Zang^3": {
+    "volume": 1e+36
+  },
+  "Eang^3": {
+    "volume": 1e+27
+  },
+  "Pang^3": {
+    "volume": 1e+18
+  },
+  "Tang^3": {
+    "volume": 1000000000
+  },
+  "Gang^3": {
+    "volume": 1.0
+  },
+  "Mang^3": {
+    "volume": 1e-09
+  },
+  "kang^3": {
+    "volume": 1e-18
+  },
+  "hang^3": {
+    "volume": 1e-21
+  },
+  "daang^3": {
+    "volume": 1e-24
+  },
+  "eang^3": {
+    "volume": 1e-24
+  },
+  "dang^3": {
+    "volume": 1e-30
+  },
+  "cang^3": {
+    "volume": 1e-33
+  },
+  "mang^3": {
+    "volume": 1e-36
+  },
+  "uang^3": {
+    "volume": 1e-45
+  },
+  "nang^3": {
+    "volume": 1e-54
+  },
+  "pang^3": {
+    "volume": 1e-63
+  },
+  "fang^3": {
+    "volume": 1e-72
+  },
+  "aang^3": {
+    "volume": 1e-81
+  },
+  "zang^3": {
+    "volume": 1e-90
+  },
+  "yang^3": {
+    "volume": 1e-99
+  },
+  "Ym3": {
+    "volume": 1e+75
+  },
+  "Zm3": {
+    "volume": 1e+66
+  },
+  "Em3": {
+    "volume": 1e+57
+  },
+  "Pm3": {
+    "volume": 1e+48
+  },
+  "Tm3": {
+    "volume": 1e+39
+  },
+  "Gm3": {
+    "volume": 1e+30
+  },
+  "Mm3": {
+    "volume": 1e+21
+  },
+  "km3": {
+    "volume": 1000000000000.0
+  },
+  "hm3": {
+    "volume": 1000000000.0
+  },
+  "dam3": {
+    "volume": 1000000.0
+  },
+  "em3": {
+    "volume": 1000000.0
+  },
+  "dm3": {
+    "volume": 1
+  },
+  "cm3": {
+    "volume": 0.001
+  },
+  "mm3": {
+    "volume": 1e-06
+  },
+  "um3": {
+    "volume": 1e-15
+  },
+  "nm3": {
+    "volume": 1e-24
+  },
+  "pm3": {
+    "volume": 1e-33
+  },
+  "fm3": {
+    "volume": 1e-42
+  },
+  "am3": {
+    "volume": 1e-51
+  },
+  "zm3": {
+    "volume": 1e-60
+  },
+  "ym3": {
+    "volume": 1e-69
+  },
+  "Ym^3": {
+    "volume": 1e+75
+  },
+  "Zm^3": {
+    "volume": 1e+66
+  },
+  "Em^3": {
+    "volume": 1e+57
+  },
+  "Pm^3": {
+    "volume": 1e+48
+  },
+  "Tm^3": {
+    "volume": 1e+39
+  },
+  "Gm^3": {
+    "volume": 1e+30
+  },
+  "Mm^3": {
+    "volume": 1e+21
+  },
+  "km^3": {
+    "volume": 1000000000000.0
+  },
+  "hm^3": {
+    "volume": 1000000000.0
+  },
+  "dam^3": {
+    "volume": 1000000.0
+  },
+  "em^3": {
+    "volume": 1000000.0
+  },
+  "dm^3": {
+    "volume": 1
+  },
+  "cm^3": {
+    "volume": 0.001
+  },
+  "mm^3": {
+    "volume": 1e-06
+  },
+  "um^3": {
+    "volume": 1e-15
+  },
+  "nm^3": {
+    "volume": 1e-24
+  },
+  "pm^3": {
+    "volume": 1e-33
+  },
+  "fm^3": {
+    "volume": 1e-42
+  },
+  "am^3": {
+    "volume": 1e-51
+  },
+  "zm^3": {
+    "volume": 1e-60
+  },
+  "ym^3": {
+    "volume": 1e-69
+  },
+  "Ym2": {
+    "area": 1e+48
+  },
+  "Zm2": {
+    "area": 1e+42
+  },
+  "Em2": {
+    "area": 1e+36
+  },
+  "Pm2": {
+    "area": 1e+30
+  },
+  "Tm2": {
+    "area": 1e+24
+  },
+  "Gm2": {
+    "area": 1e+18
+  },
+  "Mm2": {
+    "area": 1000000000000.0
+  },
+  "km2": {
+    "area": 1000000.0
+  },
+  "hm2": {
+    "area": 10000.0
+  },
+  "dam2": {
+    "area": 100.0
+  },
+  "em2": {
+    "area": 100.0
+  },
+  "dm2": {
+    "area": 0.01
+  },
+  "cm2": {
+    "area": 0.0001
+  },
+  "mm2": {
+    "area": 1e-06
+  },
+  "um2": {
+    "area": 1e-12
+  },
+  "nm2": {
+    "area": 1e-18
+  },
+  "pm2": {
+    "area": 1e-24
+  },
+  "fm2": {
+    "area": 1e-30
+  },
+  "am2": {
+    "area": 1e-36
+  },
+  "zm2": {
+    "area": 1e-42
+  },
+  "ym2": {
+    "area": 1e-48
+  },
+  "Ym^2": {
+    "area": 1e+48
+  },
+  "Zm^2": {
+    "area": 1e+42
+  },
+  "Em^2": {
+    "area": 1e+36
+  },
+  "Pm^2": {
+    "area": 1e+30
+  },
+  "Tm^2": {
+    "area": 1e+24
+  },
+  "Gm^2": {
+    "area": 1e+18
+  },
+  "Mm^2": {
+    "area": 1000000000000.0
+  },
+  "km^2": {
+    "area": 1000000.0
+  },
+  "hm^2": {
+    "area": 10000.0
+  },
+  "dam^2": {
+    "area": 100.0
+  },
+  "em^2": {
+    "area": 100.0
+  },
+  "dm^2": {
+    "area": 0.01
+  },
+  "cm^2": {
+    "area": 0.0001
+  },
+  "mm^2": {
+    "area": 1e-06
+  },
+  "um^2": {
+    "area": 1e-12
+  },
+  "nm^2": {
+    "area": 1e-18
+  },
+  "pm^2": {
+    "area": 1e-24
+  },
+  "fm^2": {
+    "area": 1e-30
+  },
+  "am^2": {
+    "area": 1e-36
+  },
+  "zm^2": {
+    "area": 1e-42
+  },
+  "ym^2": {
+    "area": 1e-48
+  },
+  "Yang2": {
+    "area": 1e+28
+  },
+  "Zang2": {
+    "area": 1e+22
+  },
+  "Eang2": {
+    "area": 1e+16
+  },
+  "Pang2": {
+    "area": 10000000000.0
+  },
+  "Tang2": {
+    "area": 10000.0
+  },
+  "Gang2": {
+    "area": 0.01
+  },
+  "Mang2": {
+    "area": 1e-08
+  },
+  "kang2": {
+    "area": 1e-14
+  },
+  "hang2": {
+    "area": 1e-16
+  },
+  "daang2": {
+    "area": 1e-18
+  },
+  "eang2": {
+    "area": 1e-18
+  },
+  "dang2": {
+    "area": 1e-22
+  },
+  "cang2": {
+    "area": 1e-24
+  },
+  "mang2": {
+    "area": 1e-26
+  },
+  "uang2": {
+    "area": 1e-32
+  },
+  "nang2": {
+    "area": 1e-38
+  },
+  "pang2": {
+    "area": 1e-44
+  },
+  "fang2": {
+    "area": 1e-50
+  },
+  "aang2": {
+    "area": 1e-56
+  },
+  "zang2": {
+    "area": 1e-62
+  },
+  "yang2": {
+    "area": 1e-68
+  },
+  "Yang^2": {
+    "area": 1e+28
+  },
+  "Zang^2": {
+    "area": 1e+22
+  },
+  "Eang^2": {
+    "area": 1e+16
+  },
+  "Pang^2": {
+    "area": 10000000000.0
+  },
+  "Tang^2": {
+    "area": 10000.0
+  },
+  "Gang^2": {
+    "area": 0.01
+  },
+  "Mang^2": {
+    "area": 1e-08
+  },
+  "kang^2": {
+    "area": 1e-14
+  },
+  "hang^2": {
+    "area": 1e-16
+  },
+  "daang^2": {
+    "area": 1e-18
+  },
+  "eang^2": {
+    "area": 1e-18
+  },
+  "dang^2": {
+    "area": 1e-22
+  },
+  "cang^2": {
+    "area": 1e-24
+  },
+  "mang^2": {
+    "area": 1e-26
+  },
+  "uang^2": {
+    "area": 1e-32
+  },
+  "nang^2": {
+    "area": 1e-38
+  },
+  "pang^2": {
+    "area": 1e-44
+  },
+  "fang^2": {
+    "area": 1e-50
+  },
+  "aang^2": {
+    "area": 1e-56
+  },
+  "zang^2": {
+    "area": 1e-62
+  },
+  "yang^2": {
+    "area": 1e-68
+  },
+  "YL": {
+    "volume": 1e+24
+  },
+  "ZL": {
+    "volume": 1e+21
+  },
+  "EL": {
+    "volume": 1e+18
+  },
+  "PL": {
+    "volume": 1000000000000000
+  },
+  "TL": {
+    "volume": 1000000000000
+  },
+  "GL": {
+    "volume": 1000000000
+  },
+  "ML": {
+    "volume": 1000000
+  },
+  "kL": {
+    "volume": 1000
+  },
+  "hL": {
+    "volume": 100
+  },
+  "daL": {
+    "volume": 10
+  },
+  "eL": {
+    "volume": 10
+  },
+  "dL": {
+    "volume": 0.1
+  },
+  "cL": {
+    "volume": 0.01
+  },
+  "mL": {
+    "volume": 0.001
+  },
+  "uL": {
+    "volume": 1e-06
+  },
+  "nL": {
+    "volume": 1e-09
+  },
+  "pL": {
+    "volume": 1e-12
+  },
+  "fL": {
+    "volume": 1e-15
+  },
+  "aL": {
+    "volume": 1e-18
+  },
+  "zL": {
+    "volume": 1e-21
+  },
+  "yL": {
+    "volume": 1e-24
+  },
+  "Yl": {
+    "volume": 1e+24
+  },
+  "Zl": {
+    "volume": 1e+21
+  },
+  "El": {
+    "volume": 1e+18
+  },
+  "Pl": {
+    "volume": 1000000000000000
+  },
+  "Tl": {
+    "volume": 1000000000000
+  },
+  "Gl": {
+    "volume": 1000000000
+  },
+  "Ml": {
+    "volume": 1000000
+  },
+  "kl": {
+    "volume": 1000
+  },
+  "hl": {
+    "volume": 100
+  },
+  "dal": {
+    "volume": 10
+  },
+  "el": {
+    "volume": 10
+  },
+  "dl": {
+    "volume": 0.1
+  },
+  "cl": {
+    "volume": 0.01
+  },
+  "ml": {
+    "volume": 0.001
+  },
+  "ul": {
+    "volume": 1e-06
+  },
+  "nl": {
+    "volume": 1e-09
+  },
+  "pl": {
+    "volume": 1e-12
+  },
+  "fl": {
+    "volume": 1e-15
+  },
+  "al": {
+    "volume": 1e-18
+  },
+  "zl": {
+    "volume": 1e-21
+  },
+  "yl": {
+    "volume": 1e-24
+  },
+  "Ylt": {
+    "volume": 1e+24
+  },
+  "Zlt": {
+    "volume": 1e+21
+  },
+  "Elt": {
+    "volume": 1e+18
+  },
+  "Plt": {
+    "volume": 1000000000000000
+  },
+  "Tlt": {
+    "volume": 1000000000000
+  },
+  "Glt": {
+    "volume": 1000000000
+  },
+  "Mlt": {
+    "volume": 1000000
+  },
+  "klt": {
+    "volume": 1000
+  },
+  "hlt": {
+    "volume": 100
+  },
+  "dalt": {
+    "volume": 10
+  },
+  "elt": {
+    "volume": 10
+  },
+  "dlt": {
+    "volume": 0.1
+  },
+  "clt": {
+    "volume": 0.01
+  },
+  "mlt": {
+    "volume": 0.001
+  },
+  "ult": {
+    "volume": 1e-06
+  },
+  "nlt": {
+    "volume": 1e-09
+  },
+  "plt": {
+    "volume": 1e-12
+  },
+  "flt": {
+    "volume": 1e-15
+  },
+  "alt": {
+    "volume": 1e-18
+  },
+  "zlt": {
+    "volume": 1e-21
+  },
+  "ylt": {
+    "volume": 1e-24
+  },
+  "uk_acre": {
+    "area": 4046.8564224
+  },
+  "us_acre": {
+    "area": 4046.87260987425
+  },
+  "ang2": {
+    "area": 1e-20
+  },
+  "ang^2": {
+    "area": 1e-20
+  },
+  "ar": {
+    "area": 100
+  },
+  "ft2": {
+    "area": 0.09290304
+  },
+  "ft^2": {
+    "area": 0.09290304
+  },
+  "ha": {
+    "area": 10000
+  },
+  "in2": {
+    "area": 0.00064516
+  },
+  "in^2": {
+    "area": 0.00064516
+  },
+  "ly2": {
+    "area": 8.95054210748189e+31
+  },
+  "ly^2": {
+    "area": 8.95054210748189e+31
+  },
+  "m2": {
+    "area": 1
+  },
+  "m^2": {
+    "area": 1
+  },
+  "Morgen": {
+    "area": 2500
+  },
+  "mi2": {
+    "area": 2589988.110336
+  },
+  "mi^2": {
+    "area": 2589988.110336
+  },
+  "Nmi2": {
+    "area": 3429904
+  },
+  "Nmi^2": {
+    "area": 3429904
+  },
+  "Picapt2": {
+    "area": 1.24452160493827e-07
+  },
+  "Pica2": {
+    "area": 1.24452160493827e-07
+  },
+  "Pica^2": {
+    "area": 1.24452160493827e-07
+  },
+  "Picapt^2": {
+    "area": 1.24452160493827e-07
+  },
+  "yd2": {
+    "area": 0.83612736
+  },
+  "yd^2": {
+    "area": 0.83612736
+  },
+  "Yar": {
+    "area": 1e+26
+  },
+  "Zar": {
+    "area": 1e+23
+  },
+  "Ear": {
+    "area": 1e+20
+  },
+  "Par": {
+    "area": 1e+17
+  },
+  "Tar": {
+    "area": 100000000000000
+  },
+  "Gar": {
+    "area": 100000000000
+  },
+  "Mar": {
+    "area": 100000000
+  },
+  "kar": {
+    "area": 100000
+  },
+  "har": {
+    "area": 10000
+  },
+  "daar": {
+    "area": 1000
+  },
+  "ear": {
+    "area": 1000
+  },
+  "dar": {
+    "area": 10.0
+  },
+  "car": {
+    "area": 1.0
+  },
+  "mar": {
+    "area": 0.1
+  },
+  "uar": {
+    "area": 1e-04
+  },
+  "nar": {
+    "area": 1e-07
+  },
+  "par": {
+    "area": 1e-10
+  },
+  "far": {
+    "area": 1e-13
+  },
+  "aar": {
+    "area": 1e-16
+  },
+  "zar": {
+    "area": 1e-19
+  },
+  "yar": {
+    "area": 1e-22
+  },
+  "bit": {
+    "information": 1
+  },
+  "byte": {
+    "information": 8
+  },
+  "Yibit": {
+    "information": 82
+  },
+  "Zibit": {
+    "information": 68
+  },
+  "Eibit": {
+    "information": 62
+  },
+  "Pibit": {
+    "information": 48
+  },
+  "Tibit": {
+    "information": 42
+  },
+  "Gibit": {
+    "information": 28
+  },
+  "Mibit": {
+    "information": 22
+  },
+  "kibit": {
+    "information": 8
+  },
+  "Ybit": {
+    "information": 1e+24
+  },
+  "Zbit": {
+    "information": 1e+21
+  },
+  "Ebit": {
+    "information": 1e+18
+  },
+  "Pbit": {
+    "information": 1000000000000000
+  },
+  "Tbit": {
+    "information": 1000000000000
+  },
+  "Gbit": {
+    "information": 1000000000
+  },
+  "Mbit": {
+    "information": 1000000
+  },
+  "kbit": {
+    "information": 1000
+  },
+  "hbit": {
+    "information": 100
+  },
+  "dabit": {
+    "information": 10
+  },
+  "ebit": {
+    "information": 10
+  },
+  "dbit": {
+    "information": 0.1
+  },
+  "cbit": {
+    "information": 0.01
+  },
+  "mbit": {
+    "information": 0.001
+  },
+  "ubit": {
+    "information": 1e-06
+  },
+  "nbit": {
+    "information": 1e-09
+  },
+  "pbit": {
+    "information": 1e-12
+  },
+  "fbit": {
+    "information": 1e-15
+  },
+  "abit": {
+    "information": 1e-18
+  },
+  "zbit": {
+    "information": 1e-21
+  },
+  "ybit": {
+    "information": 1e-24
+  },
+  "Yibyte": {
+    "information": 656
+  },
+  "Zibyte": {
+    "information": 544
+  },
+  "Eibyte": {
+    "information": 496
+  },
+  "Pibyte": {
+    "information": 384
+  },
+  "Tibyte": {
+    "information": 336
+  },
+  "Gibyte": {
+    "information": 224
+  },
+  "Mibyte": {
+    "information": 176
+  },
+  "kibyte": {
+    "information": 64
+  },
+  "Ybyte": {
+    "information": 8e+24
+  },
+  "Zbyte": {
+    "information": 8e+21
+  },
+  "Ebyte": {
+    "information": 8e+18
+  },
+  "Pbyte": {
+    "information": 8000000000000000
+  },
+  "Tbyte": {
+    "information": 8000000000000
+  },
+  "Gbyte": {
+    "information": 8000000000
+  },
+  "Mbyte": {
+    "information": 8000000
+  },
+  "kbyte": {
+    "information": 8000
+  },
+  "hbyte": {
+    "information": 800
+  },
+  "dabyte": {
+    "information": 80
+  },
+  "ebyte": {
+    "information": 80
+  },
+  "dbyte": {
+    "information": 0.8
+  },
+  "cbyte": {
+    "information": 0.08
+  },
+  "mbyte": {
+    "information": 0.008
+  },
+  "ubyte": {
+    "information": 8e-06
+  },
+  "nbyte": {
+    "information": 8e-09
+  },
+  "pbyte": {
+    "information": 8e-12
+  },
+  "fbyte": {
+    "information": 8e-15
+  },
+  "abyte": {
+    "information": 8e-18
+  },
+  "zbyte": {
+    "information": 8e-21
+  },
+  "ybyte": {
+    "information": 8e-24
+  },
+  "admkn": {
+    "speed": 1853.184
+  },
+  "kn": {
+    "speed": 1852
+  },
+  "m/h": {
+    "speed": 1
+  },
+  "m/hr": {
+    "speed": 1
+  },
+  "m/s": {
+    "speed": 3600
+  },
+  "m/sec": {
+    "speed": 3600
+  },
+  "mph": {
+    "speed": 1609.344
+  },
+  "Ym/hr": {
+    "speed": 1e+24
+  },
+  "Zm/hr": {
+    "speed": 1e+21
+  },
+  "Em/hr": {
+    "speed": 1e+18
+  },
+  "Pm/hr": {
+    "speed": 1000000000000000
+  },
+  "Tm/hr": {
+    "speed": 1000000000000
+  },
+  "Gm/hr": {
+    "speed": 1000000000
+  },
+  "Mm/hr": {
+    "speed": 1000000
+  },
+  "km/hr": {
+    "speed": 1000
+  },
+  "hm/hr": {
+    "speed": 100
+  },
+  "dam/hr": {
+    "speed": 10
+  },
+  "em/hr": {
+    "speed": 10
+  },
+  "dm/hr": {
+    "speed": 0.1
+  },
+  "cm/hr": {
+    "speed": 0.01
+  },
+  "mm/hr": {
+    "speed": 0.001
+  },
+  "um/hr": {
+    "speed": 1e-06
+  },
+  "nm/hr": {
+    "speed": 1e-09
+  },
+  "pm/hr": {
+    "speed": 1e-12
+  },
+  "fm/hr": {
+    "speed": 1e-15
+  },
+  "am/hr": {
+    "speed": 1e-18
+  },
+  "zm/hr": {
+    "speed": 1e-21
+  },
+  "ym/hr": {
+    "speed": 1e-24
+  },
+  "Ymph": {
+    "speed": 1.609344e+27
+  },
+  "Zmph": {
+    "speed": 1.609344e+24
+  },
+  "Emph": {
+    "speed": 1.609344e+21
+  },
+  "Pmph": {
+    "speed": 1.609344e+18
+  },
+  "Tmph": {
+    "speed": 1609344000000000.0
+  },
+  "Gmph": {
+    "speed": 1609344000000.0
+  },
+  "Mmph": {
+    "speed": 1609344000.0
+  },
+  "kmph": {
+    "speed": 1609344.0
+  },
+  "hmph": {
+    "speed": 160934.4
+  },
+  "damph": {
+    "speed": 16093.44
+  },
+  "emph": {
+    "speed": 16093.44
+  },
+  "dmph": {
+    "speed": 160.9344
+  },
+  "cmph": {
+    "speed": 16.09344
+  },
+  "mmph": {
+    "speed": 1.609344
+  },
+  "umph": {
+    "speed": 0.001609344
+  },
+  "nmph": {
+    "speed": 1.6093440000000001e-06
+  },
+  "pmph": {
+    "speed": 1.609344e-09
+  },
+  "fmph": {
+    "speed": 1.6093440000000002e-12
+  },
+  "amph": {
+    "speed": 1.6093440000000001e-15
+  },
+  "zmph": {
+    "speed": 1.6093439999999999e-18
+  },
+  "ymph": {
+    "speed": 1.6093439999999999e-21
+  },
+  "Ym/s": {
+    "speed": 3.6e+27
+  },
+  "Zm/s": {
+    "speed": 3.6e+24
+  },
+  "Em/s": {
+    "speed": 3.6e+21
+  },
+  "Pm/s": {
+    "speed": 3.6e+18
+  },
+  "Tm/s": {
+    "speed": 3600000000000000
+  },
+  "Gm/s": {
+    "speed": 3600000000000
+  },
+  "Mm/s": {
+    "speed": 3600000000
+  },
+  "km/s": {
+    "speed": 3600000
+  },
+  "hm/s": {
+    "speed": 360000
+  },
+  "dam/s": {
+    "speed": 36000
+  },
+  "em/s": {
+    "speed": 36000
+  },
+  "dm/s": {
+    "speed": 360.0
+  },
+  "cm/s": {
+    "speed": 36.0
+  },
+  "mm/s": {
+    "speed": 3.6
+  },
+  "um/s": {
+    "speed": 0.0036
+  },
+  "nm/s": {
+    "speed": 3.6000000000000003e-06
+  },
+  "pm/s": {
+    "speed": 3.6e-09
+  },
+  "fm/s": {
+    "speed": 3.6000000000000004e-12
+  },
+  "am/s": {
+    "speed": 3.6e-15
+  },
+  "zm/s": {
+    "speed": 3.599999999999999e-18
+  },
+  "ym/s": {
+    "speed": 3.6e-21
+  },
+  "Ym/sec": {
+    "speed": 3.6e+27
+  },
+  "Zm/sec": {
+    "speed": 3.6e+24
+  },
+  "Em/sec": {
+    "speed": 3.6e+21
+  },
+  "Pm/sec": {
+    "speed": 3.6e+18
+  },
+  "Tm/sec": {
+    "speed": 3600000000000000
+  },
+  "Gm/sec": {
+    "speed": 3600000000000
+  },
+  "Mm/sec": {
+    "speed": 3600000000
+  },
+  "km/sec": {
+    "speed": 3600000
+  },
+  "hm/sec": {
+    "speed": 360000
+  },
+  "dam/sec": {
+    "speed": 36000
+  },
+  "em/sec": {
+    "speed": 36000
+  },
+  "dm/sec": {
+    "speed": 360.0
+  },
+  "cm/sec": {
+    "speed": 36.0
+  },
+  "mm/sec": {
+    "speed": 3.6
+  },
+  "um/sec": {
+    "speed": 0.0036
+  },
+  "nm/sec": {
+    "speed": 3.6000000000000003e-06
+  },
+  "pm/sec": {
+    "speed": 3.6e-09
+  },
+  "fm/sec": {
+    "speed": 3.6000000000000004e-12
+  },
+  "am/sec": {
+    "speed": 3.6e-15
+  },
+  "zm/sec": {
+    "speed": 3.599999999999999e-18
+  },
+  "ym/sec": {
+    "speed": 3.6e-21
+  },
+  "Ym/h": {
+    "speed": 1e+24
+  },
+  "Zm/h": {
+    "speed": 1e+21
+  },
+  "Em/h": {
+    "speed": 1e+18
+  },
+  "Pm/h": {
+    "speed": 1000000000000000
+  },
+  "Tm/h": {
+    "speed": 1000000000000
+  },
+  "Gm/h": {
+    "speed": 1000000000
+  },
+  "Mm/h": {
+    "speed": 1000000
+  },
+  "km/h": {
+    "speed": 1000
+  },
+  "hm/h": {
+    "speed": 100
+  },
+  "dam/h": {
+    "speed": 10
+  },
+  "em/h": {
+    "speed": 10
+  },
+  "dm/h": {
+    "speed": 0.1
+  },
+  "cm/h": {
+    "speed": 0.01
+  },
+  "mm/h": {
+    "speed": 0.001
+  },
+  "um/h": {
+    "speed": 1e-06
+  },
+  "nm/h": {
+    "speed": 1e-09
+  },
+  "pm/h": {
+    "speed": 1e-12
+  },
+  "fm/h": {
+    "speed": 1e-15
+  },
+  "am/h": {
+    "speed": 1e-18
+  },
+  "zm/h": {
+    "speed": 1e-21
+  },
+  "ym/h": {
+    "speed": 1e-24
+  }
+}

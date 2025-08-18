@@ -144,7 +144,8 @@ if __name__ == '__main__':
             'schedula>=1.4.1',
             'numpy>=1.15',
             'python-dateutil',
-            'numpy-financial'
+            'numpy-financial',
+            'scipy'
         ],
         extras_require=extras,
         tests_require=['ddt', 'dill', 'openpyxl']

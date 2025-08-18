@@ -16,7 +16,7 @@ import platform
 import os.path as osp
 import schedula as sh
 from formulas.ranges import Ranges
-from formulas.functions import is_number
+from formulas.functions import is_number, is_complex, str2complex
 from formulas.excel.xlreader import load_workbook
 from formulas.excel import (
     ExcelModel, BOOK, ERR_CIRCULAR, _book2dict, _res2books, _file2books
@@ -41,18 +41,22 @@ class TestExcelModel(unittest.TestCase):
         self.filename_circular = osp.join(mydir, _filename_circular)
         self.filename_full_range = osp.join(mydir, _filename_full_range)
 
-        self.results = _file2books(self.filename, self.link_filename)
+        self.results = _file2books(
+            self.filename, self.link_filename, _raw_data=True
+        )
         sh.get_nested_dicts(self.results, 'EXTRA.XLSX', 'EXTRA').update({
             'A1': 1, 'B1': 1
         })
         self.results_compile = _book2dict(
             load_workbook(self.filename_compile, data_only=True)
         )['DATA']
-        self.results_circular = _file2books(self.filename_circular)
+        self.results_circular = _file2books(
+            self.filename_circular, _raw_data=True
+        )
         self.results_full_range = {
-            'TEST_FILES/%s' % k: v
-            for k, v in _file2books(self.filename_full_range).items()
-        }
+            'TEST_FILES/%s' % k: v for k, v in _file2books(
+                self.filename_full_range, _raw_data=True
+            ).items()}
         sh.get_nested_dicts(
             self.results_full_range, 'TEST_FILES/FULL-RANGE.XLSX', 'DATA'
         ).update({'A6': 5, 'A7': 1, 'B2': 19, 'B5': 63})
@@ -70,6 +74,12 @@ class TestExcelModel(unittest.TestCase):
                     self.assertAlmostEqual(
                         float(res), float(value), places=4, msg=msg
                     )
+                elif isinstance(res, str) and is_complex(res) and is_complex(
+                        value):
+                    r = str2complex(res)
+                    v = str2complex(value)
+                    self.assertAlmostEqual(r.real, v.real, places=4, msg=msg)
+                    self.assertAlmostEqual(r.imag, v.imag, places=4, msg=msg)
                 else:
                     self.assertEqual(res, value, msg=msg)
             except AssertionError as ex:
@@ -183,7 +193,7 @@ class TestExcelModel(unittest.TestCase):
 
         n_test += self._compare(_file2books(*(
             osp.join(dirpath, fp) for fp in xl_mdl.books
-        )), self.results)
+        ), _raw_data=True), self.results)
 
         msg = '%sCompared saved results in %.2fs.\n%sRan %d tests in %.2fs'
         print(msg % (_msg, time.time() - s, _msg, n_test, time.time() - start))

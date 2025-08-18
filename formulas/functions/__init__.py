@@ -216,6 +216,22 @@ def clean_values(values):
     return values[values != np.array(sh.EMPTY, dtype=object)]
 
 
+def str2complex(string):
+    return complex(string.replace(" ", "").lower().replace("i", "j"))
+
+
+def is_complex(value):
+    if isinstance(value, complex):
+        return True
+    if isinstance(value, str):
+        try:
+            str2complex(value)
+            return True
+        except ValueError:
+            pass
+    return False
+
+
 def is_number(number, xl_return=True, bool_return=False):
     if isinstance(number, (bool, np.bool_)):
         return bool_return
