@@ -17,7 +17,7 @@ import collections
 import schedula as sh
 from dateutil.relativedelta import relativedelta
 from . import (
-    wrap_ufunc, Error, FoundError, get_error, wrap_func, raise_errors, flatten,
+    wrap_ufunc, Error, FoundError, wrap_func, raise_errors, flatten,
     is_number, COMPILING, wrap_impure_func, text2num, replace_empty,
     _get_single_args
 )

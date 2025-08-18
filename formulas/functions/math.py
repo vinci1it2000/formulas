@@ -16,7 +16,7 @@ import numpy as np
 import schedula as sh
 from decimal import Decimal, ROUND_HALF_UP
 from . import (
-    get_error, raise_errors, is_number, flatten, wrap_ufunc, wrap_func,
+    raise_errors, is_number, flatten, wrap_ufunc, wrap_func,
     replace_empty, Error, xfilter, wrap_impure_func, COMPILING, to_number,
     clean_values, Array, XlError, xfilters
 )
