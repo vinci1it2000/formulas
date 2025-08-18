@@ -62,6 +62,9 @@ class XlReader(ExcelReader):
 
 
 def load_workbook(filename, **kw):
+    if isinstance(filename, str) and filename.endswith('.ods'):
+        from .ods_reader import ods_to_xlsx
+        return ods_to_xlsx(filename, **kw)
     reader = XlReader(filename, **kw)
     reader.read()
     return reader.wb
