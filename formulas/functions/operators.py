@@ -40,7 +40,12 @@ def logic_input_parser(x, y):
         x = '' if isinstance(y, str) else 0
     if y is sh.EMPTY:
         y = '' if isinstance(x, str) else 0
-    return (_get_type_id(x), x), (_get_type_id(y), y)
+    xti = _get_type_id(x)
+    yti = _get_type_id(y)
+    if 1 == xti == yti:
+        x = x.upper()
+        y = y.upper()
+    return (xti, x), (yti, y)
 
 
 logic_wrap = functools.partial(
