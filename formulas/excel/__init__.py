@@ -379,6 +379,65 @@ class ExcelModel:
             self.cells[cell.output] = cell
             return cell
 
+    def add_anchor(self, rng, data_nodes=None, context=None, set_ref=True):
+        if rng.get('anchor'):
+            n_id = rng['name']
+            name = n_id[:-1] + ':'
+            ref = None
+            if context:
+                ref = self.formula_references(context).get(n_id)
+
+            if ref is None and data_nodes:
+                for k in data_nodes:
+                    if k.startswith(name):
+                        for fn in self.dsp.dmap.pred.get(k):
+                            if not isinstance(
+                                    self.dsp.nodes[fn]['function'],
+                                    RangesAssembler
+                            ):
+                                ref = k
+                                break
+                        break
+                if ref is None:
+                    k = name[:-1]
+                    if data_nodes.get(k):
+                        for fn in self.dsp.dmap.pred.get(k):
+                            if not isinstance(
+                                    self.dsp.nodes[fn]['function'],
+                                    RangesAssembler
+                            ):
+                                ref = k
+                                break
+            if ref:
+                if ref in self.cells:
+                    ref = self.cells[ref].range.ranges[0]['name']
+                else:
+                    ref = Ranges.get_range(ref)['name']
+                self.dsp.add_function(
+                    function_id=f'={ref}',
+                    function=sh.bypass,
+                    inputs=[ref],
+                    outputs=[n_id]
+                )
+            elif set_ref:
+                Cell(n_id, '=#REF!').compile().add(self.dsp)
+            return True
+        return False
+
+    def anchors(self, stack=None):
+        done = set(self.cells)
+        data_nodes = self.dsp.data_nodes
+        if stack is None:
+            pred = self.dsp.dmap.pred
+            stack = {
+                k for k in data_nodes if not pred.get(k) and k.endswith('#')
+            }
+            stack = stack.difference(done)
+
+        for n_id in sorted(stack):
+            rng = Ranges.get_range(n_id, raise_anchor=False)
+            self.add_anchor(rng, data_nodes)
+
     def complete(self, stack=None):
         done = set(self.cells)
         if stack is None:
@@ -413,22 +472,10 @@ class ExcelModel:
                 Cell(n_id, '=#REF!').compile().add(self.dsp)
                 self.books.pop(book, None)
                 continue
-            formula_references = self.formula_references(context)
-            if rng.get('anchor'):
-                ref = formula_references.get(f"{rng['c1']}{rng['r1']}")
-                if ref:
-                    ref = Ranges.get_range(ref, context)['name']
-                    self.dsp.add_function(
-                        function_id=f'={ref}',
-                        function=sh.bypass,
-                        inputs=[ref],
-                        outputs=[n_id]
-                    )
-                    stack.append(ref)
-                else:
-                    Cell(n_id, '=#REF!').compile().add(self.dsp)
+            if self.add_anchor(rng, set_ref=False, context=context):
                 continue
             references = self.references
+            formula_references = self.formula_references(context)
             formula_ranges = self.formula_ranges(context)
             external_links = self.external_links(context)
 
@@ -492,6 +539,8 @@ class ExcelModel:
             if isinstance(c, Ref):
                 continue
             rng = c.range.ranges[0]
+            if rng.get('anchor'):
+                continue
             indices = RangesAssembler._range_indices(c.range)
             if len(indices) == 1:
                 get(cells, 'cell', rng['sheet_id'])[list(indices)[0]] = c.output
@@ -524,9 +573,12 @@ class ExcelModel:
                                 d, 'filters', default=list
                             ).extend(nodes[out]['filters'])
 
-    def finish(self, complete=True, circular=False, assemble=True):
+    def finish(self, complete=True, circular=False, assemble=True,
+               anchors=True):
         if complete:
             self.complete()
+        if anchors:
+            self.anchors()
         if assemble:
             self.assemble()
         if circular:
