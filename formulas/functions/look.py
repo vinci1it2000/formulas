@@ -244,7 +244,7 @@ FUNCTIONS['MATCH'] = wrap_ufunc(
 def xfilter(array, condition, if_empty=Error.errors['#VALUE!']):
     raise_errors(condition)
     array = np.asarray(array, object)
-    b = np.asarray(condition, object)
+    b = np.asarray(condition, object, copy=True)
     a_shp = array.shape
     c_shp = b.shape or (1,)
     if not ((len(c_shp) == 1 or (
