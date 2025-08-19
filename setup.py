@@ -139,6 +139,9 @@ if __name__ == '__main__':
             "Topic :: Software Development :: Libraries :: Python Modules",
             "Topic :: Utilities",
         ],
+        package_data={
+            'formulas.functions': ['*.json']
+        },
         install_requires=[
             'regex',
             'schedula>=1.4.1',
