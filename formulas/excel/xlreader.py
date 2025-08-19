@@ -11,7 +11,6 @@ It provides a custom Excel Reader class.
 """
 from openpyxl.reader.excel import ExcelReader
 from openpyxl.xml.constants import SHARED_STRINGS
-from openpyxl.cell.rich_text import CellRichText
 from openpyxl.cell.text import Text
 from openpyxl.xml.functions import iterparse
 from openpyxl.xml.constants import SHEET_MAIN_NS
@@ -20,29 +19,6 @@ from ..functions.text import _re_hex
 
 def replace_hex(match):
     return chr(int(match.group(1), 16))
-
-
-def read_rich_text(_raw_data, xml_source):
-    """Read in all shared strings in the table"""
-
-    strings = []
-    STRING_TAG = '{%s}si' % SHEET_MAIN_NS
-
-    for _, node in iterparse(xml_source):
-        if node.tag == STRING_TAG:
-            text = CellRichText.from_tree(node)
-            if len(text) == 0:
-                text = ''
-            elif len(text) == 1 and isinstance(text[0], str):
-                text = text[0]
-            if not _raw_data and '_x' in text:
-                text = _re_hex.sub(replace_hex, text)
-            text = text.replace('x005F_', '')
-            node.clear()
-
-            strings.append(text)
-
-    return strings
 
 
 def read_string_table(_raw_data, xml_source):
@@ -78,8 +54,6 @@ class XlReader(ExcelReader):
     def read_strings(self):
         ct = self.package.find(SHARED_STRINGS)
         reader = read_string_table
-        if self.rich_text:
-            reader = read_rich_text
         if ct is not None:
             strings_path = ct.PartName[1:]
             with self.archive.open(strings_path, ) as src:

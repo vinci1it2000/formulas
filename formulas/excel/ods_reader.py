@@ -38,9 +38,7 @@ def _external_link_to_excel(string, ods_path):
 
         return f"'{'' if dp == '.' else dp}[{g2}]{g3}'!"
 
-    return _external_link.sub(
-        _sub_external_link, string
-    )
+    return _external_link.sub(_sub_external_link, string)
 
 
 def _odf_range_to_excel(addr: str) -> str:
@@ -104,7 +102,7 @@ def translate_odf_formula_to_excel(odf_formula: str, ods_path: str) -> str:
         return expr
 
 
-def ods_to_xlsx(ods_path: str, data_only=False, **kwargs) -> str:
+def ods_to_xlsx(ods_path: str, data_only=False, **kwargs):
     """
     Convert an ODS workbook to XLSX (openpyxl), preserving values, formulas,
     named ranges/expressions, and (optionally) database ranges as Excel Tables.
@@ -164,25 +162,23 @@ def ods_to_xlsx(ods_path: str, data_only=False, **kwargs) -> str:
         for nr in block.findall(CN("table:named-range")):
             name = nr.get_attr(CN("table:name"))
             addr = nr.get_attr(CN("table:cell-range-address"))
-            if not name or not addr:
-                continue
-
-            excel_ref = _external_link_to_excel(
-                _odf_range_to_excel(addr), ods_path
-            )
-            wb.defined_names[name] = DefinedName(name=name, attr_text=excel_ref)
+            if name and addr:
+                excel_ref = _external_link_to_excel(
+                    _odf_range_to_excel(addr), ods_path
+                )
+                wb.defined_names[name] = DefinedName(
+                    name=name, attr_text=excel_ref
+                )
 
         # Named expressions (<table:named-expression table:expression="of:=...">)
         for ne in block.findall(CN("table:named-expression")):
             name = ne.get_attr(CN("table:name"))
             expr = ne.get_attr(CN("table:expression"))
-            if not name or not expr:
-                continue
-
-            xl_expr = translate_odf_formula_to_excel(expr, ods_path)
-            wb.defined_names[name] = DefinedName(
-                name=name,
-                attr_text=xl_expr[1:] if xl_expr[0] == '=' else xl_expr
-            )
+            if name and expr:
+                xl_expr = translate_odf_formula_to_excel(expr, ods_path)
+                wb.defined_names[name] = DefinedName(
+                    name=name,
+                    attr_text=xl_expr[1:] if xl_expr[0] == '=' else xl_expr
+                )
 
     return wb
