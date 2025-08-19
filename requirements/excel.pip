@@ -2,3 +2,5 @@
 
 openpyxl
 dictdiffer
+ezodf
+lxml

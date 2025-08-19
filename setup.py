@@ -81,7 +81,7 @@ if __name__ == '__main__':
             print('LONG DESCRIPTION ERROR:\n %r', ex)
 
     extras = {
-        'excel': ['openpyxl', 'dictdiffer'],
+        'excel': ['openpyxl', 'dictdiffer', 'ezodf', 'lxml'],
         'plot': ['graphviz', 'regex', 'flask', 'Pygments', 'jinja2', 'docutils']
     }
     # noinspection PyTypeChecker
