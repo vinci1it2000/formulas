@@ -912,12 +912,6 @@ def xvalue(value):
 FUNCTIONS['VALUE'] = wrap_ufunc(xvalue, input_parser=lambda *a: a)
 
 
-def _fmt_number_short(x):
-    # Excel-like compact numeric text (no unnecessary trailing zeros)
-    s = f"{x:.15g}"
-    return s
-
-
 def _xvaluetotext(text, format_type):
     if isinstance(text, sh.Token):
         if text is sh.EMPTY:
@@ -971,19 +965,24 @@ FUNCTIONS['ARRAYTOTEXT'] = FUNCTIONS['_XLFN.ARRAYTOTEXT'] = wrap_ufunc(
 )
 
 
+def _parse_bool(value):
+    if isinstance(value, str):
+        if value.upper() == "TRUE":
+            value = True
+        elif value.upper() == "FALSE":
+            value = False
+        else:
+            raise FoundError(err=Error.errors['#VALUE!'])
+    else:
+        value = bool(value)
+    return value
+
+
 def xfixed(number, decimals=2, no_commas=False):
     number = float(replace_empty(number))
     decimals = int(float(replace_empty(decimals)))
-    no_commas = replace_empty(no_commas, False)
-    if isinstance(no_commas, str):
-        if no_commas.upper() == "TRUE":
-            no_commas = True
-        elif no_commas.upper() == "FALSE":
-            no_commas = False
-        else:
-            return Error.errors['#VALUE!']
-    else:
-        no_commas = bool(no_commas)
+    no_commas = _parse_bool(replace_empty(no_commas, False))
+
     if decimals > 127:
         return Error.errors['#VALUE!']
     fmt = f"{',' if not no_commas else ''}.{max(decimals, 0)}f"
@@ -1029,7 +1028,7 @@ def xtextsplit(
         text, col_delimiter, row_delimiter=None, ignore_empty=False,
         match_mode=0, pad_with=Error.errors['#N/A']
 ):
-    ignore_empty = replace_empty(ignore_empty, False)
+    ignore_empty = _parse_bool(replace_empty(ignore_empty, False))
     match_mode = int(float(replace_empty(match_mode)))
     if match_mode == 1:
         flags = re.IGNORECASE
@@ -1044,13 +1043,7 @@ def xtextsplit(
     if not col_delimiter or any(not v for v in col_delimiter):
         return Error.errors['#VALUE!']
     re_col = re.compile('|'.join(map(re.escape, col_delimiter)), flags=flags)
-    if isinstance(ignore_empty, str):
-        if ignore_empty.upper() == "TRUE":
-            ignore_empty = True
-        elif ignore_empty.upper() == "FALSE":
-            ignore_empty = False
-        else:
-            return Error.errors['#VALUE!']
+
     if row_delimiter is None:
         rows = [text]
     else:
