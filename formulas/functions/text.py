@@ -867,7 +867,7 @@ def xt(value):
     raise_errors(value)
 
     if isinstance(value, (np.str_, str)):
-        return value
+        return replace_empty(value, '')
     return ''
 
 
