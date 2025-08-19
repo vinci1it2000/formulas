@@ -65,12 +65,6 @@ def xiferror(val, val_if_error):
     return val_if_error if iserror(val) else val
 
 
-# noinspection PyUnusedLocal
-def xiferror_return(res, val, val_if_error):
-    res._collapse_value = list(flatten(val_if_error, None))[0]
-    return res
-
-
 FUNCTIONS['IFERROR'] = {
     'function': wrap_ufunc(
         xiferror, input_parser=lambda *a: a, check_error=lambda *a: False
