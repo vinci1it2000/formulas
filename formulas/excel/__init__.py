@@ -87,8 +87,61 @@ def _file2books(*fpaths, _raw_data=False):
     ) for fp in fpaths}
 
 
+def _convert_complex(results):
+    from ..functions import is_complex, str2complex
+    res = {}
+    it = sorted(sh.stack_nested_keys(results, depth=3))
+    for k, v in it:
+        if isinstance(v, str) and is_complex(v):
+            v = str2complex(v)
+            if v.imag:
+                v = {'imag': v.imag, 'real': v.real}
+            else:
+                v = v.real
+        sh.get_nested_dicts(res, *k, default=lambda: v)
+    return res
+
+
 def escape_char(m):
     return f"_x{ord(m.group(0)):04X}_"
+
+
+def _path(*keys):
+    p = ''
+    n = len(keys)
+    if n > 0:
+        p = f'[{keys[0]}]'
+    if n > 1:
+        p += f'{keys[1]}'
+    if n > 2:
+        p += f'!{".".join(keys[2:])}'
+    return p
+
+
+def _f_value(value, maxlen=120):
+    if isinstance(value, str) and not isinstance(value, sh.Token):
+        value = f'"{value}"'
+    value = str(value)
+    return value if len(value) <= maxlen else value[:maxlen - 3] + "..."
+
+
+def _format_errors(errors):
+    for error_type, parent, diff in sorted(
+            errors, key=lambda x: tuple(x[1]) + (x[0],)
+    ):
+        if error_type == 'change':
+            old, new = diff
+            msg = f'Change {_path(*parent)}: {_f_value(old)} -> {_f_value(new)}'
+            if isinstance(old, float) and isinstance(new, float):
+                msg = f'{msg} (diff: {new - old})'
+            yield msg
+        elif error_type in ('add', 'remove'):
+            msg = 'Addition' if error_type == 'add' else 'Deletion'
+            for k, value in diff:
+                if value != '':
+                    yield f'{msg} {_path(*parent, k)} -> {_f_value(value)}'
+        else:
+            raise ValueError(f'Unknown error type: {error_type}')
 
 
 class ExcelModel:
@@ -106,14 +159,30 @@ class ExcelModel:
     def calculate(self, *args, **kwargs):
         return self.dsp.dispatch(*args, **kwargs)
 
-    def compare(self, *fpaths, solution=None, tolerance=.000001, **kwargs):
-        if solution is None:
-            solution = self.dsp.dispatch()
+    def compare(
+            self, *fpaths, target=None, actual=None, solution=None,
+            books=None, dirpath=None, tolerance=0, absolute_tolerance=.000001,
+            dot_notation=False, formatted=True, **kwargs):
         from dictdiffer import diff
-        target = _file2books(*fpaths)
-        return list(diff(target, sh.selector(
-            target, _res2books(self.write(solution=solution))
-        ), tolerance=0, absolute_tolerance=tolerance, **kwargs))
+        if target is None:
+            target = _convert_complex(_file2books(*fpaths))
+        if actual is None:
+            if solution is None:
+                solution = self.dsp.dispatch()
+            actual = _convert_complex(_res2books(self.write(
+                books=books, dirpath=dirpath, solution=solution
+            )))
+        err = diff(
+            target, actual, tolerance=tolerance, dot_notation=dot_notation,
+            absolute_tolerance=absolute_tolerance, **kwargs
+        )
+        if formatted:
+            err = tuple(_format_errors(err))
+            if len(err) == 0:
+                return 'No differences.'
+            return '\n\nErrors({}):\n{}\n'.format(len(err), '\n'.join(err))
+
+        return err
 
     def __getstate__(self):
         return {'dsp': self.dsp, 'cells': {}, 'books': {}}
