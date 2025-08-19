@@ -86,8 +86,8 @@ class TestCell(unittest.TestCase):
         ('A1', '=IMDIV("7+2i",A2)', {
             "A2": (sh.EMPTY,)
         }, '<Ranges>(A1)=[[#NUM!]]'),
-        ('A1', '=IMDIV("7+25i","7+25i")', {},
-         '<Ranges>(A1)=[[\'1+2.4708227551004967E-17i\']]'),
+        ('A1', '=IMDIV("5+25i","1+1i")', {},
+         '<Ranges>(A1)=[[\'15+10i\']]'),
         ('A1', '=IMPRODUCT(A2,B2)', {
             "A2": Error.errors["#N/A"], "B2": Error.errors["#DIV/0!"]
         }, '<Ranges>(A1)=[[#N/A]]'),

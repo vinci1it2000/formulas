@@ -29,6 +29,7 @@ _filename_ods = 'test.ods'
 _filename_compile = 'excel.xlsx'
 _filename_full_range = 'full-range.xlsx'
 _link_filename = 'test_link.xlsx'
+_link_filename_ods = 'test_link.ods'
 _filename_circular = 'circular.xlsx'
 
 
@@ -41,15 +42,19 @@ class TestExcelModel(unittest.TestCase):
         self.filename_circular = osp.join(mydir, _filename_circular)
         self.filename_full_range = osp.join(mydir, _filename_full_range)
         self.filename_ods = osp.join(mydir, _filename_ods)
+        self.link_filename_ods = osp.join(mydir, _link_filename_ods)
 
         self.results = _convert_complex(_file2books(
             self.filename, self.link_filename, _raw_data=True
         ))
         self.results_ods = _convert_complex(_file2books(
-            self.filename_ods, _raw_data=True
+            self.filename_ods, self.link_filename_ods, _raw_data=True
         ))
         sh.get_nested_dicts(self.results, 'EXTRA.XLSX', 'EXTRA').update({
             'A1': 1, 'B1': 1
+        })
+        sh.get_nested_dicts(self.results, 'TEST.XLSX', 'EXTRA').update({
+            'H1': 1, 'I1': 3, 'J1': 4, 'K1': 1, 'L1': 3
         })
         self.results_compile = _book2dict(
             load_workbook(self.filename_compile, data_only=True)
@@ -144,7 +149,10 @@ class TestExcelModel(unittest.TestCase):
                 print('%sCalculate excel-model.' % _msg)
                 s = time.time()
 
-                xl_mdl({"'[EXTRA.XLSX]EXTRA'!A1:B1": [[1, 1]]})
+                xl_mdl({
+                    "'[EXTRA.XLSX]EXTRA'!A1:B1": [[1, 1]],
+                    "'[test.xlsx]EXTRA'!H1:I1": [[1, 3]]
+                })
 
                 msg = '%sCalculated excel-model in %.2fs.\n%s' \
                       'Comparing overwritten results.'
@@ -302,6 +310,32 @@ class TestExcelModel(unittest.TestCase):
         self.assertEqual({'A1': 2, 'B2': 2, 'A': 2, 'B': 2, 'C': 2}, {
             k: v.value.ravel()[0] if isinstance(v, Ranges) else v
             for k, v in xl_model.calculate({'C': 2}).items()
+        })
+
+        self.assertEqual(
+            "\n\nErrors(4):\nChange [A1]: 2 -> 1\nChange [B2]: 2 -> 1\n"
+            "Change [C]: 2 -> 1\nAddition [D] -> 1\n",
+            xl_model.compare(
+                target={'A1': 2, 'B2': 2, 'A': 2, 'B': 2, 'C': 2},
+                actual={
+                    k: v.value.ravel()[0] if isinstance(v, Ranges) else v
+                    for k, v in xl_model.calculate({'D': 1}).items()
+                }
+            )
+        )
+        xl_model = ExcelModel().from_dict({
+            "A1": 5, "A2": 0, "A3": 7, "B4": 1, "B5": 3, "A7": 3,
+            "B1": "=SUM(A1:A2)", "C1": "=(B2 - B1)", "B2": "=SUM(A1:A8)",
+            "A4:A5": "=B4:B5"
+        }).finish(complete=False)
+        self.assertEqual({
+            "A1:A8": (1, 2, 3, 4, 5, 6, 7, 8), sh.SELF: xl_model.dsp,
+            "A8": (8,), "A6": (6,), "A1": (1,), "A2": (2,), "A3": (3,),
+            "A4:A5": (4, 5), "A7": (7,), "B2": (36,), "A1:A2": (1, 2),
+            "B1": (3,), "C1": (33,), "B4": (1,), "B5": (3,), "B4:B5": (1, 3)
+        }, {
+            k: tuple(v.value.ravel()) if isinstance(v, Ranges) else v
+            for k, v in xl_model({"A1:A8": [1, 2, 3, 4, 5, 6, 7, 8]}).items()
         })
 
     def tearDown(self) -> None:
