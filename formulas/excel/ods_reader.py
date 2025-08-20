@@ -18,7 +18,7 @@ _re_replace = regex.compile(
     regex.IGNORECASE
 )
 _external_link = regex.compile(
-    r"'file://([^']*[\\/])([^\\/']+)'#(?:\$?([^!]+)!)?",
+    r"('file:[^']*')#(?:\$?([^!]+)!)?",
     regex.IGNORECASE,
 )
 
@@ -31,12 +31,10 @@ _range_same_sheet = regex.compile(
 )
 
 
-def _external_link_to_excel(string, ods_path):
+def _external_link_to_excel(string, links):
     def _sub_external_link(m):
-        g1, g2, g3 = m.groups()
-        dp = osp.relpath(g1, osp.abspath(osp.dirname(ods_path)))
-
-        return f"'{'' if dp == '.' else dp}[{g2}]{g3}'!"
+        g1, g2 = m.groups()
+        return f"'{links[g1]}{g2}'!"
 
     return _external_link.sub(_sub_external_link, string)
 
@@ -76,7 +74,7 @@ def replace_semicolon_outside_quotes(expr: str) -> str:
     return "".join(result)
 
 
-def translate_odf_formula_to_excel(odf_formula: str, ods_path: str) -> str:
+def translate_odf_formula_to_excel(odf_formula: str, links: dict) -> str:
     """
     Convert an ODF formula like:
       'of:=SUM([.A1:.A10])'
@@ -97,7 +95,7 @@ def translate_odf_formula_to_excel(odf_formula: str, ods_path: str) -> str:
 
         expr = _bracket_ref.sub(_sub, expr)
         expr = _re_replace.sub('!', expr)
-        expr = _external_link_to_excel(_re_clean.sub('', expr), ods_path)
+        expr = _external_link_to_excel(_re_clean.sub('', expr), links)
 
         return expr
 
@@ -108,16 +106,29 @@ def ods_to_xlsx(ods_path: str, data_only=False, **kwargs):
     named ranges/expressions, and (optionally) database ranges as Excel Tables.
     """
     from ezodf.xmlns import CN
+    from . import _decode_path, _encode_path
     doc = ezodf.opendoc(ods_path)
     wb = Workbook()
     # remove default first sheet; we'll add sheets according to ODS order
     default_ws = wb.active
     wb.remove(default_ws)
+    basedir = osp.dirname(ods_path)
+    links = {}
+    for sheet in doc.sheets:
+        src = sheet.xmlnode.find(CN('table:table-source'))
+        if src is not None:
+            fdir, fname = osp.split(osp.relpath(osp.realpath(osp.join(
+                ods_path, _decode_path(src.get(CN('xlink:href')))
+            )), basedir))
+            links[sheet.name.split('#')[0]] = _encode_path(osp.join(
+                fdir, f'[{fname}]'
+            ))
 
     # --- build a map of sheet name -> openpyxl worksheet ---
+
     for sheet in doc.sheets:
         sn = sheet.name
-        if sn.startswith("'file:"):
+        if sheet.xmlnode.find(CN('table:table-source')) is not None:
             continue
         ws = wb.create_sheet(title=sn)
 
@@ -125,7 +136,7 @@ def ods_to_xlsx(ods_path: str, data_only=False, **kwargs):
             for icol, cell in enumerate(row, 1):
                 if cell.formula and not data_only:
                     value = translate_odf_formula_to_excel(
-                        cell.formula, ods_path
+                        cell.formula, links
                     )
                     rows = cell.xmlnode.get(
                         CN('table:number-matrix-rows-spanned')
@@ -164,7 +175,7 @@ def ods_to_xlsx(ods_path: str, data_only=False, **kwargs):
             addr = nr.get_attr(CN("table:cell-range-address"))
             if name and addr:
                 excel_ref = _external_link_to_excel(
-                    _odf_range_to_excel(addr), ods_path
+                    _odf_range_to_excel(addr), links
                 )
                 wb.defined_names[name] = DefinedName(
                     name=name, attr_text=excel_ref
@@ -175,7 +186,7 @@ def ods_to_xlsx(ods_path: str, data_only=False, **kwargs):
             name = ne.get_attr(CN("table:name"))
             expr = ne.get_attr(CN("table:expression"))
             if name and expr:
-                xl_expr = translate_odf_formula_to_excel(expr, ods_path)
+                xl_expr = translate_odf_formula_to_excel(expr, links)
                 wb.defined_names[name] = DefinedName(
                     name=name,
                     attr_text=xl_expr[1:] if xl_expr[0] == '=' else xl_expr
