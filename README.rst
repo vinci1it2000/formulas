@@ -6,8 +6,8 @@ formulas: An Excel formulas interpreter in Python.
 |pypi_ver| |test_status| |cover_status| |docs_status| |downloads|
 |month_downloads| |github_issues| |python_ver| |proj_license| |binder|
 
-:release:       1.2.11
-:date:          2025-07-28 12:40:00
+:release:       1.3.0
+:date:          2025-08-20 14:40:00
 :repository:    https://github.com/vinci1it2000/formulas
 :pypi-repo:     https://pypi.org/project/formulas/
 :docs:          http://formulas.readthedocs.io/
@@ -284,7 +284,16 @@ Things yet to do: implement the missing Excel formulas.
 Supported by
 ============
 
-[![JetBrains logo.](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg)](https://jb.gg/OpenSourceSupport)
+.. image:: https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg
+   :alt: JetBrains logo
+   :target: https://jb.gg/OpenSourceSupport
+   :width: 200px
+
+.. image:: https://nlnet.nl/logo/banner.svg
+   :alt: NLnet Foundation logo
+   :target: https://nlnet.nl/project/Formulas/
+   :width: 200px
+
 .. _end-sponsors:
 .. _start-badges:
 .. |test_status| image:: https://github.com/vinci1it2000/formulas/actions/workflows/tests.yml/badge.svg?branch=master

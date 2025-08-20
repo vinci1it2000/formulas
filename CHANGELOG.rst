@@ -2,6 +2,63 @@ Changelog
 =========
 
 
+v1.3.0 (2025-08-20)
+-------------------
+
+Feat
+~~~~
+- (setup): Add package_data.
+
+- (excel): Improve readability of Excel comparison method.
+
+- (functions): Add `ASC`, `BAHTTEXT`, `CLEAN`, `CHAR`, `UNICHAR`,
+  `UNICODE`, `EXACT`, `FINDB`, `LEFTB`, `LENB`, `MIDB`, `NUMBERVALUE`,
+  `PROPER`, `REGEXEXTRACT`, `REGEXREPLACE`, `REGEXTEST`, `REPLACEB`,
+  `REPT`, `RIGHTB`, `SEARCHB`, `VALUETOTEXT`, `ARRAYTOTEXT`, `FIXED`,
+  `TEXTSPLIT`, `TEXTAFTER`, `TEXTBEFORE`.
+
+- (functions): Add `BESSELJ`, `BESSELI`, `BESSELK`, `BESSELY`, `BITAND`,
+  `BITOR`, `BITXOR`, `BITLSHIFT`, `BITRSHIFT`, `CONVERT`, `ERF`,
+  `ERF.PRECISE`, `ERFC`, `ERFC.PRECISE`, `DELTA`, `GESTEP`, `COMPLEX`,
+  `IMDIV`, `IMSUB`, `IMSUM`, `IMPRODUCT`, `IMABS`, `IMREAL`,
+  `IMAGINARY`, `IMARGUMENT`, `IMCONJUGATE`, `IMCOS`, `IMCOSH`, `IMCOT`,
+  `IMCSC`, `IMCSCH`, `IMEXP`, `IMLN`, `IMLOG10`, `IMLOG2`, `IMSEC`,
+  `IMSECH`, `IMSIN`, `IMSINH`, `IMSQRT`, `IMTAN`, `IMPOWER`.
+
+- (operators): Add support for Implicit intersection operator `@`.
+
+- (core): Add `.ods` file support.
+
+
+Fix
+~~~
+- (excel): Correct external link of `.ods` files.
+
+- (setup): Add missing requirements.
+
+- (excel): Parse properly dynamic arrays also from JSON format.
+
+- (look): Correct `FILTER` function was changing input values.
+
+- (text): Correct `T` function behaviour.
+
+- (token): Correct compile error for excel # `Errors`.
+
+- (operators): Correct behaviour of `=` operator `"A"="a"` return now
+  `TRUE` like excel.
+
+- (excel): Correct handling of Excel Illegal Character.
+
+
+Other
+~~~~~
+- Update test cases to improve coverage.
+
+- Add new test cases for `.ods` file.
+
+- Add new test cases for all new functions.
+
+
 v1.2.11 (2025-07-28)
 --------------------
 
