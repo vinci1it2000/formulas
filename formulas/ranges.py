@@ -111,9 +111,9 @@ def _reshape_array_as_excel(value, base_shape):
     try:
         return np.reshape(value, base_shape)
     except ValueError:
-        res, r, c = _init_reshape(base_shape, value)
+        res, r, c, val = _init_reshape(base_shape, value)
         try:
-            res[:r, :c] = value
+            res[:r, :c] = val
         except ValueError:
             res[:, :] = Error.errors['#VALUE!']
     return res
