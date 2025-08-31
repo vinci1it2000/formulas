@@ -313,8 +313,8 @@ class TestExcelModel(unittest.TestCase):
         })
 
         self.assertEqual(
-            "\n\nErrors(4):\nChange [A1]: 2 -> 1\nChange [B2]: 2 -> 1\n"
-            "Change [C]: 2 -> 1\nAddition [D] -> 1\n",
+            "\n\nErrors(4):\nAddition [D] -> 1\nChange [A1]: 2 -> 1\n"
+            "Change [B2]: 2 -> 1\nChange [C]: 2 -> 1\n",
             xl_model.compare(
                 target={'A1': 2, 'B2': 2, 'A': 2, 'B': 2, 'C': 2},
                 actual={

@@ -125,10 +125,19 @@ def _f_value(value, maxlen=120):
     return value if len(value) <= maxlen else value[:maxlen - 3] + "..."
 
 
+def _format_errors_key(x):
+    error_type, parent, diff = x
+    key = (0,)
+    try:
+        rng = Ranges().push(parent[-1]).ranges[0]
+        key = (1, int(rng['r1']), rng['n1'])
+        return (tuple(parent[:-1]), key, error_type)
+    except (InvalidRangeName, IndexError):
+        return (tuple(parent), key, error_type)
+
+
 def _format_errors(errors):
-    for error_type, parent, diff in sorted(
-            errors, key=lambda x: tuple(x[1]) + (x[0],)
-    ):
+    for error_type, parent, diff in sorted(errors, key=_format_errors_key):
         if error_type == 'change':
             old, new = diff
             msg = f'Change {_path(*parent)}: {_f_value(old)} -> {_f_value(new)}'
