@@ -18,7 +18,7 @@ import schedula as sh
 from . import (
     wrap_func, wrap_ufunc, Error, get_error, XlError, FoundError, Array,
     parse_ranges, _text2num, replace_empty, raise_errors, COMPILING,
-    wrap_impure_func, flatten
+    wrap_impure_func, flatten, _convert2float, return_2d_func
 )
 from ..ranges import Ranges
 from ..cell import CELL
@@ -81,6 +81,109 @@ def xaddress(row_num, column_num, abs_num=1, a1=True, sheet_text=None):
 
 FUNCTIONS['ADDRESS'] = wrap_ufunc(
     xaddress, input_parser=lambda *a: a, args_parser=lambda *a: a
+)
+
+
+def xareas(ref):
+    return len(ref.ranges) or Error.errors['#NULL!']
+
+
+def xcolumns(ref, *, axis=1):
+    r = ref.ranges
+    n = len(r)
+    if n == 1:
+        if axis:
+            return r[0]['n2'] - r[0]['n1'] + 1
+        return int(r[0]['r2']) - int(r[0]['r1']) + 1
+    if n == 0:
+        return Error.errors['#NULL!']
+    if n > 1:
+        return Error.errors['#REF!']
+
+
+FUNCTIONS['AREAS'] = wrap_func(xareas, ranges=True)
+FUNCTIONS['COLUMNS'] = wrap_func(xcolumns, ranges=True)
+FUNCTIONS['ROWS'] = wrap_func(functools.partial(xcolumns, axis=0), ranges=True)
+
+FUNCTIONS['CHOOSE'] = wrap_ufunc(
+    np.choose,
+    check_error=lambda i, *a: get_error(i),
+    input_parser=lambda i, *a: (
+        int(_convert2float(i)) - 1, np.array(a, object)
+    ),
+    args_parser=lambda i, a1, *a: (replace_empty(i), a1) + a
+)
+
+
+def xchoosecols(arr, col, *cols, axis=1):
+    raise_errors(col, *cols)
+    arr = np.atleast_2d(arr)
+    indices = []
+    for v in (col, *cols):
+        v = np.atleast_2d(replace_empty(v))
+        if 1 not in v.shape:
+            return Error.errors['#VALUE!']
+        indices.append(v)
+
+    indices = np.array(tuple(map(_convert2float, flatten(indices, None))), int)
+    if (indices == 0).any():
+        return Error.errors['#VALUE!']
+    indices[indices > 0] -= 1
+    return np.take(arr, indices, axis=axis).view(Array)
+
+
+FUNCTIONS['_XLFN.CHOOSECOLS'] = FUNCTIONS['CHOOSECOLS'] = wrap_func(xchoosecols)
+FUNCTIONS['_XLFN.CHOOSEROWS'] = FUNCTIONS['CHOOSEROWS'] = wrap_func(
+    functools.partial(xchoosecols, axis=0)
+)
+
+
+def xtocol(array, ignore=0, scan_by_column=0, axis=1):
+    array = np.atleast_2d(array)
+    if scan_by_column:
+        array = array.T
+    if ignore == 0:
+        check = None
+    elif ignore == 1:
+        check = lambda x: x is not sh.EMPTY
+    elif ignore == 2:
+        check = lambda x: not get_error(x)
+    elif ignore == 3:
+        check = lambda x: not get_error(x) and x is not sh.EMPTY
+    else:
+        return Error.errors['#VALUE!']
+
+    val = np.array([list(flatten(array, check))], object)
+    if axis:
+        val = val.T
+    return val.tolist()
+
+
+FUNCTIONS['_XLFN.TOCOL'] = FUNCTIONS['TOCOL'] = wrap_ufunc(
+    xtocol,
+    excluded={0},
+    check_nan=False,
+    check_error=lambda array, *a: get_error(*a),
+    input_parser=lambda array, ignore=0, scan_by_column=0: (
+        array, int(_convert2float(ignore)), int(scan_by_column)
+    ),
+    args_parser=lambda array, ignore=0, scan_by_column=0: (
+        array, replace_empty(ignore), replace_empty(scan_by_column)
+    ),
+    return_func=return_2d_func
+)
+FUNCTIONS['_XLFN.TOROW'] = FUNCTIONS['TOROW'] = wrap_ufunc(
+    functools.partial(xtocol, axis=0),
+    excluded={0},
+    check_nan=False,
+    check_error=lambda array, *a: get_error(*a),
+    input_parser=lambda array, ignore=0, scan_by_column=0: (
+        array, int(_convert2float(ignore)), int(scan_by_column)
+    ),
+    args_parser=lambda array, ignore=0, scan_by_column=0: (
+        array, replace_empty(ignore), replace_empty(scan_by_column)
+    ),
+    return_func=return_2d_func
 )
 
 
@@ -168,7 +271,6 @@ FUNCTIONS['INDEX'] = wrap_func(xindex, ranges=True)
 def _binary_search(index, arr, target, eq, asc=True):
     left = 0
     right = len(arr) - 1
-    target_type, target_value = target
 
     while left <= right:
         mid = (left + right) // 2

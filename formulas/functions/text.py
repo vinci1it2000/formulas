@@ -19,7 +19,7 @@ import schedula as sh
 from ..errors import FoundError
 from . import (
     wrap_ufunc, Error, replace_empty, XlError, flatten, wrap_func, is_not_empty,
-    raise_errors, _text2num, Array, get_error
+    raise_errors, _text2num, Array, get_error, return_2d_func
 )
 
 FUNCTIONS = {}
@@ -1012,18 +1012,6 @@ FUNCTIONS['FIXED'] = wrap_ufunc(
 )
 
 
-def _xtextsplit_return_func(res, *args):
-    if not res.shape:
-        res = res.item()
-        res = np.asarray(res, object).view(Array)
-    elif res.shape == (1, 1):
-        res = res[0, 0]
-        res = np.asarray(res, object).view(Array)
-    else:
-        res = _get_first_xtextsplit(res)
-    return res
-
-
 def xtextsplit(
         text, col_delimiter, row_delimiter=None, ignore_empty=False,
         match_mode=0, pad_with=Error.errors['#N/A']
@@ -1068,13 +1056,9 @@ def xtextsplit(
     return rows
 
 
-_get_first_xtextsplit = np.vectorize(
-    lambda x: x[0][0] if isinstance(x, list) else x, otypes=[object]
-)
-
 FUNCTIONS['TEXTSPLIT'] = FUNCTIONS['_XLFN.TEXTSPLIT'] = wrap_ufunc(
     xtextsplit, input_parser=lambda *a: a, args_parser=lambda *a: a,
-    excluded={1, 2, 5}, return_func=_xtextsplit_return_func, check_nan=False
+    excluded={1, 2, 5}, return_func=return_2d_func, check_nan=False
 )
 
 

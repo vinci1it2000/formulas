@@ -451,6 +451,23 @@ def args2list(max_shape, shapes, *args):
     return map(args2vals, zip(*it))
 
 
+_get_first_val = np.vectorize(
+    lambda x: x[0][0] if isinstance(x, list) else x, otypes=[object]
+)
+
+
+def return_2d_func(res, *args):
+    if not res.shape:
+        res = res.item()
+        res = np.asarray(res, object).view(Array)
+    elif res.shape == (1, 1):
+        res = res[0, 0]
+        res = np.asarray(res, object).view(Array)
+    else:
+        res = _get_first_val(res)
+    return res
+
+
 def wrap_ufunc(
         func, input_parser=lambda *a: map(float, a), check_error=get_error,
         args_parser=lambda *a: map(replace_empty, a), otype=Array,
