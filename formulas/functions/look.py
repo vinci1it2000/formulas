@@ -29,7 +29,13 @@ FUNCTIONS = {}
 def _get_type_id(obj):
     if isinstance(obj, (bool, np.bool_)):
         return 2
-    elif isinstance(obj, (str, np.str_)) and not isinstance(obj, XlError):
+    elif isinstance(obj, XlError):
+        return next((
+            i for i, k in enumerate(Error.errors.values()) if k == obj
+        ), -1) + 4
+    elif obj is sh.EMPTY:
+        return 4 + len(Error.errors)
+    elif isinstance(obj, (str, np.str_)):
         return 1
     return 0
 
@@ -185,6 +191,160 @@ FUNCTIONS['_XLFN.TOROW'] = FUNCTIONS['TOROW'] = wrap_ufunc(
     ),
     return_func=return_2d_func
 )
+
+
+def xunique(array, by_col=0, exactly_once=0):
+    raise_errors(by_col, exactly_once)
+    by_col = int(_convert2float(by_col))
+    exactly_once = int(exactly_once)
+    array = np.atleast_2d(array)
+
+    if by_col:
+        array = array.T
+
+    array = [tuple((isinstance(x, bool), x) for x in row) for row in array]
+    if exactly_once:
+        counts = collections.Counter(array)
+        array = [v for v in array if counts[v] == 1]
+    else:
+        unique = set()
+        array = [v for v in array if v not in unique and (unique.add(v) or 1)]
+    if not array:
+        return None
+    array = [tuple(x[1] for x in row) for row in array]
+    if by_col:
+        array = np.array(array, object).T.tolist()
+    return array
+
+
+def return_unique_func(res, *args):
+    if not res.shape:
+        res = res.item()
+        res = np.asarray(res, object).view(Array)
+    elif res.shape == (1, 1):
+        res = res[0, 0]
+        res = np.asarray(res, object).view(Array)
+    else:
+        v = res[0, 0]
+        res = np.vectorize(lambda x: get_error(x) or 0, otypes=[object])(res)
+        res[0, 0] = v[0][0] if isinstance(v, list) else v
+    res[res == None] = Error.errors['#VALUE!']
+    return res.view(Array)
+
+
+FUNCTIONS['_XLFN.UNIQUE'] = FUNCTIONS['UNIQUE'] = wrap_ufunc(
+    xunique,
+    excluded={0},
+    check_nan=False,
+    check_error=lambda array, *a: None,
+    input_parser=lambda *a: a,
+    args_parser=lambda array, by_col=0, exactly_once=0: (
+        array, replace_empty(by_col), replace_empty(exactly_once)
+    ),
+    return_func=return_unique_func
+)
+
+
+def args_parser_typed_array(arr):
+    arr = np.atleast_2d(arr)
+    val_types = _vect_get_type_id(arr)
+    return np.stack([val_types, arr], axis=-1)
+
+
+def xsort(array, sort_index=1, sort_order=1, by_col=0):
+    raise_errors(sort_index, sort_order, by_col)
+    array = args_parser_typed_array(array)
+    sort_index = int(replace_empty(sort_index))
+    sort_order = int(replace_empty(sort_order))
+    by_col = int(_convert2float(replace_empty(by_col)))
+
+    if by_col:
+        array = np.swapaxes(array, 0, 1)
+
+    if sort_order in (1, -1) and 1 <= sort_index <= array.shape[1]:
+        sort_index -= 1
+        array = sorted(
+            [tuple(tuple(v) for v in row) for row in array],
+            key=lambda x: x[sort_index], reverse=sort_order != 1,
+        )
+    else:
+        return Error.errors['#VALUE!']
+
+    array = np.array([tuple(x[1] for x in row) for row in array], object)
+    if by_col:
+        array = array.T
+    return array.view(Array)
+
+
+FUNCTIONS['_XLFN._XLWS.SORT'] = FUNCTIONS['SORT'] = wrap_func(xsort)
+
+
+def xsortby(ref, by_array, sort_order1=1, *args):
+    ref = np.atleast_2d(ref)
+    raise_errors(sort_order1, args[1::2])
+    shape = by_array.shape
+    by_col = int(shape[0] == 1)
+    if 1 not in shape or any(
+            shape != a.shape for a in args[::2]
+    ) or ref.shape[by_col] != shape[by_col]:
+        return Error.errors['#VALUE!']
+
+    args = (by_array, sort_order1) + args
+    n = max(shape)
+    indices = []
+    for a, sort_order in zip(args[::2], args[1::2]):
+        sort_order = int(replace_empty(sort_order))
+        if sort_order not in (1, -1):
+            return Error.errors['#VALUE!']
+        unique = {}
+        it = enumerate(map(tuple, args_parser_typed_array(a.ravel())[0]))
+        for i, v in it:
+            if v in unique:
+                unique[v].append(i)
+            else:
+                unique[v] = [i]
+        index = np.empty(n, dtype=int)
+        for i, v in enumerate(sorted(unique, reverse=sort_order != 1)):
+            index[unique[v]] = i
+        indices.append(index)
+
+    index = np.arange(n, dtype=int)
+    indices.append(index)
+    indices = np.column_stack(indices)
+    index = sorted(index, key=lambda x: tuple(indices[x]))
+    return (ref[:, index] if by_col else ref[index]).view(Array)
+
+
+FUNCTIONS['_XLFN.SORTBY'] = FUNCTIONS['SORTBY'] = wrap_func(xsortby)
+
+
+def to_python(obj):
+    if isinstance(obj, np.generic):
+        return obj.item()
+    elif isinstance(obj, np.ndarray):
+        return obj.ravel()[0]
+    return obj
+
+
+def xpivotby(row_fields, col_fields, values, aggfunc):
+    raise_errors(aggfunc)
+    import pandas as pd
+    parse = args_parser_typed_array
+    df = pd.pivot_table(pd.DataFrame({
+        'r': list(map(tuple, parse(np.asarray(row_fields).ravel())[0])),
+        'c': list(map(tuple, parse(np.asarray(col_fields).ravel())[0])),
+        'v': np.asarray(values).ravel()
+    }), index='r', columns='c', values='v', aggfunc=aggfunc,
+        fill_value='', margins=True, margins_name='Total'
+    )
+    df.index = [v[1] if isinstance(v, tuple) else v for v in df.index]
+    df.index.name = ''
+    df.columns = [v[1] if isinstance(v, tuple) else v for v in df.columns]
+    df.reset_index(inplace=True)
+    return np.vstack((df.columns, df.map(to_python).values)).astype(Array)
+
+
+FUNCTIONS['_XLFN.PIVOTBY'] = FUNCTIONS['PIVOTBY'] = wrap_func(xpivotby)
 
 
 def xsingle(cell, rng):

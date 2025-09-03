@@ -9,6 +9,7 @@
 """
 It provides Operand classes.
 """
+import collections
 
 # noinspection PyCompatibility
 import regex
@@ -82,7 +83,9 @@ _re_error = regex.compile(r'''
 
 class Error(Operand):
     _re = _re_error
-    errors = {str(k): k for k in (NULL, DIV, VALUE, REF, NUM, NAME, NA)}
+    errors = collections.OrderedDict(
+        (str(k), k) for k in (NULL, DIV, VALUE, REF, NAME, NUM, NA)
+    )
 
     def compile(self):
         return self.errors[self.name.upper()]
