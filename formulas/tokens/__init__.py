@@ -28,12 +28,12 @@ from ..errors import TokenError
 class Token:
     _re = None
 
-    def __init__(self, s, context=None):
+    def __init__(self, s, context=None, parser=None):
         self.source, self.attr = s, {}
         m = self.match(s)
         self.end_match = m and m.end(0)
         if self.end_match:
-            self.attr.update(self.process(m, context))
+            self.attr.update(self.process(m, context, parser))
         if not self.attr:
             raise TokenError(s)
 
@@ -64,7 +64,7 @@ class Token:
     def __repr__(self):
         return '{} <{}>'.format(self.name, self.__class__.__name__)
 
-    def process(self, match, context=None):
+    def process(self, match, context=None, parser=None):
         return {k: v for k, v in match.groupdict().items() if v is not None}
 
     def match(self, s):

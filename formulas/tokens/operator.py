@@ -67,7 +67,7 @@ class Operator(Token):
     def get_n_args(self):
         return self._n_args[self.name]
 
-    def process(self, match, context=None):
+    def process(self, match, context=None, parser=None):
         if self._re_process:
             s = match.groups()[0].replace(self._replace, '')
             match = self._re_process.match(s)
@@ -145,7 +145,7 @@ class OperatorToken(Operator):
         r'^\s*(?P<name>(?P<sum_minus>[\+\s\-]+)|[<>]?=|<>|[\*\/\^&\%:<>@])$'
     )
 
-    def process(self, match, context=None):
+    def process(self, match, context=None, parser=None):
         attr = super(OperatorToken, self).process(match, context=context)
         if 'sum_minus' in attr:
             attr['name'] = '-+'[attr['sum_minus'].count('-') % 2 == 0]

@@ -15,7 +15,7 @@ import regex
 from .errors import TokenError, FormulaError, ParenthesesError
 from .tokens.operand import String, Error, Number, Range
 from .tokens.operator import OperatorToken, Separator, Intersect
-from .tokens.function import Function, Array
+from .tokens.function import Function, Array, Lambda
 from .tokens.parenthesis import Parenthesis
 from .builder import AstBuilder
 
@@ -30,8 +30,8 @@ class Parser:
     )
     ast_builder = AstBuilder
     filters = [
-        Error, String, Number, Range, OperatorToken, Separator, Function, Array,
-        Parenthesis, Intersect
+        Error, String, Number, Lambda, Range, OperatorToken, Separator,
+        Function, Array, Parenthesis, Intersect
     ]
 
     def is_formula(self, value):
@@ -49,7 +49,7 @@ class Parser:
         while expr:
             for f in filters:
                 try:
-                    token = f(expr, context)
+                    token = f(expr, context, self)
                     token.ast(tokens, stack, builder)
                     expr = expr[token.end_match:]
                     break

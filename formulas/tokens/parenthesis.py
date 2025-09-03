@@ -26,8 +26,9 @@ class Parenthesis(Token):
     def ast(self, tokens, stack, builder):
         from .operator import Separator
         from .operand import Operand
-        if tokens and isinstance(tokens[-1],
-                                 Separator) and self.get_name == ')':
+        if tokens and isinstance(
+                tokens[-1], Separator
+        ) and self.get_name == ')':
             from .operand import Empty
             Empty().ast(tokens, stack, builder)
         if self.has_start and tokens and isinstance(tokens[-1], Operand):

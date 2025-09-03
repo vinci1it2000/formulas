@@ -133,7 +133,7 @@ _re_range = r"""
         (?>
             (?>
                 (?>
-                    \$?(?P<c1>[A-Z]{1,3})?\$?(?P<r1>[1-9]\d*)?
+                    (?>\$?(?P<c1>[A-Z]{1,3}))?(?>\$?(?P<r1>[1-9]\d*))?
                     (?>:\$?(?P<c2>[A-Z]{1,3}))(\$?(?P<r2>[1-9]\d*))?
                 )
             |
@@ -360,7 +360,7 @@ def range2parts(outputs, **inputs):
 class Range(Operand):
     _re = _re_range
 
-    def process(self, match, context=None):
+    def process(self, match, context=None, parser=None):
         d = super(Range, self).process(match)
         if len(d) <= 1 and 'indirect' not in d and 'ref' in d:
             try:

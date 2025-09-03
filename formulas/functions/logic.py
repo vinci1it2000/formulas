@@ -60,6 +60,20 @@ FUNCTIONS['_XLFN.IFS'] = FUNCTIONS['IFS'] = {
 }
 
 
+class LambdaFunction(functools.partial):
+    def __repr__(self):
+        return Error.errors['#VALUE!']
+
+
+def xlambda(*args, func=None, wrapper=False):
+    if wrapper:
+        return LambdaFunction(func, *args)
+    return func(*args)
+
+
+FUNCTIONS['_XLFN.LAMBDA'] = FUNCTIONS['LAMBDA'] = wrap_func(xlambda)
+
+
 def xiferror(val, val_if_error):
     from .info import iserror
     return val_if_error if iserror(val) else val
