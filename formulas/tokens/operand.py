@@ -57,7 +57,7 @@ class String(Operand):
 
 class Empty(Operand):
     # noinspection PyMissingConstructor
-    def __init__(self):
+    def __init__(self, context=None, parser=None):
         self.source, self.attr = None, {'name': ''}
 
     @staticmethod

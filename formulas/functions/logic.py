@@ -14,11 +14,12 @@ import numpy as np
 from . import (
     wrap_ufunc, Error, flatten, get_error, wrap_func, XlError, raise_errors
 )
+from ..errors import FoundError
 
 FUNCTIONS = {}
 
 
-def xif(condition, x=True, y=False):
+def xif(condition, x, y=False):
     if isinstance(condition, str):
         return Error.errors['#VALUE!']
     return x if condition else y
@@ -65,10 +66,12 @@ class LambdaFunction(functools.partial):
         return Error.errors['#VALUE!']
 
 
-def xlambda(*args, func=None, wrapper=False):
-    if wrapper:
-        return LambdaFunction(func, *args)
-    return func(*args)
+def xlambda(func, *args, wrapper=False):
+    if callable(func):
+        if wrapper:
+            return LambdaFunction(func, *args)
+        return func(*args)
+    raise FoundError(err=Error.errors['#NAME?'])
 
 
 FUNCTIONS['_XLFN.LAMBDA'] = FUNCTIONS['LAMBDA'] = wrap_func(xlambda)

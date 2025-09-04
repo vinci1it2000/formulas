@@ -13,6 +13,7 @@ It provides Function classes.
 # noinspection PyCompatibility
 import regex
 import functools
+import collections
 import schedula as sh
 from . import Token
 from .parenthesis import Parenthesis
@@ -22,7 +23,32 @@ from ..errors import TokenError, FormulaError
 
 
 class Function(Token):
-    _re = regex.compile(r'^\s*(?P<name>[A-Z_][\w\.]*)\(\s*', regex.IGNORECASE)
+    _re = regex.compile(
+        r'^\s*(?P<name>[A-Z_][\w\.]*)\(\s*(?P<call>\))?', regex.IGNORECASE
+    )
+
+    def _process(self, attr, match, context=None, parser=None):
+        if getattr(parser, 'is_cell', False):
+            from formulas.functions import get_functions
+            fn = attr['name'].upper()
+            if fn not in get_functions():
+                attr['func_token'] = Range(fn, context, parser)
+        return attr
+
+    def process(self, match, context=None, parser=None):
+        attr = super(Function, self).process(match, context, parser)
+        return self._process(attr, match, context, parser)
+
+    def _ast(self, tokens, stack, builder):
+        has_call = self.has_call
+        if self.has_func_token:
+            fake = tokens[-2:]
+            self.get_func_token.ast(fake, stack, builder)
+            if not has_call:
+                Separator(',').ast(fake, stack, builder)
+
+        if has_call:
+            Parenthesis(')').ast(tokens, stack, builder)
 
     def ast(self, tokens, stack, builder, check_n=lambda *args: True):
         super(Function, self).ast(tokens, stack, builder)
@@ -30,18 +56,21 @@ class Function(Token):
         t = Parenthesis('(')
         t.attr['check_n'] = check_n
         t.ast(tokens, stack, builder)
+        self._ast(tokens, stack, builder)
 
     def compile(self):
         from formulas.functions import get_functions
+        if self.attr.get('func_token'):
+            return get_functions()['LAMBDA']
         return get_functions()[self.name.upper()]
 
     def set_expr(self, *tokens):
-        args = ', '.join(t.get_expr for t in tokens)
+        args = ', '.join(t.get_expr for t in tokens[int(self.has_func_token):])
         self.attr['expr'] = '%s(%s)' % (self.name.upper(), args)
 
 
 _re_lambda = regex.compile(r'''
-^\s*(?P<name>(?:_XLFN\.)?LAMBDA|(?P<let>LET))\(\s*
+^\s*(?P<name>(?:_XLFN\.)?(?:LAMBDA|(?P<let>LET)))\(\s*
 (?:
     (?P<arg>                                # 1° argomento
         (?:
@@ -85,105 +114,123 @@ _re_lambda = regex.compile(r'''
 class Lambda(Function):
     _re = _re_lambda
 
-    def process(self, match, context=None, parser=None):
-        attr = super(Lambda, self).process(match, context)
-
-        if 'fun' not in attr:
-            is_let = 'let' in attr
-            arg = match.captures('arg')
-            try:
-                inp = [
-                    Range(s, context, parser) for s in arg[:-1:1 + int(is_let)]
-                ]
-                if not len(arg) or any(
-                        not t.attr.get('is_reference') for t in inp):
-                    raise FormulaError()
-            except TokenError:
+    def _process(self, attr, match, context=None, parser=None):
+        if 'fun' in attr:
+            return attr
+        tokens = []
+        vars = []
+        arg = match.captures('arg')
+        separator = Separator(',')
+        calc_tkns, calc = parser.ast(f"={arg[-1]}", context=context)
+        expr = []
+        ext_inp = {}
+        try:
+            if 'let' in attr:
+                out_id = calc.get_node_id(calc[-1])
+                valids = set(calc.dsp.shrink_dsp(outputs=[out_id]).data_nodes)
+                for var, code in zip(arg[:-1:2], arg[1:-1:2]):
+                    var = Range(var, context, parser)
+                    vars.append(var)
+                    tkns, bld = parser.ast(f"={code}", context=context)
+                    tokens.extend((var, separator, *tkns, separator))
+                    o_id = bld.get_node_id(bld[-1])
+                    var_name = var.name
+                    expr.extend((var_name, ', ', o_id, ', '))
+                    if var_name in valids:
+                        ext_inp.update(
+                            (t.name, t) for t in tkns if isinstance(t, Range)
+                        )
+                        calc.dsp.add_function(
+                            function_id=f"={o_id}",
+                            function=sh.bypass,
+                            inputs=[o_id],
+                            outputs=[var_name],
+                        )
+                        calc.dsp.extend(bld.dsp)
+            else:
+                for var in arg[:-1]:
+                    var = Range(var, context, parser)
+                    vars.append(var)
+                    tokens.extend((var, separator))
+                    expr.extend((var.name, ', '))
+        except TokenError:
+            raise FormulaError()
+        tokens.extend((*calc_tkns, Parenthesis(')')))
+        expr.extend((calc.get_node_id(calc[-1]), ')'))
+        ext_inp.update(
+            (t.name, t) for t in calc_tkns if isinstance(t, Range)
+        )
+        for t in vars:
+            if not t.get_is_reference:
                 raise FormulaError()
-            tkns, bld = parser.ast(f"={arg[-1]}", context=context)
+            ext_inp.pop(t.name, None)
 
-            if is_let:
-                for k, s in zip(inp, arg[1:-1:2]):
-                    tk, bl = parser.ast(f"={s}", context=context)
-                    tkns.extend(tk)
-                    i = bl.get_node_id(bl[-1])
-                    bld.dsp.add_function(
-                        function_id=f"={i}",
-                        function=sh.bypass,
-                        inputs=[i],
-                        outputs=[k.name],
-                    )
-                    bld.dsp.extend(bl.dsp)
-            attr['func'] = {
-                'inputs': [x.name for x in inp],
-                'builder': bld,
-                'tokens': tkns
-            }
+        if 'call' in attr:
+            tokens.append(Parenthesis('('))
+            expr.extend('(')
+        attr['func'] = {
+            'expr': ''.join(expr),
+            'external_inputs': collections.OrderedDict(sorted(
+                ext_inp.items()
+            )),
+            'tokens': tokens,
+            'calculation': calc,
+            'vars': [t.name for t in vars]
+        }
         return attr
 
-    def ast(self, tokens, stack, builder, check_n=lambda *args: True):
-        super(Lambda, self).ast(tokens, stack, builder, check_n)
-        if 'fun' in self.attr:
-            Parenthesis(')').ast(tokens, stack, builder)
+    def _ast(self, tokens, stack, builder):
+        fake = tokens[-2:]
+        if self.has_fun:
+            tokens.pop()
+            Parenthesis(')').ast(fake, stack, builder)
         else:
-            func = self.attr['func']
-            inp_names = set(func['inputs'])
-            it = {
-                t.name: t for t in func['tokens']
-                if isinstance(t, Range) and t.name not in inp_names
-            }
-            for i, token in enumerate(it.values()):
+            func = self.get_func
+            for i, token in enumerate(func['external_inputs'].values()):
                 if i:
-                    Separator(',').ast(tokens, stack, builder)
-                token.ast(tokens, stack, builder)
-            if 'call' in self.attr:
-                Separator(',').ast(tokens, stack, builder)
+                    Separator(',').ast(fake, stack, builder)
+                token.ast(fake, stack, builder)
+            if self.has_call:
+                Separator(',').ast(fake, stack, builder)
             else:
-                Parenthesis(')').ast(tokens, stack, builder)
+                Parenthesis(')').ast(fake, stack, builder)
+            tokens.extend(func['tokens'])
 
     def compile(self):
         from formulas.functions import get_functions
-        if 'fun' in self.attr:
-            func = get_functions()[self.attr['fun'].upper()]
+        _functions = get_functions()
+        _lambda = _functions['LAMBDA']
+        if self.has_fun:
+            func = _functions[self.get_fun.upper()]
             if isinstance(func, dict):
                 func = func.copy()
                 func['function'] = functools.partial(
-                    get_functions()['LAMBDA'],
-                    func=func['function'],
-                    wrapper=True
+                    _lambda, func['function'], wrapper=True
                 )
                 return func
-            return functools.partial(
-                get_functions()['LAMBDA'],
-                func=func,
-                wrapper=True
-            )
+            return functools.partial(_lambda, func, wrapper=True)
         else:
-            attr_f = self.attr['func']
-            func = attr_f['builder'].compile()
-            if 'let' in self.attr:
+            attr = self.get_func
+            func = attr['calculation'].compile()
+            if self.has_let:
                 return func
-            for x in attr_f['inputs']:
+
+            for x in attr['vars']:
                 func.inputs.pop(x, None)
                 func.inputs[x] = None
-            return functools.partial(
-                get_functions()['LAMBDA'],
-                func=func,
-                wrapper='call' not in self.attr
-            )
+            return functools.partial(_lambda, func, wrapper=not self.has_call)
 
     def set_expr(self, *tokens):
-        if 'fun' in self.attr:
-            self.attr['expr'] = self.name.upper() + self.attr['fun'].upper()
+        func = self.name.upper()
+        if self.has_fun:
+            func = f"{func}{self.get_fun.upper()}"
         else:
-            func = self.attr['func']
-            bld = func['builder']
-            calc = bld.get_node_id(bld[-1])
-            inp = func['inputs']
-            func = f"{self.name.upper()}({', '.join(inp + [calc])})"
-            if 'call' in self.attr:
-                func = f"{func}({', '.join(t.get_expr for t in tokens[-len(inp):])})"
-            self.attr['expr'] = func
+            d = self.get_func
+            func = f"{func}({d['expr']}"
+            if self.has_call:
+                n = len(d['external_inputs'])
+                func = f"{func}{', '.join(t.get_expr for t in tokens[n:])})"
+        self.attr['expr'] = func
 
 
 def _check_tkn_n_args(n_args, token):
@@ -192,6 +239,9 @@ def _check_tkn_n_args(n_args, token):
 
 class Array(Function):
     _re = regex.compile(r'^\s*(?P<name>(?P<start>{)|(?P<end>})|(?P<sep>;))\s*')
+
+    def _process(self, attr, match, context=None, parser=None):
+        return attr
 
     def ast(self, tokens, stack, builder, check_n=lambda t: t.n_args):
         if self.has_start:

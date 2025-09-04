@@ -34,6 +34,9 @@ class Parser:
         Function, Array, Parenthesis, Intersect
     ]
 
+    def __init__(self, is_cell=False):
+        self.is_cell = is_cell
+
     def is_formula(self, value):
         return self.formula_check.match(value) or Error._re.match(value)
 

@@ -23,6 +23,55 @@ def inp_ranges(*rng):
 @ddt.ddt
 class TestCell(unittest.TestCase):
     @ddt.idata([
+        ('A1',
+         "=_XLFN.LAMBDA('[test.xlsx]'!_XLPM.X, '[test.xlsx]'!_XLPM.Y, '[test.xlsx]'!_XLPM.Z, SUM(('[test.xlsx]'!_XLPM.X * 2), ('[test.xlsx]'!_XLPM.Y * 3), -'[test.xlsx]'!_XLPM.Z, '[test.xlsx]LOGICAL'!D11))(2,1,2)",
+         {"'[test.xlsx]LOGICAL'!D11": [[3]]},
+         "<Ranges>(A1)=[[8.0]]"),
+        ('A1:D4', '=PIVOTBY({2;2;3},{1;2;2},{1;2;3},_XLETA.IF)', {},
+         "<Ranges>(A1:D4)=[['' 1 2 'Total']\n [2 #VALUE! #VALUE! #VALUE!]\n "
+         "[3 '' #VALUE! #VALUE!]\n ['Total' #VALUE! #VALUE! #VALUE!]]"),
+        ('A1:D4', '=PIVOTBY({2;2;3},{1;2;2},{1;2;3},_XLETA.SUM)', {},
+         "<Ranges>(A1:D4)=[['' 1 2 'Total']\n [2 1.0 2.0 3.0]\n "
+         "[3 '' 3.0 3.0]\n ['Total' 1.0 5.0 6.0]]"),
+        ('A1', '=LET(z,3,y,A4,x,A2/2,SUM(y)+SUM((x+1)*x,(y+x+A2+A3)))',
+         {'A2': [[2]], 'A3': [[3]], 'A4': [[2]]},
+         "<Ranges>(A1)=[[12.0]]"),
+        ('A1', '=LET(X,1,Y,E9,Z,L10,232+X+Y)',
+         {'L10': [[2]], 'E9': [[2.9]]},
+         "<Ranges>(A1)=[[235.9]]"),
+        ('A1', '=LAMBDA(z,y,x,SUM(y)+SUM((x+1)*x,(y+x+A2+A3)))(3,2,1)',
+         {'A2': [[2]], 'A3': [[3]]},
+         "<Ranges>(A1)=[[12.0]]"),
+        ('A1', '=LAMBDA(x,y,z,SUM(y)+SUM(x+1,(y+x+A2+A3)))(1,2)',
+         {'A2': [[2]], 'A3': [[3]]},
+         "<Ranges>(A1)=[[#VALUE!]]"),
+        ('A1', '=LAMBDA(x,y,z,SUM(y)+SUM(x+1,(y+x+A2+A3)))',
+         {'A2': [[2]], 'A3': [[3]]},
+         "<Ranges>(A1)=[[#VALUE!]]"),
+        ('A1:D4', '=PIVOTBY({2;2;3},{1;2;2},{1;2;3},LAMBDA(x,SUM(x,1)))', {},
+         "<Ranges>(A1:D4)=[['' 1 2 'Total']\n [2 2.0 3.0 4.0]\n "
+         "[3 '' 4.0 4.0]\n ['Total' 2.0 6.0 7.0]]"),
+        ('A1:C2', '=SORTBY({1,2,3;3,2,1},{-2,0,0},1)', {},
+         "<Ranges>(A1:C2)=[[1 2 3]\n [3 2 1]]"),
+        ('A1:C2', '=SORTBY({1,2,3;4,5,6},{3,2,2},1,{5,1,4},-1)', {},
+         "<Ranges>(A1:C2)=[[3 2 1]\n [6 5 4]]"),
+        ('A1:B2', '=SORT({2,1;1,2})', {}, "<Ranges>(A1:B2)=[[1 2]\n [2 1]]"),
+        ('A1:O1', '=SORT(A2:O2,1,1,1)', {'A2:O2': [[
+            Error.errors['#VALUE!'], 0, 3, 2, True, False, 2, "b",
+            Error.errors['#DIV/0!'], Error.errors['#N/A'],
+            Error.errors['#NAME?'], Error.errors['#REF!'],
+            Error.errors['#NULL!'], Error.errors['#NUM!'], sh.EMPTY
+        ]]},
+         "<Ranges>(A1:O1)=[[0 2 2 3 'b' False True #NULL! #DIV/0! #VALUE! #REF! #NAME? #NUM! #N/A 0]]"),
+        ('A1:B2', '=SORT({2,1;3,4},1,-1,1)', {},
+         "<Ranges>(A1:B2)=[[2 1]\n [3 4]]"),
+        ('A1:D1', '=UNIQUE({1,2;1,2},B2:E2)', {
+            'B2:E2': [[1, Error.errors['#VALUE!'], sh.EMPTY, "b"]]
+        }, "<Ranges>(A1:D1)=[[1 #VALUE! 0 #VALUE!]]"),
+        ('A1:B2', '=UNIQUE({2,1,2,1},{1,1;2,2})', {},
+         "<Ranges>(A1:B2)=[[2 0]\n [0 0]]"),
+        ('A1', '=UNIQUE({2,1,2,1},1,1)', {}, "<Ranges>(A1)=[[#VALUE!]]"),
+        ('A1', '=UNIQUE({2,1,2},1,1)', {}, "<Ranges>(A1)=[[1]]"),
         ('A1:A3', '=TOCOL(B1:C2,2.9)', {
             'B1:C2': [[1, 2], [Error.errors['#VALUE!'], sh.EMPTY]]
         }, "<Ranges>(A1:A3)=[[1]\n [2]\n [0]]"),

@@ -74,7 +74,7 @@ def format_output(rng, value):
 
 
 class Cell:
-    parser = Parser()
+    parser = Parser(True)
 
     def __init__(self, reference, value, context=None, check_formula=True,
                  replace_missing_ref=True, raise_anchor=False):
@@ -85,9 +85,9 @@ class Cell:
                 reference, context=context, raise_anchor=raise_anchor
             )
             r = self.range.ranges[0]
-            context = sh.combine_dicts(context or {}, base={
-                'cr': r['r1'], 'cc': r['n1']
-            })
+            context = sh.combine_dicts(context or {}, sh.selector(
+                ('filename', 'sheet'), r, allow_miss=True
+            ), base={'cr': r['r1'], 'cc': r['n1']})
             self.output = r['name']
         self.builder, self.value = None, sh.EMPTY
         prs = self.parser

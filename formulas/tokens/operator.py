@@ -72,7 +72,9 @@ class Operator(Token):
             s = match.groups()[0].replace(self._replace, '')
             match = self._re_process.match(s)
         if match:
-            return super(Operator, self).process(match, context=context)
+            return super(Operator, self).process(
+                match, context=context, parser=parser
+            )
         return {}
 
     @property
@@ -96,7 +98,6 @@ class Operator(Token):
             if not (b or isinstance(t, Operand)):
                 self.attr['name'] = '%s' % self.name
                 _update_n_args(stack)
-
 
     def ast(self, tokens, stack, builder):
         super(Operator, self).ast(tokens, stack, builder)
