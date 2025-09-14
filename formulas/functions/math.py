@@ -16,10 +16,11 @@ import numpy as np
 import schedula as sh
 from decimal import Decimal, ROUND_HALF_UP
 from . import (
-    raise_errors, is_number, flatten, wrap_ufunc, wrap_func,
+    raise_errors, is_number, flatten, wrap_ufunc, wrap_func, get_error,
     replace_empty, Error, xfilter, wrap_impure_func, COMPILING, to_number,
     clean_values, Array, XlError, xfilters
 )
+from ..errors import FoundError
 
 # noinspection PyDictCreation
 FUNCTIONS = {}
@@ -284,6 +285,20 @@ def xodd(x):
 
 
 FUNCTIONS['ODD'] = wrap_ufunc(xodd)
+
+
+def xpercentof(data_subset, data_all):
+    if get_error(data_subset, data_all):
+        raise FoundError(err=Error.errors['#NUM!'])
+    check = lambda v: not isinstance(v, str) and is_number(v)
+    num = sum(flatten(data_subset, check), 0)
+    den = sum(flatten(data_all, check), 0)
+    if den:
+        return num / den
+    raise FoundError(err=Error.errors['#DIV/0!'])
+
+
+FUNCTIONS['_XLFN.PERCENTOF'] = FUNCTIONS['PERCENTOF'] = wrap_func(xpercentof)
 FUNCTIONS['PI'] = lambda: math.pi
 
 
