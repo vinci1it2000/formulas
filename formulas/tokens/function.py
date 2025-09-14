@@ -19,7 +19,8 @@ from . import Token
 from .parenthesis import Parenthesis
 from .operand import Range
 from .operator import Separator
-from ..errors import TokenError, FormulaError
+from ..errors import TokenError, FormulaError, FoundError
+from formulas.functions import wrap_func
 
 
 class Function(Token):
@@ -61,7 +62,7 @@ class Function(Token):
     def compile(self):
         from formulas.functions import get_functions
         if self.attr.get('func_token'):
-            return get_functions()['LAMBDA']
+            return run_function
         return get_functions()[self.name.upper()]
 
     def set_expr(self, *tokens):
@@ -107,15 +108,44 @@ _re_lambda = regex.compile(r'''
 )?
 \s*\)(?P<call>\()?
 |
-^\s*(?P<name>_XLETA\.)(?P<fun>[[:alpha:]_\\]+[[:alnum:]\.\_\\]*)
+^\s*(?P<name>_XLETA\.)(?P<leta>[[:alpha:]_\\]+[[:alnum:]\.\_\\]*)
 ''', regex.IGNORECASE | regex.X)
+
+
+class LambdaFunction(functools.partial):
+    def __new__(cls, __func, *args, **kwargs):
+        return super(LambdaFunction, cls).__new__(
+            cls, wrap_func(__func), *args, **kwargs
+        )
+
+    def __repr__(self):
+        from formulas.functions import Error
+        return Error.errors['#VALUE!']
+
+    def __call__(self, *args, **kwargs):
+        if callable(self.func):
+            return super().__call__(*args, **kwargs)
+        from formulas.functions import Error
+        raise FoundError(err=Error.errors['#NAME?'])
+
+
+class LetaFunction(LambdaFunction):
+    pass
+
+
+@wrap_func
+def run_function(fun, *args, **kwargs):
+    if callable(fun):
+        return fun(*args, **kwargs)
+    from formulas.functions import Error
+    raise FoundError(err=Error.errors['#NAME?'])
 
 
 class Lambda(Function):
     _re = _re_lambda
 
     def _process(self, attr, match, context=None, parser=None):
-        if 'fun' in attr:
+        if 'leta' in attr:
             return attr
         tokens = []
         vars = []
@@ -181,7 +211,7 @@ class Lambda(Function):
 
     def _ast(self, tokens, stack, builder):
         fake = tokens[-2:]
-        if self.has_fun:
+        if self.has_leta:
             tokens.pop()
             Parenthesis(')').ast(fake, stack, builder)
         else:
@@ -197,23 +227,28 @@ class Lambda(Function):
             tokens.extend(func['tokens'])
 
     def compile(self):
-        from formulas.functions import get_functions
-        _functions = get_functions()
-        _lambda = _functions['LAMBDA']
-        if self.has_fun:
-            func = _functions[self.get_fun.upper()]
+        if self.has_leta:
+            from formulas.functions import get_functions
+            func = get_functions()[self.get_leta.upper()]
             if isinstance(func, dict):
                 func = func.copy()
                 func['function'] = functools.partial(
-                    _lambda, func['function'], wrapper=True
+                    LetaFunction, func['function']
                 )
                 return func
-            return functools.partial(_lambda, func, wrapper=True)
+            return functools.partial(LetaFunction, func)
         else:
             attr = self.get_func
             func = attr['calculation'].compile()
             if self.has_let:
                 return func
+            for x in attr['vars']:
+                func.inputs.pop(x, None)
+                func.inputs[x] = None
+
+            if self.has_call:
+                return wrap_func(func)
+            return functools.partial(LambdaFunction, func)
 
             for x in attr['vars']:
                 func.inputs.pop(x, None)
@@ -222,8 +257,8 @@ class Lambda(Function):
 
     def set_expr(self, *tokens):
         func = self.name.upper()
-        if self.has_fun:
-            func = f"{func}{self.get_fun.upper()}"
+        if self.has_leta:
+            func = f"{func}{self.get_leta.upper()}"
         else:
             d = self.get_func
             func = f"{func}({d['expr']}"
