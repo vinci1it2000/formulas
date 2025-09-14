@@ -322,26 +322,317 @@ def to_python(obj):
     if isinstance(obj, np.generic):
         return obj.item()
     elif isinstance(obj, np.ndarray):
+        if any(v != 1 for v in obj.shape):
+            return Error.errors['#VALUE!']
         return obj.ravel()[0]
     return obj
 
 
-def xpivotby(row_fields, col_fields, values, aggfunc):
-    raise_errors(aggfunc)
+def _last_if_tuple(x):
+    return x[-1] if isinstance(x, tuple) else x
+
+
+def map_multiindex_take_last_if_tuple(mi):
+    """
+    For each label in a (Multi)Index, if that label is a tuple, replace it
+    with its second element. Works for both Index and MultiIndex.
+    """
+    import pandas as pd
+    if isinstance(mi, pd.MultiIndex):
+        new_tuples = [
+            tuple(_last_if_tuple(v) for v in tup)
+            for tup in mi.to_list()
+        ]
+        return pd.MultiIndex.from_tuples(new_tuples, names=mi.names)
+    else:
+        return mi.map(_last_if_tuple)
+
+
+def xpivotby(
+        row_fields, col_fields, values, aggfunc, field_headers=None,
+        row_total_depth=None, row_sort_order=1, col_total_depth=None,
+        col_sort_order=1, filter_array=None, relative_to=0):
+    raise_errors(
+        aggfunc, field_headers, row_total_depth, row_sort_order,
+        col_total_depth, col_sort_order, relative_to
+    )
+    values = np.atleast_2d(values)
+    row_fields = np.atleast_2d(row_fields)
+    col_fields = np.atleast_2d(col_fields)
+    if not (values.shape[0] == row_fields.shape[0] == col_fields.shape[0]):
+        return Error.errors['#VALUE!']
+
+    if field_headers is None:
+        if _get_type_id(values.ravel()[0]) == 1:
+            field_headers = 1
+        else:
+            field_headers = 0
+
+        if (row_fields.shape[1] > 1 or values.shape[1] > 1
+                or col_fields.shape[1] > 1
+        ):
+            field_headers += 2
+
+    if row_total_depth is None:
+        row_total_depth = row_fields.shape[1]
+    if col_total_depth is None:
+        col_total_depth = col_fields.shape[1]
+
+    add_totalset = False
+    try:
+        raise_errors(to_python(aggfunc([1, 2])))
+        agg = lambda s, *args: '' if (s == '').all() else to_python(
+            aggfunc(s)
+        )
+    except Exception:
+        if get_error(to_python(aggfunc([1, 1], [1, 1]))):
+            agg = lambda s, *args: '' if (s == '').all() else Error.errors[
+                '#VALUE!'
+            ]
+        else:
+            agg = lambda s, *args: '' if (s == '').all() else to_python(
+                aggfunc(s, *args)
+            )
+            add_totalset = True
+
     import pandas as pd
     parse = args_parser_typed_array
-    df = pd.pivot_table(pd.DataFrame({
-        'r': list(map(tuple, parse(np.asarray(row_fields).ravel())[0])),
-        'c': list(map(tuple, parse(np.asarray(col_fields).ravel())[0])),
-        'v': np.asarray(values).ravel()
-    }), index='r', columns='c', values='v', aggfunc=aggfunc,
-        fill_value='', margins=True, margins_name='Total'
+    data = {}
+    pivot = {}
+    has_headers = field_headers in (1, 3)
+
+    for k, it in {
+        'Row Field': row_fields,
+        'Column Field': col_fields,
+        'Value': values
+    }.items():
+        for i, v in enumerate(it.T, 1):
+            i = f'{k} {i}'
+            if k != 'Value':
+                v = list(map(tuple, parse(v)[0]))
+                j = v[0][1] if has_headers else i
+            else:
+                j = v[0] if has_headers else i
+            sh.get_nested_dicts(
+                pivot, k, default=collections.OrderedDict
+            )[i] = j
+            data[i] = v[int(has_headers):]
+
+    data = pd.DataFrame(data)
+    if filter_array is not None:
+        filter_array = replace_empty(filter_array)
+        filter_array = np.atleast_2d(filter_array)[int(has_headers):, 0]
+        b = _vect_get_type_id(filter_array)
+        if not np.isin(b, (0, 2)).all():
+            raise FoundError(err=Error.errors['#VALUE!'])
+        data = data.iloc[filter_array.astype(bool).ravel(), :]
+    df = []
+    rows = list(pivot['Row Field'])
+    cols = list(pivot['Column Field'])
+    values = list(pivot['Value'])
+    totalset = None
+
+    col_sort_order = np.asarray(col_sort_order, dtype=int).ravel()
+    abs_col = set(np.abs(col_sort_order))
+    sort_col_by_value = False
+    remove_row_total_depth = False
+    if col_sort_order.size == 1 and abs(col_sort_order.item()) == len(cols) + 1:
+        sort_col_by_value = True
+        col_sort_order = {cols[-1]} if col_sort_order.item() < 0 else set()
+        if not row_total_depth:
+            row_total_depth = 1
+            remove_row_total_depth = True
+    elif len(abs_col) != col_sort_order.size or abs_col - set(
+            range(1, len(cols) + 1)
+    ):
+        raise FoundError(err=Error.errors['#VALUE!'])
+    else:
+        col_sort_order = {cols[i] for i in (
+                -col_sort_order[col_sort_order < 0] - 1
+        )}
+
+    row_sort_order = np.asarray(row_sort_order).ravel()
+    abs_row = set(np.abs(row_sort_order))
+    sort_row_by_value = False
+    remove_col_total_depth = False
+    if row_sort_order.size == 1 and abs(row_sort_order.item()) == len(rows) + 1:
+        sort_row_by_value = True
+        row_sort_order = {rows[-1]} if row_sort_order.item() < 0 else set()
+        if not col_total_depth:
+            col_total_depth = 1
+            remove_col_total_depth = True
+    elif len(abs_row) != row_sort_order.size or abs_row - set(
+            range(1, len(rows) + 1)
+    ):
+        raise FoundError(err=Error.errors['#VALUE!'])
+    else:
+        row_sort_order = {rows[i] for i in (
+                -row_sort_order[row_sort_order < 0] - 1
+        ).astype(int)}
+    for value in values:
+        if add_totalset:
+            if relative_to in (3, 4):
+                _totalset = {}
+                for i in range(0, len(cols) + 1):
+                    for j in range(0, len(rows) + 1):
+                        keys = cols[:i] + rows[:j]
+                        dat = data[[value] + keys]
+                        if keys:
+                            for k, v in dat.groupby(keys).groups.items():
+                                k = (k,) if len(keys) == 1 else k
+                                _totalset[(k[:i], k[i:])] = dat.loc[
+                                    v, value
+                                ].values
+                        else:
+                            _totalset[((), ())] = dat.values
+            elif relative_to == 2:  # 2: Grand Totals
+                totalset = data[[value]].values
+            else:
+                _totalset = {(): data[[value]].values}
+        it_c = sorted(
+            set(list(range(0, int(abs(col_total_depth)))) + [len(cols)]))
+        it_r = sorted(
+            set(list(range(0, int(abs(row_total_depth)))) + [len(rows)]))
+        for i in it_c:
+            if add_totalset and relative_to == 0 and i:  # 0: Column Totals(Default)
+                _totalset = {
+                    k: v[[value]].values for k, v in
+                    data[[value] + cols[:i]].groupby(cols[:i])
+                }
+                _totalset[()] = data[[value]].values
+            for j in it_r:
+                if add_totalset and relative_to == 1 and j:  # 1: Row Totals
+                    _totalset = {
+                        k: v[[value]].values
+                        for k, v in data[[value] + rows[:j]].groupby(
+                            rows[:j]
+                        )
+                    }
+                    _totalset[()] = data[[value]].values
+
+                keys = cols[:i] + rows[:j]
+                dat = data[[value] + keys]
+
+                if keys:
+                    it = ((
+                        (k,) if len(keys) == 1 else k,
+                        dat.loc[v, value].values
+                    ) for k, v in dat.groupby(keys).groups.items())
+                else:
+                    it = [((), dat.values)]
+                for k, v in it:
+                    if add_totalset:
+                        if relative_to == 0:
+                            totalset = _totalset[k[:i]]
+                        elif relative_to == 1:
+                            totalset = _totalset[k[i:]]
+                        elif relative_to == 3:  # 3: Parent Col Total
+                            totalset = _totalset[(k[:max(i - 1, 0)], k[i:])]
+                        elif relative_to == 4:  # 4: Parent Row Total
+                            totalset = _totalset[
+                                (k[:i], (k[i:-1] if j > 1 else ()))
+                            ]
+
+                    v = agg(v, totalset)
+                    df.append({
+                        'Value': value, 'agg': v, **sh.map_list(keys, *k)
+                    })
+
+    df = pd.DataFrame(df)
+
+    tot_row_key = (
+        -50 if row_total_depth < 0 else 50,
+        f'{"Grand " if abs(row_total_depth) > 1 else ""}Total'
     )
-    df.index = [v[1] if isinstance(v, tuple) else v for v in df.index]
-    df.index.name = ''
-    df.columns = [v[1] if isinstance(v, tuple) else v for v in df.columns]
+    tot_col_key = (
+        -50 if col_total_depth < 0 else 50,
+        f'{"Grand " if abs(col_total_depth) > 1 else ""}Total'
+    )
+
+    for i in rows:
+        neg = (-1 if i in row_sort_order else 1)
+        tot_key = neg * tot_row_key[0], tot_row_key[1]
+        df[i] = df[i].map(lambda x: tot_key if pd.isna(x) else x)
+        tot_row_key = tot_row_key[0], ''
+    for i in cols:
+        neg = (-1 if i in col_sort_order else 1)
+        tot_key = neg * tot_col_key[0], tot_col_key[1]
+        df[i] = df[i].map(lambda x: tot_col_key if pd.isna(x) else x)
+        tot_col_key = tot_col_key[0], ''
+
+    with pd.option_context("future.no_silent_downcasting", True):
+        df = pd.pivot_table(
+            df, index=rows, columns=cols + ['Value'], values='agg',
+            aggfunc=lambda x: x, fill_value='', sort=False
+        )
+    if sort_row_by_value:
+        b = np.asarray([
+            abs(x[0]) == 50 for x in df.columns.get_level_values(cols[0])
+        ])
+        df['sort'] = [
+            (i[0] if abs(i[0]) == 50 else 0, v, i) for v, i in zip(
+                df.iloc[:, b].values.ravel(),
+                df.index.get_level_values(rows[-1])
+            )
+        ]
+        df.sort_values(by=rows[:-1] + ['sort'], ascending=[
+            k not in row_sort_order for k in rows
+        ], axis=0, inplace=True)
+        df.drop('sort', axis=1, inplace=True)
+        if remove_col_total_depth:
+            df = df.iloc[:, ~b]
+    else:
+        df.sort_values(axis=0, by=rows, ascending=[
+            k not in row_sort_order for k in rows
+        ], inplace=True)
+    if sort_col_by_value:
+        b = np.asarray([
+            abs(x[0]) == 50 for x in df.index.get_level_values(rows[0])
+        ])
+        v = [(i[0] if abs(i[0]) == 50 else 0, v, i) for v, i in zip(
+            df.iloc[b].values.ravel(),
+            df.columns.get_level_values(cols[-1])
+        )]
+        df = df.T
+        df['sort'] = v
+        df = df.T
+        df.sort_values(by=cols[:-1] + ['sort', 'Value'], ascending=[
+            k not in col_sort_order for k in cols + ['Value']
+        ], axis=1, inplace=True)
+        df.drop('sort', axis=0, inplace=True)
+        if remove_row_total_depth:
+            df = df.iloc[~b, :]
+
+    else:
+        df.sort_values(axis=1, by=cols + ['Value'], ascending=[
+            k not in col_sort_order for k in (cols + ['Value'])
+        ], inplace=True)
+
+    df.columns = df.columns.set_levels(
+        df.columns.levels[-1].map(pivot['Value']), level=-1
+    )
+    df.columns = map_multiindex_take_last_if_tuple(df.columns)
+    df.index = map_multiindex_take_last_if_tuple(df.index)
+
+    columns_names = [
+        pivot['Column Field'].get(k, k) for k in df.columns.names
+    ]
+    columns = df.columns.to_frame().iloc[:, :-1].values.T
+    index_names = [pivot['Row Field'].get(k, k) for k in df.index.names]
+    n = len(index_names)
+    index_names.extend(df.columns.get_level_values(-1))
+
+    df.fillna(value='', inplace=True)
     df.reset_index(inplace=True)
-    return np.vstack((df.columns, df.map(to_python).values)).astype(Array)
+    header = np.empty((len(columns_names) + 1, df.shape[1]), dtype=object)
+    header[:] = ''
+    header[1:-1, n:] = columns
+    if field_headers >= 2:
+        header[0, n] = ', '.join(columns_names[:-1])
+        header[-1] = index_names
+    else:
+        header = header[1:-1]
+    return np.vstack((header, df.map(to_python).values)).view(Array)
 
 
 FUNCTIONS['_XLFN.PIVOTBY'] = FUNCTIONS['PIVOTBY'] = wrap_func(xpivotby)
