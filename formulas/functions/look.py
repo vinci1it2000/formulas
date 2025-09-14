@@ -348,10 +348,10 @@ def map_multiindex_take_last_if_tuple(mi):
         return mi.map(_last_if_tuple)
 
 
-def xpivotby(
+def _xpivotby(
         row_fields, col_fields, values, aggfunc, field_headers=None,
         row_total_depth=None, row_sort_order=1, col_total_depth=None,
-        col_sort_order=1, filter_array=None, relative_to=0):
+        col_sort_order=1, filter_array=None, relative_to=0, _groupby=False):
     raise_errors(
         aggfunc, field_headers, row_total_depth, row_sort_order,
         col_total_depth, col_sort_order, relative_to
@@ -368,9 +368,10 @@ def xpivotby(
         else:
             field_headers = 0
 
-        if (row_fields.shape[1] > 1 or values.shape[1] > 1
+        if (
+                row_fields.shape[1] > 1 or values.shape[1] > 1
                 or col_fields.shape[1] > 1
-        ):
+        ) and not _groupby:
             field_headers += 2
 
     if row_total_depth is None:
@@ -489,10 +490,10 @@ def xpivotby(
                 totalset = data[[value]].values
             else:
                 _totalset = {(): data[[value]].values}
-        it_c = sorted(
-            set(list(range(0, int(abs(col_total_depth)))) + [len(cols)]))
-        it_r = sorted(
-            set(list(range(0, int(abs(row_total_depth)))) + [len(rows)]))
+        it_c = sorted(set(
+            list(range(0, int(abs(col_total_depth)))) + [len(cols)]))
+        it_r = sorted(set(
+            list(range(0, int(abs(row_total_depth)))) + [len(rows)]))
         for i in it_c:
             if add_totalset and relative_to == 0 and i:  # 0: Column Totals(Default)
                 _totalset = {
@@ -628,14 +629,155 @@ def xpivotby(
     header[:] = ''
     header[1:-1, n:] = columns
     if field_headers >= 2:
-        header[0, n] = ', '.join(columns_names[:-1])
+        header[0, n] = ', '.join(map(str, columns_names[:-1]))
         header[-1] = index_names
+        if _groupby:
+            header = header[2:]
+    elif _groupby:
+        header = header[3:-1]
     else:
         header = header[1:-1]
     return np.vstack((header, df.map(to_python).values)).view(Array)
 
 
-FUNCTIONS['_XLFN.PIVOTBY'] = FUNCTIONS['PIVOTBY'] = wrap_func(xpivotby)
+FUNCTIONS['_XLFN.PIVOTBY'] = FUNCTIONS['PIVOTBY'] = wrap_func(functools.partial(
+    _xpivotby, _groupby=False
+))
+
+
+def xgroupby(
+        row_fields, values, aggfunc, field_headers=None, row_total_depth=1,
+        row_sort_order=1, filter_array=None, field_relationship=0
+):
+    values = np.atleast_2d(values)
+    col_fields = np.ones((values.shape[0], 1), dtype=int)
+    return _xpivotby(
+        row_fields, col_fields, values, aggfunc, field_headers=field_headers,
+        row_total_depth=row_total_depth, row_sort_order=row_sort_order,
+        filter_array=filter_array, col_total_depth=0, _groupby=True
+    )
+
+
+FUNCTIONS['_XLFN.GROUPBY'] = FUNCTIONS['GROUPBY'] = wrap_func(xgroupby)
+
+
+def xdrop(array, rows, columns=0):
+    columns = int(_convert2float(columns or 0))
+    if array.shape[0] < abs(rows) or array.shape[1] < abs(columns):
+        raise FoundError(err=Error.errors['#VALUE!'])
+    r = slice(rows, None) if rows >= 0 else slice(rows)
+    c = slice(columns, None) if columns >= 0 else slice(columns)
+    return array[r, c].tolist()
+
+
+def xtake(array, rows, columns=None):
+    if columns is None:
+        columns = array.shape[1]
+    else:
+        columns = int(_convert2float(columns))
+    if columns == 0 or rows == 0:
+        raise FoundError(err=Error.errors['#VALUE!'])
+    r = slice(rows) if rows >= 0 else slice(rows, None)
+    c = slice(columns) if columns >= 0 else slice(columns, None)
+    return array[r, c].tolist()
+
+
+kw_drop = dict(
+    input_parser=lambda arr, rows, columns: (
+        arr, int(_convert2float(rows)), columns
+    ),
+    check_error=lambda arr, rows, columns=None: get_error(rows, columns),
+    args_parser=lambda arr, rows, columns=None: (
+        np.atleast_2d(arr), replace_empty(rows), replace_empty(columns)
+    ), return_func=return_2d_func, check_nan=False, excluded={0}
+)
+FUNCTIONS['_XLFN.DROP'] = FUNCTIONS['DROP'] = wrap_ufunc(xdrop, **kw_drop)
+FUNCTIONS['_XLFN.TAKE'] = FUNCTIONS['TAKE'] = wrap_ufunc(xtake, **kw_drop)
+
+
+def xexpand(array, rows, columns=None, pad_with=Error.errors['#N/A']):
+    r, c = array.shape
+    columns = c if columns is None else int(_convert2float(columns))
+    if r > rows or c > columns:
+        raise FoundError(err=Error.errors['#VALUE!'])
+    res = np.empty((rows, columns), object)
+    res[:, :] = pad_with
+    res[:r, :c] = array
+    return res.tolist()
+
+
+FUNCTIONS['_XLFN.EXPAND'] = FUNCTIONS['EXPAND'] = wrap_ufunc(
+    xexpand, input_parser=lambda arr, rows, columns, pad_with: (
+        arr, int(_convert2float(rows)), columns, pad_with
+    ),
+    check_error=lambda arr, rows, columns, pad_with: get_error(rows, columns),
+    args_parser=lambda arr, rows, columns=None, pad_with=Error.errors['#N/A']: (
+        np.atleast_2d(arr), replace_empty(rows), replace_empty(columns),
+        pad_with
+    ), return_func=return_2d_func, check_nan=False, excluded={0}
+)
+
+
+def xhstack(array, *arrays):
+    arrays = tuple(map(np.atleast_2d, (array,) + arrays))
+    tc = 0
+    tr = 0
+    for arr in arrays:
+        r, c = arr.shape
+        tc += c
+        tr = max(r, tr)
+    res = np.empty((tr, tc), object)
+    res[:, :] = Error.errors['#N/A']
+    tc = 0
+    for arr in arrays:
+        r, c = arr.shape
+        res[:r, tc:tc + c] = arr
+        tc += c
+    return res.view(Array)
+
+
+def xvstack(array, *arrays):
+    return xhstack(*(np.atleast_2d(a).T for a in ((array,) + arrays))).T
+
+
+FUNCTIONS['_XLFN.HSTACK'] = FUNCTIONS['HSTACK'] = wrap_func(xhstack)
+FUNCTIONS['_XLFN.VSTACK'] = FUNCTIONS['VSTACK'] = wrap_func(xvstack)
+
+
+def xwrapcols(array, wrap_count, pad_with, cols=True):
+    if wrap_count <= 0:
+        raise FoundError(err=Error.errors['#NUM!'])
+    i = int(np.ceil(array.size / wrap_count))
+    need = i * wrap_count - array.size
+    if need:
+        array = np.pad(
+            array, (0, need), mode='constant', constant_values=pad_with
+        )
+    array = array.reshape((i, wrap_count))
+    if cols:
+        array = array.T
+    return array.tolist()
+
+
+FUNCTIONS['_XLFN.WRAPROWS'] = FUNCTIONS['WRAPROWS'] = wrap_ufunc(
+    functools.partial(xwrapcols, cols=False),
+    input_parser=lambda arr, wrap_count, pad_with: (
+        arr, int(_convert2float(wrap_count)), pad_with
+    ),
+    check_error=lambda arr, wrap_count, pad_with: get_error(wrap_count),
+    args_parser=lambda arr, wrap_count, pad_with=Error.errors['#N/A']: (
+        np.asarray(arr, object).ravel(), replace_empty(wrap_count), pad_with
+    ), return_func=return_2d_func, check_nan=False, excluded={0}
+)
+FUNCTIONS['_XLFN.WRAPCOLS'] = FUNCTIONS['WRAPCOLS'] = wrap_ufunc(
+    xwrapcols, input_parser=lambda arr, wrap_count, pad_with: (
+        arr, int(_convert2float(wrap_count)), pad_with
+    ),
+    check_error=lambda arr, wrap_count, pad_with: get_error(wrap_count),
+    args_parser=lambda arr, wrap_count, pad_with=Error.errors['#N/A']: (
+        np.asarray(arr, object).ravel(), replace_empty(wrap_count), pad_with
+    ), return_func=return_2d_func, check_nan=False, excluded={0}
+)
 
 
 def xsingle(cell, rng):
