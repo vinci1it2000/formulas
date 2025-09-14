@@ -14,7 +14,6 @@ import numpy as np
 from . import (
     wrap_ufunc, Error, flatten, get_error, wrap_func, XlError, raise_errors
 )
-from ..errors import FoundError
 
 FUNCTIONS = {}
 
@@ -59,22 +58,6 @@ FUNCTIONS['_XLFN.IFS'] = FUNCTIONS['IFS'] = {
     ),
     'solve_cycle': lambda *a: not any(a[::2])
 }
-
-
-class LambdaFunction(functools.partial):
-    def __repr__(self):
-        return Error.errors['#VALUE!']
-
-
-def xlambda(func, *args, wrapper=False):
-    if callable(func):
-        if wrapper:
-            return LambdaFunction(func, *args)
-        return func(*args)
-    raise FoundError(err=Error.errors['#NAME?'])
-
-
-FUNCTIONS['_XLFN.LAMBDA'] = FUNCTIONS['LAMBDA'] = wrap_func(xlambda)
 
 
 def xiferror(val, val_if_error):
