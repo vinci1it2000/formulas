@@ -34,6 +34,7 @@ REF = XlError('#REF!')
 NUM = XlError('#NUM!')
 NAME = XlError('#NAME?')
 NA = XlError('#N/A')
+GETTING_DATA = XlError('#GETTING_DATA')
 
 
 class Operand(Token):
@@ -77,14 +78,15 @@ _re_error = regex.compile(r'''
         |
             '(?>(?>''|[^\?!*\/\[\]':"])+)'
         )!
-    )?(?P<name>\#(?>NULL!|DIV/0!|VALUE!|REF!|NUM!|NAME\?|N/A))\s*
+    )?(?P<name>\#(?>NULL!|DIV/0!|VALUE!|REF!|NUM!|NAME\?|N/A|GETTING_DATA))\s*
 ''', regex.IGNORECASE | regex.X | regex.DOTALL)
 
 
 class Error(Operand):
     _re = _re_error
     errors = collections.OrderedDict(
-        (str(k), k) for k in (NULL, DIV, VALUE, REF, NAME, NUM, NA)
+        (str(k), k) for k in
+        (NULL, DIV, VALUE, REF, NAME, NUM, NA, GETTING_DATA)
     )
 
     def compile(self):
