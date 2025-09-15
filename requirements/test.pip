@@ -5,3 +5,5 @@ ddt
 dill
 openpyxl
 bahttext
+pandas
+statsmodels

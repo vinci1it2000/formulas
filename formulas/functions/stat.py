@@ -466,7 +466,7 @@ def xforecast_ets_stat(
     y_fitted = model.fittedvalues
     if statistic_type == 4:
         num = np.mean(np.abs(y_true - y_fitted))
-        if np.isclose(num, 0):
+        if np.isclose(num, 0, atol=1.e-7):
             return 0
         m = model.model.seasonal_periods or 1
         denom = np.mean(np.abs(y_true[m:] - y_true[:-m]))
