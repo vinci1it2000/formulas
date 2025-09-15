@@ -695,6 +695,45 @@ FUNCTIONS['_XLFN.DROP'] = FUNCTIONS['DROP'] = wrap_ufunc(xdrop, **kw_drop)
 FUNCTIONS['_XLFN.TAKE'] = FUNCTIONS['TAKE'] = wrap_ufunc(xtake, **kw_drop)
 
 
+def xtrimrange(array, trim_rows, trim_cols):
+    b = array == np.array(sh.EMPTY, dtype=object)
+    p = {0: {'i': 0}, 1: {'i': 0}}
+    p[0]['j'], p[1]['j'] = array.shape
+    for axis, trim in ((0, trim_rows), (1, trim_cols)):
+        if trim == 0:
+            pass
+        elif trim in (1, 2, 3):
+            n = np.arange(array.shape[axis])[~b.all(axis=1 if axis == 0 else 0)]
+            if not n.size:
+                raise FoundError(err=Error.errors['#REF!'])
+            if trim in (1, 3):
+                p[axis]['i'] = np.min(n)
+            if trim_rows in (2, 3):
+                p[axis]['j'] = np.max(n) + 1
+        else:
+            raise FoundError(err=Error.errors['#VALUE!'])
+    return array[p[0]['i']:p[0]['j'], p[1]['i']:p[1]['j']].tolist()
+
+
+def return_trimrange_func(res, *args):
+    if not res.shape or res.shape == (1, 1):
+        return return_2d_func(res, *args)
+    return Error.errors['#VALUE!']
+
+
+FUNCTIONS['_XLFN.TRIMRANGE'] = FUNCTIONS['TRIMRANGE'] = wrap_ufunc(
+    xtrimrange, input_parser=lambda arr, trim_rows, trim_cols: (
+        arr, _convert2float(trim_rows), _convert2float(trim_cols)
+    ),
+    check_error=lambda arr, trim_rows=0, trim_cols=0: get_error(
+        trim_rows, trim_cols
+    ),
+    args_parser=lambda arr, trim_rows=0, trim_cols=0: (
+        np.atleast_2d(arr), replace_empty(trim_rows), replace_empty(trim_cols)
+    ), return_func=return_trimrange_func, check_nan=False, excluded={0}
+)
+
+
 def xexpand(array, rows, columns=None, pad_with=Error.errors['#N/A']):
     r, c = array.shape
     columns = c if columns is None else int(_convert2float(columns))
