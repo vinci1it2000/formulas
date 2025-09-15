@@ -140,6 +140,7 @@ class AstBuilder:
                         i[k] = None
         dsp.raises = True
         dsp.nodes[o]['filters'] = _default_filter()
+        func_id = o if 'error' in self.match else '=%s' % o
         return self.compile_class(
-            dsp, '=%s' % o, i, [o], wildcard=False, shrink=False
+            dsp, func_id, i, [o], wildcard=False, shrink=False
         )

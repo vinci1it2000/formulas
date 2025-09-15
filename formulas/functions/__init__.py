@@ -44,6 +44,7 @@ from formulas.errors import (
 from formulas.tokens.operand import Error, XlError
 
 COMPILING = sh.Token('Run')
+DSP = sh.Token('Dsp')
 
 
 def get_shape(r=1, c=1):

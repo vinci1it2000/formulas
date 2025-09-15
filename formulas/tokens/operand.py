@@ -67,7 +67,7 @@ class Empty(Operand):
 
 
 _re_error = regex.compile(r'''
-    ^\s*(?>
+    ^\s*(?P<error>(?>
         (?>
             '(\[(?>[^\[\]]+)\])?
             (?>(?>''|[^\?!*\/\[\]':"])+)?'
@@ -78,7 +78,7 @@ _re_error = regex.compile(r'''
         |
             '(?>(?>''|[^\?!*\/\[\]':"])+)'
         )!
-    )?(?P<name>\#(?>NULL!|DIV/0!|VALUE!|REF!|NUM!|NAME\?|N/A|GETTING_DATA))\s*
+    )?(?P<name>\#(?>NULL!|DIV/0!|VALUE!|REF!|NUM!|NAME\?|N/A|GETTING_DATA)))\s*
 ''', regex.IGNORECASE | regex.X | regex.DOTALL)
 
 

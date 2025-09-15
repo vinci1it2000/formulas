@@ -9,7 +9,6 @@
 """
 It provides Cell class.
 """
-import copy
 import collections
 import functools
 import numpy as np
@@ -17,7 +16,7 @@ import schedula as sh
 from .parser import Parser
 from .ranges import Ranges, _assemble_values, _shape, _get_indices_intersection
 from .tokens.operand import Error, XlError, range2parts, _re_ref, _index2col
-from .functions import replace_empty
+from .functions import replace_empty, DSP
 
 CELL = sh.Token('Cell')
 
@@ -126,6 +125,8 @@ class Cell:
         for k, rng in self.func.inputs.items():
             if k in references or rng is sh.NONE:
                 get(inp, k, default=list).append(k)
+            elif k is DSP:
+                get(inp, sh.SELF, default=list).append(DSP)
             else:
                 try:
                     for r in rng.ranges:
@@ -287,8 +288,8 @@ class RangesAssembler:
 
     def __call__(self, *cells):
         base = self.range.ranges[0]
+        out = np.empty(_shape(**base), object)
         if sh.SELF in self.inputs:
-            out = np.empty(_shape(**base), object)
             out[:] = sh.EMPTY
             ists = self.inputs[sh.SELF]
             sol = cells[-1].solution
@@ -302,8 +303,6 @@ class RangesAssembler:
                     if isinstance(sol[n], Ranges):
                         v = v.value
                     out[i, j] = v
-        else:
-            out = np.empty(_shape(**base), object)
         for c, ind in zip(cells, self.inputs.values()):
             if ind:
                 out[ind[0], ind[1]] = c.value
