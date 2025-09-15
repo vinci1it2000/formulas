@@ -2,6 +2,66 @@ Changelog
 =========
 
 
+v1.3.1 (2025-09-15)
+-------------------
+
+Feat
+~~~~
+- (test): Update all test cases.
+
+- (logic): Add `MAKEARRAY`, `BYCOL`, `BYROW`, `REDUCE`, `SCAN`, `MAP`.
+
+- (info): Add `ERROR.TYPE`, `ISREF`, `N`, `TYPE`, `ISFORMULA`.
+
+- (look): Add `TRIMRANGE`.
+
+- (look): Add `GROUPBY`, `DROP`, `TAKE`, `EXPAND`, `HSTACK`, `VSTACK`,
+  `WRAPROWS`, `WRAPCOLS`.
+
+- (operand): Add new error `#GETTING_DATA`.
+
+- (logic): Remove unused functions.
+
+- (math): Add `PERCENTOF`.
+
+- (tokens): Add function _xleta type.
+
+- (tokens): Implement parser logic for complex LAMBDA function calls.
+
+- (look): Add `UNIQUE`, `SORT`, `SORTBY`, `PIVOTBY` functions.
+
+- (logic): Add `LAMBDA`, `LET` functions.
+
+- (look): Add `AREAS`, `COLUMNS`, `ROWS`, `CHOOSE`, `CHOOSECOLS`,
+  `CHOOSEROWS`, `TOCOL`, `TOROW`.
+
+- (excel): Change order of compare results.
+
+- (look): Add `XMATCH` and `XLOOKUP`.
+
+- (functions): Add `SKEW.P`, `SKEW`, `MODE.SNGL`, `MODE.MULT`, `KURT`,
+  `HARMEAN`, `GEOMEAN`, `DEVSQ`, `AVEDEV`, `INTERCEPT`,
+  `FORECAST.ETS.STAT`, `FORECAST.ETS.SEASONALITY`,
+  `FORECAST.ETS.CONFINT`, `FORECAST.ETS`, `WEIBULL.DIST`,
+  `LOGNORM.DIST`, `LOGNORM.INV`, `BETA.DIST`, `BETA.INV`,
+  `NEGBINOM.DIST`, `BINOM.DIST`, `BINOM.DIST.RANGE`, `BINOM.INV`,
+  `CHISQ.DIST`, `CHISQ.INV`, `CHISQ.DIST.RT`, `CHISQ.INV.RT`,
+  `CHISQ.TEST`, `CONFIDENCE.NORM`, `CONFIDENCE.T`, `COVARIANCE.P`,
+  `COVARIANCE.S`, `F.DIST`, `F.INV`, `F.DIST.RT`, `F.INV.RT`, `F.TEST`,
+  `T.DIST`, `T.INV`, `T.DIST.2T`, `T.DIST.RT`, `T.INV.2T`, `T.TEST`,
+  `EXPON.DIST`, `POISSON.DIST`, `FISHER`, `FISHERINV`, `PHI`, `GAMMA`,
+  `GAMMA.DIST`, `GAMMA.INV`, `GAMMALN.PRECISE`, `GAMMALN`, `GAUSS`,
+  `HYPGEOM.DIST`, `PEARSON`, `PERCENTRANK.EXC`, `PERCENTRANK.INC`,
+  `PERMUT`, `PERMUTATIONA`, `RANK.EQ`, `RANK.AVG`, `RSQ`, `STEYX`,
+  `STANDARDIZE`, `TRIMMEAN`, `Z.TEST`, `FREQUENCY`, `PROB`, `LINEST`,
+  `LOGEST`, `TREND`, `GROWTH`.
+
+
+Fix
+~~~
+- (look): Implement missing functionalities of `PIVOTBY`.
+
+
 v1.3.0 (2025-08-20)
 -------------------
 
