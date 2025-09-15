@@ -12,7 +12,8 @@ Python equivalents of logical Excel functions.
 import functools
 import numpy as np
 from . import (
-    wrap_ufunc, Error, flatten, get_error, wrap_func, XlError, raise_errors
+    wrap_ufunc, Error, flatten, get_error, wrap_func, XlError, raise_errors,
+    Array, replace_empty, _convert2float, return_2d_func
 )
 
 FUNCTIONS = {}
@@ -127,6 +128,92 @@ FUNCTIONS['_XLFN.XOR'] = FUNCTIONS['XOR'] = {'function': wrap_func(
 FUNCTIONS['NOT'] = {'function': wrap_ufunc(
     np.logical_not, input_parser=lambda *a: a,
 )}
+
+
+def _get_first(v):
+    if isinstance(v, np.ndarray):
+        return v.ravel()[0]
+    return v
+
+
+def xbycol(array, func, axis=0):
+    array = np.atleast_2d(array)
+    if axis == 0:
+        array = array.T
+    res = np.asarray([[_get_first(func(v)) for v in array]], object)
+    if axis == 1:
+        res = res.T
+    return res.view(Array)
+
+
+FUNCTIONS['_XLFN.BYCOL'] = FUNCTIONS['BYCOL'] = wrap_func(
+    functools.partial(xbycol, axis=0)
+)
+FUNCTIONS['_XLFN.BYROW'] = FUNCTIONS['BYROW'] = wrap_func(
+    functools.partial(xbycol, axis=1)
+)
+
+
+def xmakearray(rows, cols, func):
+    if rows.is_integer() and cols.is_integer() and rows >= 1 and cols >= 1:
+        return np.asarray([[
+            _get_first(func(r, c)) for c in np.arange(cols) + 1
+        ] for r in np.arange(rows) + 1], object).tolist()
+    return [[Error.errors['#VALUE!']]]
+
+
+FUNCTIONS['_XLFN.MAKEARRAY'] = FUNCTIONS['MAKEARRAY'] = wrap_ufunc(
+    xmakearray, input_parser=lambda rows, columns, func: (
+        float(_convert2float(rows)), float(_convert2float(columns)), func
+    ),
+    check_error=lambda rows, columns, func: get_error(rows, columns, func),
+    args_parser=lambda rows, columns, func: (
+        replace_empty(rows), replace_empty(columns), func
+    ), return_func=return_2d_func, check_nan=False, excluded={2}
+)
+
+FUNCTIONS['_XLFN.REDUCE'] = FUNCTIONS['REDUCE'] = wrap_ufunc(
+    functools.reduce, input_parser=lambda initial_value, array, func: (
+        func, array, initial_value
+    ),
+    check_error=lambda initial_value, array, func: get_error(func),
+    args_parser=lambda initial_value, array, func: (
+        replace_empty(initial_value), list(flatten(array, None)), func
+    ), return_func=return_2d_func, check_nan=False, excluded={1, 2}
+)
+
+
+def xscan(initial_value, array, func):
+    array = np.atleast_2d(array)
+    out = []
+    acc = replace_empty(initial_value)
+    for x in flatten(array, None):
+        acc = func(acc, x)
+        out.append(_get_first(acc))
+    return np.asarray(out).reshape(array.shape).view(Array)
+
+
+FUNCTIONS['_XLFN.SCAN'] = FUNCTIONS['SCAN'] = wrap_func(xscan)
+
+
+def xmap(array, func, *arrays):
+    if arrays:
+        arrays = (func,) + arrays
+        func = arrays[-1]
+        arrays = arrays[:-1]
+
+    array = np.atleast_2d(array)
+    shape = array.shape
+    arrays = [array] + [np.atleast_2d(v) for v in arrays]
+    if not all(shape == v.shape for v in arrays):
+        return np.asarray([[Error.errors['#VALUE!']]]).view(Array)
+    out = []
+    for args in zip(*(flatten(v, None) for v in arrays)):
+        out.append(_get_first(func(*args)))
+    return np.asarray(out).reshape(array.shape).view(Array)
+
+
+FUNCTIONS['_XLFN.MAP'] = FUNCTIONS['MAP'] = wrap_func(xmap)
 
 
 def _true():
