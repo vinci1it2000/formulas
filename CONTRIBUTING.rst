@@ -26,6 +26,11 @@ The first step to contribute to **formulas** is to clone the repository:
 - If you created your fork a while ago be sure to pull ``upstream`` changes into
   your local repository.
 - Create a new branch to work on! Branch from ``dev``.
+- Install dependencies using `uv <https://docs.astral.sh/uv/>`_:
+
+  .. code-block:: console
+
+      $ uv sync --all-extras
 
 How to implement a new function
 -------------------------------
@@ -50,7 +55,7 @@ functions) and run the ``test_excel/TestExcelModel.test_excel_model``. This
 requires more time but is needed to test the **array syntax** and to check if
 the Excel documentation respects the reality.
 
-When all test cases are ok (``python setup.py test``), open a pull request.
+When all test cases are ok (``uv run pytest test/``), open a pull request.
 
 Do do list:
 

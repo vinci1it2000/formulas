@@ -22,6 +22,7 @@ Sub-Modules:
     ~operator
     ~parenthesis
 """
+
 from ..errors import TokenError
 
 
@@ -49,20 +50,22 @@ class Token:
 
     @property
     def name(self):
-        return self.attr.get('name', '')
+        return self.attr.get("name", "")
 
     def set_expr(self, *tokens):
-        self.attr['expr'] = self.name
+        self.attr["expr"] = self.name
 
     def __getattr__(self, item):
-        if item.startswith('has_'):
+        if item.startswith("has_"):
             return item[4:] in self.attr
-        elif item.startswith('get_'):
+        elif item.startswith("get_"):
             return self.attr[item[4:]]
-        return super(Token, self).__getattr__(item)
+        raise AttributeError(
+            f"'{type(self).__name__}' object has no attribute '{item}'"
+        )
 
     def __repr__(self):
-        return '{} <{}>'.format(self.name, self.__class__.__name__)
+        return f"{self.name} <{self.__class__.__name__}>"
 
     def process(self, match, context=None, parser=None):
         return {k: v for k, v in match.groupdict().items() if v is not None}

@@ -15,7 +15,7 @@ class BaseError(Exception):
     msg = ''
 
     def __init__(self, *args):
-        super(BaseError, self).__init__(self.msg, *args)
+        super().__init__(self.msg, *args)
 
 
 class FoundError(BaseError):

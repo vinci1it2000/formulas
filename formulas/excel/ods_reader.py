@@ -1,6 +1,7 @@
-import regex
-import ezodf
 import os.path as osp
+
+import ezodf
+import regex
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook.defined_name import DefinedName
@@ -11,11 +12,10 @@ _of_prefix = regex.compile(r"^\s*of:(?==)")
 
 _re_clean = regex.compile(
     r'"[^"]*"(*SKIP)(*F)|\.(?=(\$?[A-Z]+\$?\d+|#))|\$\$(?=[_A-Z])|COM\.MICROSOFT\.|LEGACY\.',
-    regex.IGNORECASE
+    regex.IGNORECASE,
 )
 _re_replace = regex.compile(
-    r'"[^"]*"(*SKIP)(*F)|(?<=[A-Z0-9\'])\.(?=(\$?[A-Z]+\$?\d+|#))',
-    regex.IGNORECASE
+    r'"[^"]*"(*SKIP)(*F)|(?<=[A-Z0-9\'])\.(?=(\$?[A-Z]+\$?\d+|#))', regex.IGNORECASE
 )
 _external_link = regex.compile(
     r"('file:[^']*')#(?:\$?([^!]+)!)?",
@@ -41,8 +41,7 @@ def _external_link_to_excel(string, links):
 
 def _odf_range_to_excel(addr: str) -> str:
     return _range_same_sheet.sub(
-        r"\g<sheet>!\g<left>:\g<right>",
-        _re_clean.sub('', _re_replace.sub('!', addr))
+        r"\g<sheet>!\g<left>:\g<right>", _re_clean.sub("", _re_replace.sub("!", addr))
     )
 
 
@@ -58,7 +57,7 @@ def replace_semicolon_outside_quotes(expr: str) -> str:
             result.append(ch)
             in_quotes = not in_quotes
         elif not in_array and (
-                (ch == "{" and not in_quotes) or (ch == "}" and in_quotes)
+            (ch == "{" and not in_quotes) or (ch == "}" and in_quotes)
         ):
             result.append(ch)
             in_array = not in_array
@@ -81,23 +80,24 @@ def translate_odf_formula_to_excel(odf_formula: str, links: dict) -> str:
     to an Excel formula like:
       '=SUM(Sheet!A1:A10)'
     """
-    if odf_formula:
-        # drop of:=
-        expr = _of_prefix.sub('', odf_formula)
+    if not odf_formula:
+        return ""
+    # drop of:=
+    expr = _of_prefix.sub("", odf_formula)
 
-        # Replace argument separators ';' -> ',' (common in ODF locales)
-        # This is heuristic; if your locale already uses ',', this is harmless.
-        expr = replace_semicolon_outside_quotes(expr)
+    # Replace argument separators ';' -> ',' (common in ODF locales)
+    # This is heuristic; if your locale already uses ',', this is harmless.
+    expr = replace_semicolon_outside_quotes(expr)
 
-        # Replace each bracketed reference [ ... ] with an Excel-style ref
-        def _sub(m):
-            return _odf_range_to_excel(m.group(1))
+    # Replace each bracketed reference [ ... ] with an Excel-style ref
+    def _sub(m):
+        return _odf_range_to_excel(m.group(1))
 
-        expr = _bracket_ref.sub(_sub, expr)
-        expr = _re_replace.sub('!', expr)
-        expr = _external_link_to_excel(_re_clean.sub('', expr), links)
+    expr = _bracket_ref.sub(_sub, expr)
+    expr = _re_replace.sub("!", expr)
+    expr = _external_link_to_excel(_re_clean.sub("", expr), links)
 
-        return expr
+    return expr
 
 
 def ods_to_xlsx(ods_path: str, data_only=False, **kwargs):
@@ -106,7 +106,9 @@ def ods_to_xlsx(ods_path: str, data_only=False, **kwargs):
     named ranges/expressions, and (optionally) database ranges as Excel Tables.
     """
     from ezodf.xmlns import CN
+
     from . import _decode_path, _encode_path
+
     doc = ezodf.opendoc(ods_path)
     wb = Workbook()
     # remove default first sheet; we'll add sheets according to ODS order
@@ -115,45 +117,42 @@ def ods_to_xlsx(ods_path: str, data_only=False, **kwargs):
     basedir = osp.dirname(ods_path)
     links = {}
     for sheet in doc.sheets:
-        src = sheet.xmlnode.find(CN('table:table-source'))
+        src = sheet.xmlnode.find(CN("table:table-source"))
         if src is not None:
-            fdir, fname = osp.split(osp.relpath(osp.realpath(osp.join(
-                ods_path, _decode_path(src.get(CN('xlink:href')))
-            )), basedir))
-            links[sheet.name.split('#')[0]] = _encode_path(osp.join(
-                fdir, f'[{fname}]'
-            ))
+            fdir, fname = osp.split(
+                osp.relpath(
+                    osp.realpath(
+                        osp.join(ods_path, _decode_path(src.get(CN("xlink:href"))))
+                    ),
+                    basedir,
+                )
+            )
+            links[sheet.name.split("#")[0]] = _encode_path(osp.join(fdir, f"[{fname}]"))
 
     # --- build a map of sheet name -> openpyxl worksheet ---
 
     for sheet in doc.sheets:
         sn = sheet.name
-        if sheet.xmlnode.find(CN('table:table-source')) is not None:
+        if sheet.xmlnode.find(CN("table:table-source")) is not None:
             continue
         ws = wb.create_sheet(title=sn)
 
         for irow, row in enumerate(sheet.rows(), 1):
             for icol, cell in enumerate(row, 1):
                 if cell.formula and not data_only:
-                    value = translate_odf_formula_to_excel(
-                        cell.formula, links
-                    )
-                    rows = cell.xmlnode.get(
-                        CN('table:number-matrix-rows-spanned')
-                    )
-                    cols = cell.xmlnode.get(
-                        CN('table:number-matrix-columns-spanned')
-                    )
+                    value = translate_odf_formula_to_excel(cell.formula, links)
+                    rows = cell.xmlnode.get(CN("table:number-matrix-rows-spanned"))
+                    cols = cell.xmlnode.get(CN("table:number-matrix-columns-spanned"))
                     if rows or cols:
                         end_row = irow + int(rows or 1) - 1
                         end_col = icol + int(cols or 1) - 1
                         value = ArrayFormula(
                             f"{get_column_letter(icol)}{irow}:{get_column_letter(end_col)}{end_row}",
-                            value
+                            value,
                         )
-                elif cell.display_form == 'Err:502':
-                    value = '#N/A'
-                elif cell.value_type == 'error':
+                elif cell.display_form == "Err:502":
+                    value = "#N/A"
+                elif cell.value_type == "error":
                     value = cell.display_form
                 else:
                     value = cell.value
@@ -165,7 +164,7 @@ def ods_to_xlsx(ods_path: str, data_only=False, **kwargs):
                             start_row=irow,
                             start_column=icol,
                             end_row=irow + cell.span[0] - 1,
-                            end_column=icol + cell.span[1] - 1
+                            end_column=icol + cell.span[1] - 1,
                         )
 
     for block in doc.body.findall(CN("table:named-expressions")):
@@ -174,12 +173,8 @@ def ods_to_xlsx(ods_path: str, data_only=False, **kwargs):
             name = nr.get_attr(CN("table:name"))
             addr = nr.get_attr(CN("table:cell-range-address"))
             if name and addr:
-                excel_ref = _external_link_to_excel(
-                    _odf_range_to_excel(addr), links
-                )
-                wb.defined_names[name] = DefinedName(
-                    name=name, attr_text=excel_ref
-                )
+                excel_ref = _external_link_to_excel(_odf_range_to_excel(addr), links)
+                wb.defined_names[name] = DefinedName(name=name, attr_text=excel_ref)
 
         # Named expressions (<table:named-expression table:expression="of:=...">)
         for ne in block.findall(CN("table:named-expression")):
@@ -188,8 +183,7 @@ def ods_to_xlsx(ods_path: str, data_only=False, **kwargs):
             if name and expr:
                 xl_expr = translate_odf_formula_to_excel(expr, links)
                 wb.defined_names[name] = DefinedName(
-                    name=name,
-                    attr_text=xl_expr[1:] if xl_expr[0] == '=' else xl_expr
+                    name=name, attr_text=xl_expr[1:] if xl_expr[0] == "=" else xl_expr
                 )
 
     return wb

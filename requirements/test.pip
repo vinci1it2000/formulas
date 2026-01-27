@@ -1,9 +1,0 @@
--r base.pip
-
-coveralls
-ddt
-dill
-openpyxl
-bahttext
-pandas
-statsmodels

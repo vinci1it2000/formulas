@@ -1,0 +1,141 @@
+[project]
+name = "formulas"
+version = "1.3.3"
+description = "Parse and compile Excel formulas and workbooks in python code."
+readme = "README.rst"
+license = "EUPL-1.1"
+authors = [
+    { name = "Vincenzo Arcidiacono", email = "vinci1it2000@gmail.com" }
+]
+requires-python = ">=3.9"
+keywords = [
+    "python", "utility", "library", "excel", "formulas", "processing",
+    "calculation", "dependencies", "resolution", "scientific",
+    "engineering", "dispatch", "compiling"
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Development Status :: 5 - Production/Stable",
+    "Natural Language :: English",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "regex",
+    "schedula>=1.4.1",
+    "numpy>=1.15",
+    "python-dateutil",
+    "numpy-financial",
+    "scipy",
+    "tqdm",
+    "bahttext>=1.0.2",
+    "statsmodels>=0.14",
+]
+
+[project.optional-dependencies]
+excel = ["openpyxl", "dictdiffer", "ezodf", "lxml"]
+plot = ["graphviz", "regex", "flask", "Pygments", "jinja2", "docutils"]
+all = [
+    "openpyxl", "dictdiffer", "ezodf", "lxml",
+    "graphviz", "regex", "flask", "Pygments", "jinja2", "docutils"
+]
+dev = [
+    "openpyxl", "dictdiffer", "ezodf", "lxml",
+    "graphviz", "regex", "flask", "Pygments", "jinja2", "docutils",
+    "wheel", "sphinx>=7.2", "gitchangelog", "mako", "sphinx_rtd_theme",
+    "setuptools>=36.0.1", "sphinxcontrib-restbuilder", "coveralls", "ddt",
+    "twine"
+]
+test = ["ddt", "dill", "openpyxl", "coverage", "coveralls"]
+
+[project.urls]
+Homepage = "https://github.com/vinci1it2000/formulas"
+Documentation = "http://formulas.readthedocs.io"
+Repository = "https://github.com/vinci1it2000/formulas"
+Issues = "https://github.com/vinci1it2000/formulas/issues"
+Donate = "https://donorbox.org/formulas"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["formulas"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "test",
+    "test.*",
+    "doc",
+    "doc.*",
+    "binder",
+    "requirements",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "ruff",
+    "ty",
+]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "TCH",    # flake8-type-checking
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "E711",   # comparison to None (numpy arrays need == None, not is None)
+    "F632",   # use == for literal comparisons (but identity is intentional here)
+    "B008",   # do not perform function calls in argument defaults
+    "SIM108", # use ternary operator instead of if-else
+    "SIM102", # collapsible-if (style preference)
+    "E741",   # ambiguous variable name (l, O, I) - common in math code
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["formulas"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ty.environment]
+python-version = "3.9"
+
+[tool.ty.rules]
+# Ignore unresolved imports for external dependencies without type stubs
+unresolved-import = "ignore"
+# These are warnings about potentially missing attributes on external libraries
+possibly-missing-attribute = "ignore"
+# Ignore index bounds checks (many false positives with numpy-style indexing)
+index-out-of-bounds = "ignore"
+# Ignore override errors (common with duck typing patterns)
+invalid-method-override = "ignore"

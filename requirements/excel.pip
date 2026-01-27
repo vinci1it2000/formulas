@@ -1,6 +1,0 @@
--r base.pip
-
-openpyxl
-dictdiffer
-ezodf
-lxml

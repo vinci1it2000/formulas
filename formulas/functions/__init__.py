@@ -30,21 +30,28 @@ Sub-Modules:
     ~stat
     ~text
 """
-import re
-import copy
-import importlib
-import functools
+
 import collections
+import copy
+import functools
+import importlib
+import re
+from collections.abc import Iterable
+
 import numpy as np
 import schedula as sh
-from collections.abc import Iterable
+
 from formulas.errors import (
-    RangeValueError, FoundError, BaseError, BroadcastError, InvalidRangeError
+    BaseError,
+    BroadcastError,
+    FoundError,
+    InvalidRangeError,
+    RangeValueError,
 )
 from formulas.tokens.operand import Error, XlError
 
-COMPILING = sh.Token('Run')
-DSP = sh.Token('Dsp')
+COMPILING = sh.Token("Run")
+DSP = sh.Token("Dsp")
 
 
 def get_shape(r=1, c=1):
@@ -55,26 +62,26 @@ def get_shape(r=1, c=1):
 
 def _init_reshape(base_shape, value):
     res = np.empty(base_shape, object)
-    res[:, :] = getattr(value, '_default', Error.errors['#N/A'])
+    res[:, :] = getattr(value, "_default", Error.errors["#N/A"])
     r, c = get_shape(*value.shape)
     if r is None and c is not None and base_shape[0] != 1:
-        value = np.repeat(value[:, :base_shape[1]], base_shape[0], axis=0)
+        value = np.repeat(value[:, : base_shape[1]], base_shape[0], axis=0)
         c = min(base_shape[1], c)
     elif c is None and r is not None and base_shape[1] != 1:
-        value = np.repeat(value[:base_shape[0]], base_shape[1], axis=1)
+        value = np.repeat(value[: base_shape[0]], base_shape[1], axis=1)
         r = min(base_shape[0], r)
     return res, r, c, value
 
 
 class Array(np.ndarray):
-    _default = Error.errors['#N/A']
+    _default = Error.errors["#N/A"]
 
     _collapse_value = None
 
-    def reshape(self, shape, *shapes, order='C'):
+    def reshape(self, shape, *shapes, order="C"):
         try:
             # noinspection PyArgumentList
-            return super(Array, self).reshape(shape, *shapes, order=order)
+            return super().reshape(shape, *shapes, order=order)
         except ValueError:
             res, r, c, val = _init_reshape(shape, self)
             try:
@@ -84,26 +91,24 @@ class Array(np.ndarray):
             return res
 
     def collapse(self, shape):
-        if self._collapse_value is not None and \
-                tuple(shape) == (1, 1) != self.shape:
+        if self._collapse_value is not None and tuple(shape) == (1, 1) != self.shape:
             return self._collapse_value
 
         return np.resize(self, shape)
 
     def __reduce__(self):
-        reduce = super(Array, self).__reduce__()  # Get the parent's __reduce__.
-        state = {
-            '_collapse_value': self._collapse_value,
-            '_default': self._default
-        },  # Additional state params to pass to __setstate__.
-        return reduce[0], reduce[1], reduce[2] + state
+        reduce = super().__reduce__()  # Get the parent's __reduce__.
+        state = (
+            {"_collapse_value": self._collapse_value, "_default": self._default},
+        )  # Additional state params to pass to __setstate__.
+        return reduce[0], reduce[1], reduce[2] + state  # type: ignore[operator]
 
     def __setstate__(self, state, *args, **kwargs):
         self.__dict__.update(state[-1])  # Set the attributes.
-        super(Array, self).__setstate__(state[0:-1], *args, **kwargs)
+        super().__setstate__(state[0:-1], *args, **kwargs)
 
     def __deepcopy__(self, memo=None, *args, **kwargs):
-        obj = super(Array, self).__deepcopy__(memo, *args, **kwargs)
+        obj = super().__deepcopy__(memo, *args, **kwargs)
         # noinspection PyArgumentList
         obj._collapse_value = copy.deepcopy(self._collapse_value, memo)
         # noinspection PyArgumentList
@@ -149,11 +154,11 @@ def wrap_func(func, ranges=False):
         except FoundError as ex:
             return np.asarray([[ex.err]], object)
         except InvalidRangeError:
-            return np.asarray([[Error.errors['#VALUE!']]], object)
+            return np.asarray([[Error.errors["#VALUE!"]]], object)
         except BaseError as ex:
             raise ex
         except Exception:
-            return np.asarray([[Error.errors['#VALUE!']]], object)
+            return np.asarray([[Error.errors["#VALUE!"]]], object)
 
     if not ranges:
         return wrap_ranges_func(functools.update_wrapper(wrapper, func))
@@ -173,19 +178,29 @@ def wrap_ranges_func(func, n_out=1):
 
 def parse_ranges(*args, **kw):
     from ..ranges import Ranges
+
     args = tuple(v.value if isinstance(v, Ranges) else v for v in args)
     kw = {k: v.value if isinstance(v, Ranges) else v for k, v in kw.items()}
     return args, kw
 
 
 SUBMODULES = [
-    '.info', '.logic', '.math', '.stat', '.financial', '.text', '.look', '.eng',
-    '.date', '.comp', '.google'
+    ".info",
+    ".logic",
+    ".math",
+    ".stat",
+    ".financial",
+    ".text",
+    ".look",
+    ".eng",
+    ".date",
+    ".comp",
+    ".google",
 ]
 # noinspection PyDictCreation
 FUNCTIONS = {}
-FUNCTIONS['ARRAY'] = lambda *args: np.asarray(args, object).view(Array)
-FUNCTIONS['ARRAYROW'] = lambda *args: np.asarray(args, object).view(Array)
+FUNCTIONS["ARRAY"] = lambda *args: np.asarray(args, object).view(Array)
+FUNCTIONS["ARRAYROW"] = lambda *args: np.asarray(args, object).view(Array)
 
 
 def get_error(*vals):
@@ -262,7 +277,8 @@ def _text2num(value):
         try:
             return float(value)
         except (ValueError, TypeError):
-            from .date import xdate, _text2datetime
+            from .date import _text2datetime, xdate
+
             try:
                 return xdate(*_text2datetime(value)[:3])
             except (FoundError, AssertionError):
@@ -308,36 +324,51 @@ def _get_single_args(*args):
     for v in args:
         v = tuple(flatten(v, None))
         if len(v) != 1 or isinstance(v[0], bool):
-            raise FoundError(err=Error.errors['#VALUE!'])
+            raise FoundError(err=Error.errors["#VALUE!"])
         res.append(v[0])
     return res
 
 
-_re_condition = re.compile('(?<!~)[?*]')
+_re_condition = re.compile("(?<!~)[?*]")
 
 
 def __xfilter(test_range, condition):
     from .operators import LOGIC_OPERATORS
-    operator = '='
+
+    operator = "="
     if isinstance(condition, str):
         for k in LOGIC_OPERATORS:
             if condition.startswith(k) and condition != k:
-                operator, condition = k, condition[len(k):]
+                operator, condition = k, condition[len(k) :]
                 break
-        if operator == '=':
+        if operator == "=":
             it = _re_condition.findall(condition)
             if it:
-                _ = lambda v: re.escape(v.replace('~?', '?').replace('~*', '*'))
-                match = re.compile(''.join(sum(zip(
-                    map(_, _re_condition.split(condition)),
-                    tuple(map(lambda v: '.%s' % v, it)) + ('',)
-                ), ()))).match
-                f = lambda v: isinstance(v, str) and bool(match(v))
-                return np.vectorize(f, otypes=[bool])(test_range['raw'])
-            elif any(v in condition for v in ('~?', '~*')):
-                condition = condition.replace('~?', '?').replace('~*', '*')
-        from ..tokens.operand import Number, Error
+
+                def _(v):
+                    return re.escape(v.replace("~?", "?").replace("~*", "*"))
+
+                match = re.compile(
+                    "".join(
+                        sum(
+                            zip(
+                                map(_, _re_condition.split(condition)),
+                                tuple(map(lambda v: f".{v}", it)) + ("",),
+                            ),
+                            (),
+                        )
+                    )
+                ).match
+
+                def f(v):
+                    return isinstance(v, str) and bool(match(v))
+
+                return np.vectorize(f, otypes=[bool])(test_range["raw"])
+            elif any(v in condition for v in ("~?", "~*")):
+                condition = condition.replace("~?", "?").replace("~*", "*")
         from ..errors import TokenError
+        from ..tokens.operand import Error, Number
+
         for token in (Number, Error):
             try:
                 token = token(condition)
@@ -350,23 +381,26 @@ def __xfilter(test_range, condition):
         condition = _text2num(condition)
 
     from .operators import _get_type_id
+
     type_id = _get_type_id(condition)
-    if operator == '=' and type_id == 1:
+    if operator == "=" and type_id == 1:
         condition = condition.casefold()
-        operator = lambda x, y: x.casefold() == y
+
+        def operator(x, y):
+            return x.casefold() == y
     else:
         operator = LOGIC_OPERATORS[operator]
 
-    @functools.lru_cache()
+    @functools.lru_cache
     def check(value):
         return _get_type_id(value) == type_id and operator(value, condition)
 
     if is_number(condition):
-        if 'num' not in test_range:
-            test_range['num'] = text2num(test_range['raw'])
-        b = np.vectorize(check, otypes=[bool])(test_range['num'])
+        if "num" not in test_range:
+            test_range["num"] = text2num(test_range["raw"])
+        b = np.vectorize(check, otypes=[bool])(test_range["num"])
     else:
-        b = np.vectorize(check, otypes=[bool])(test_range['raw'])
+        b = np.vectorize(check, otypes=[bool])(test_range["raw"])
     return b
 
 
@@ -384,14 +418,14 @@ def _xfilter(accumulator, operating_range, test_ranges, *conditions):
         return ex.err
 
 
-_xfilter = np.vectorize(_xfilter, otypes=[object], excluded={0, 1, 2})
+_xfilter_vec = np.vectorize(_xfilter, otypes=[object], excluded={0, 1, 2})
 
 
 def xfilter(accumulator, test_range, condition, operating_range=None):
     operating_range = test_range if operating_range is None else operating_range
     # noinspection PyTypeChecker
-    test_range = {'raw': replace_empty(test_range, '')}
-    res = _xfilter(accumulator, operating_range, [test_range], condition)
+    test_range = {"raw": replace_empty(test_range, "")}
+    res = _xfilter_vec(accumulator, operating_range, [test_range], condition)
     return res.view(Array)
 
 
@@ -405,8 +439,8 @@ def xfilters(accumulator, operating_range, test_range, condition, *args):
     operating_range = test_range if operating_range is None else operating_range
 
     # noinspection PyTypeChecker
-    test_ranges = [{'raw': replace_empty(v, '')} for v in test_ranges]
-    res = _xfilter(
+    test_ranges = [{"raw": replace_empty(v, "")} for v in test_ranges]
+    res = _xfilter_vec(
         accumulator, operating_range, test_ranges, condition, *args[1::2]
     )
     return res.view(Array)
@@ -427,7 +461,7 @@ def flatten(v, check=is_number, drop_empty=False):
         yield v
 
 
-def convert_nan(value, default=Error.errors['#NUM!']):
+def convert_nan(value, default=Error.errors["#NUM!"]):
     return value if np.isfinite(value) else default
 
 
@@ -470,9 +504,16 @@ def return_2d_func(res, *args):
 
 
 def wrap_ufunc(
-        func, input_parser=lambda *a: map(float, a), check_error=get_error,
-        args_parser=lambda *a: map(replace_empty, a), otype=Array,
-        ranges=False, return_func=lambda res, *args: res, check_nan=True, **kw):
+    func,
+    input_parser=lambda *a: map(float, a),
+    check_error=get_error,
+    args_parser=lambda *a: map(replace_empty, a),
+    otype=Array,
+    ranges=False,
+    return_func=lambda res, *args: res,
+    check_nan=True,
+    **kw,
+):
     """Helps call a numpy universal function (ufunc)."""
 
     def safe_eval(*vals):
@@ -483,27 +524,31 @@ def wrap_ufunc(
         except FoundError as ex:
             r = ex.err
         except (ValueError, TypeError):
-            r = Error.errors['#VALUE!']
+            r = Error.errors["#VALUE!"]
         return r
 
-    kw['otypes'] = kw.get('otypes', [object])
+    kw["otypes"] = kw.get("otypes", [object])
 
     # noinspection PyUnusedLocal
     def wrapper(*args, **kwargs):
         try:
             args = tuple(args_parser(*args))
-            with np.errstate(divide='ignore', invalid='ignore'):
+            with np.errstate(divide="ignore", invalid="ignore"):
                 if len(args) >= 32:
                     shapes = [np.shape(arg) for arg in args]
                     max_shape = max((s or (1,))[0] for s in shapes)
                     if max_shape == 1:
-                        res = np.asarray([[
-                            safe_eval(*args2vals(args))
-                        ]], object).view(otype)
+                        res = np.asarray([[safe_eval(*args2vals(args))]], object).view(
+                            otype
+                        )
                     else:
-                        res = np.asarray([safe_eval(*v) for v in args2list(
-                            max_shape, shapes, *args
-                        )], object).view(otype)
+                        res = np.asarray(
+                            [
+                                safe_eval(*v)
+                                for v in args2list(max_shape, shapes, *args)
+                            ],
+                            object,
+                        ).view(otype)
                 else:
                     res = np.vectorize(safe_eval, **kw)(*args)
             try:
@@ -518,13 +563,13 @@ def wrap_ufunc(
             try:
                 np.broadcast(*args)
             except ValueError:
-                raise BroadcastError()
+                raise BroadcastError() from None
             raise ex
 
     return wrap_func(functools.update_wrapper(wrapper, func), ranges=ranges)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_functions():
     functions = collections.defaultdict(lambda: not_implemented)
     for name in SUBMODULES:

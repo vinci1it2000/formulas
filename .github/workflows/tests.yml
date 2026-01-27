@@ -24,24 +24,24 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - if: matrix.extra == 'plot' || matrix.extra == 'all'
         name: Setup Graphviz
         uses: ts-graphviz/setup-graphviz@v1
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install Test Dependencies
-        run: pip install -r requirements/test.pip
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
       - if: matrix.extra == 'base'
         name: Install Dependencies
-        run: pip install -e .
+        run: uv sync --extra test
       - if: matrix.extra != 'base'
         name: Install Dependencies
-        run: pip install -e .[${{ matrix.extra }}]
+        run: uv sync --extra test --extra ${{ matrix.extra }}
       - name: Run Test
-        run: coverage run --source=formulas -m unittest discover -s test -p 'test_*.py'
+        run: uv run coverage run --source=formulas -m unittest discover -s test -p 'test_*.py'
       - if: matrix.python-version == '3.12' && matrix.extra == 'all' && matrix.os == 'ubuntu-latest'
         name: Run Coveralls
-        run: coveralls --service=github
+        run: uv run coveralls --service=github

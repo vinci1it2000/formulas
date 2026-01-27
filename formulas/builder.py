@@ -10,24 +10,29 @@
 It provides AstBuilder class.
 """
 
-import functools
 import collections
+import functools
+
 import schedula as sh
+from schedula.utils.utl import get_unused_node_id
+
 from .errors import (
-    FormulaError, RangeValueError, InvalidRangeError, InvalidRangeName,
-    AnchorRangeName
+    AnchorRangeName,
+    FormulaError,
+    InvalidRangeError,
+    InvalidRangeName,
+    RangeValueError,
 )
-from .tokens.operator import Operator
+from .functions import COMPILING, wrap_ranges_func
+from .ranges import Ranges
 from .tokens.function import Function
 from .tokens.operand import Operand
-from .functions import wrap_ranges_func, COMPILING
-from .ranges import Ranges
-from schedula.utils.utl import get_unused_node_id
+from .tokens.operator import Operator
 
 
 @functools.lru_cache(None)
 def _default_filter():
-    return wrap_ranges_func(sh.bypass),
+    return (wrap_ranges_func(sh.bypass),)
 
 
 class AstBuilder:
@@ -37,9 +42,9 @@ class AstBuilder:
         self._deque = collections.deque()
         self.match = match
         self.dsp = dsp or sh.Dispatcher(
-            raises=lambda e: not isinstance(e, (
-                NotImplementedError, RangeValueError, InvalidRangeError
-            ))
+            raises=lambda e: not isinstance(
+                e, (NotImplementedError, RangeValueError, InvalidRangeError)
+            )
         )
         self.nodes = nodes or {}
         self.missing_operands = set()
@@ -58,7 +63,7 @@ class AstBuilder:
             try:
                 tokens = [self.pop() for _ in range(token.get_n_args)][::-1]
             except IndexError:
-                raise FormulaError()
+                raise FormulaError() from None
             token.update_input_tokens(*tokens)
             inputs = [self.get_node_id(i) for i in tokens]
             token.set_expr(*tokens)
@@ -66,21 +71,21 @@ class AstBuilder:
             if out not in self.dsp.nodes:
                 func = token.compile()
                 kw = {
-                    'function_id': get_id(dmap, token.name),
-                    'function': func,
-                    'inputs': inputs or None,
-                    'outputs': [out]
+                    "function_id": get_id(dmap, token.name),
+                    "function": func,
+                    "inputs": inputs or None,
+                    "outputs": [out],
                 }
                 if isinstance(func, dict):
-                    _inputs = func.get('extra_inputs', {})
+                    _inputs = func.get("extra_inputs", {})
                     for k, v in _inputs.items():
                         if v is not sh.NONE:
                             self.dsp.add_data(k, v)
-                    kw['inputs'] = (list(_inputs) + inputs) or None
+                    kw["inputs"] = (list(_inputs) + inputs) or None
                     kw.update(func)
                 self.dsp.add_function(**kw)
             else:
-                self.nodes[token] = n_id = get_id(dmap, out, 'c%d>{}')
+                self.nodes[token] = n_id = get_id(dmap, out, "c%d>{}")
                 self.dsp.add_function(None, sh.bypass, [out], [n_id])
         elif isinstance(token, Operand):
             self.missing_operands.add(token)
@@ -93,8 +98,8 @@ class AstBuilder:
             self.missing_operands.remove(token)
             token.set_expr()
             kw = {}
-            if not token.attr.get('is_reference', False):
-                kw['default_value'] = token.compile()
+            if not token.attr.get("is_reference", False):
+                kw["default_value"] = token.compile()
             node_id = self.dsp.add_data(data_id=token.node_id, **kw)
         else:
             node_id = token.node_id
@@ -116,8 +121,7 @@ class AstBuilder:
         inp[COMPILING] = True
         res, o = dsp(inp), self.get_node_id(self[-1])
         dsp = dsp.get_sub_dsp_from_workflow(
-            [o], graph=dsp.dmap, reverse=True, blockers=res,
-            wildcard=False
+            [o], graph=dsp.dmap, reverse=True, blockers=res, wildcard=False
         )
         res[COMPILING] = False
         dsp.nodes.update({k: v.copy() for k, v in dsp.nodes.items()})
@@ -139,8 +143,6 @@ class AstBuilder:
                     except InvalidRangeName:
                         i[k] = None
         dsp.raises = True
-        dsp.nodes[o]['filters'] = _default_filter()
-        func_id = o if 'error' in self.match else '=%s' % o
-        return self.compile_class(
-            dsp, func_id, i, [o], wildcard=False, shrink=False
-        )
+        dsp.nodes[o]["filters"] = _default_filter()
+        func_id = o if self.match and "error" in self.match else f"={o}"
+        return self.compile_class(dsp, func_id, i, [o], wildcard=False, shrink=False)

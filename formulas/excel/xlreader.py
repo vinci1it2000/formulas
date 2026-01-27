@@ -9,11 +9,11 @@
 """
 It provides a custom Excel Reader class.
 """
-from openpyxl.reader.excel import ExcelReader
-from openpyxl.xml.constants import SHARED_STRINGS
 from openpyxl.cell.text import Text
+from openpyxl.reader.excel import ExcelReader
+from openpyxl.xml.constants import SHARED_STRINGS, SHEET_MAIN_NS
 from openpyxl.xml.functions import iterparse
-from openpyxl.xml.constants import SHEET_MAIN_NS
+
 from ..functions.text import _re_hex
 
 
@@ -25,7 +25,7 @@ def read_string_table(_raw_data, xml_source):
     """Read in all shared strings in the table"""
 
     strings = []
-    STRING_TAG = '{%s}si' % SHEET_MAIN_NS
+    STRING_TAG = f'{{{SHEET_MAIN_NS}}}si'
 
     for _, node in iterparse(xml_source):
         if node.tag == STRING_TAG:
@@ -41,7 +41,7 @@ def read_string_table(_raw_data, xml_source):
 
 class XlReader(ExcelReader):
     def __init__(self, *args, raw_date=True, _raw_data=False, **kwargs):
-        super(XlReader, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.raw_date, self._date_formats = raw_date, set()
         self._raw_data = _raw_data
 
@@ -49,7 +49,7 @@ class XlReader(ExcelReader):
         if self.raw_date:
             self._date_formats = self.wb._date_formats
             self.wb._date_formats = set()
-        super(XlReader, self).read_worksheets()
+        super().read_worksheets()
 
     def read_strings(self):
         ct = self.package.find(SHARED_STRINGS)

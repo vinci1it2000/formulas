@@ -10,13 +10,14 @@
 It provides Operand classes.
 """
 import collections
+import functools
 
 # noinspection PyCompatibility
 import regex
-import functools
 import schedula as sh
-from . import Token
+
 from ..errors import TokenError
+from . import Token
 from .parenthesis import _update_n_args
 
 maxcol = 16384
@@ -41,7 +42,7 @@ class Operand(Token):
     def ast(self, tokens, stack, builder):
         if tokens and isinstance(tokens[-1], Operand):
             raise TokenError()
-        super(Operand, self).ast(tokens, stack, builder)
+        super().ast(tokens, stack, builder)
         builder.append(self)
         _update_n_args(stack)
 
@@ -53,7 +54,7 @@ class String(Operand):
         return self.name.replace('""', '"')
 
     def set_expr(self, *tokens):
-        self.attr['expr'] = '"%s"' % self.name
+        self.attr['expr'] = f'"{self.name}"'
 
 
 class Empty(Operand):
@@ -117,7 +118,7 @@ _re_sheet_id = r"""
         '(?P<sheet>(?>''|[^\?*\/\[\]':\\])+)'
     )
 """
-_re_range = r"""
+_re_range = rf"""
     (?>
         (?>
             (?>
@@ -133,18 +134,18 @@ _re_range = r"""
         )
     |
         (?>
-            %s!
+            {_re_sheet_id}!
         )?
         (?>
             (?>
                 (?>
-                    (?>\$?(?P<c1>[A-Z]{1,3}))?(?>\$?(?P<r1>[1-9]\d*))?
-                    (?>:\$?(?P<c2>[A-Z]{1,3}))(\$?(?P<r2>[1-9]\d*))?
+                    (?>\$?(?P<c1>[A-Z]{{1,3}}))?(?>\$?(?P<r1>[1-9]\d*))?
+                    (?>:\$?(?P<c2>[A-Z]{{1,3}}))(\$?(?P<r2>[1-9]\d*))?
                 )
             |
-                \$?(?P<c1>[A-Z]{1,3})\$?(?P<r1>[1-9]\d*)(?P<anchor>\#)?
+                \$?(?P<c1>[A-Z]{{1,3}})\$?(?P<r1>[1-9]\d*)(?P<anchor>\#)?
             |
-                \$?(?P<c1>[A-Z]{1,3}):\$?(?P<c2>[A-Z]{1,3})
+                \$?(?P<c1>[A-Z]{{1,3}}):\$?(?P<c2>[A-Z]{{1,3}})
             |
                 \$?(?P<r1>[1-9]\d*):\$?(?P<r2>[1-9]\d*)
             )(?![_\.\w])
@@ -162,34 +163,32 @@ _re_range = r"""
                 C(?P<n1>[1-9]\d*):C(?P<n2>[1-9]\d*)
             )(?![_\.\w])
         |
-            %s
+            {_re_ref}
         )
     )
     (?![\(\w])
-""" % (_re_sheet_id, _re_ref)
+"""
 _re_range = regex.compile(
-    r'^(?>(?P<anchor>(\_[Xx][Ll][Ff][Nn]\.)?ANCHORARRAY\({0}?\))|'
-    r'(?P<indirect>INDIRECT\("{0}?"\))|{0})'.format(
-        _re_range
-    ), regex.IGNORECASE | regex.X | regex.DOTALL
+    rf'^(?>(?P<anchor>(\_[Xx][Ll][Ff][Nn]\.)?ANCHORARRAY\({_re_range}?\))|'
+    rf'(?P<indirect>INDIRECT\("{_re_range}?"\))|{_re_range})', regex.IGNORECASE | regex.X | regex.DOTALL
 )
 _re_ref = regex.compile(
-    r'^(?>{0}!)?{1}'.format(_re_sheet_id, _re_ref),
+    rf'^(?>{_re_sheet_id}!)?{_re_ref}',
     regex.IGNORECASE | regex.X | regex.DOTALL
 )
 _re_sheet_id = regex.compile(
-    r'^{0}'.format(_re_sheet_id), regex.IGNORECASE | regex.X | regex.DOTALL
+    rf'^{_re_sheet_id}', regex.IGNORECASE | regex.X | regex.DOTALL
 )
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def _index2col(index):
     index = int(index) - 1
     if index < 0:
         return ''
     d = index // 26
     chr1 = _index2col(d) if d > 0 else ''
-    return '%s%s' % (chr1, chr(ord('A') + index % 26))
+    return '{}{}'.format(chr1, chr(ord('A') + index % 26))
 
 
 def _col2index(col):
@@ -217,14 +216,14 @@ def _build_cel(c, r):
 
 def _build_ref(c1, r1, c2, r2, anchor=''):
     (c1, r1), v2 = _build_cel(c1, r1), '{}{}'.format(*_build_cel(c2, r2))
-    v1 = '{}{}{}'.format(c1, r1, anchor)
+    v1 = f'{c1}{r1}{anchor}'
     if v1 == v2 and c1 and r1:
         if v1:
             return v1
         raise ValueError
     if anchor:
         raise ValueError
-    return '%s:%s' % (v1, v2)
+    return f'{v1}:{v2}'
 
 
 _re_build_id = regex.compile(r'^[0-9]+$')
@@ -234,19 +233,19 @@ def _build_sheet_id(sheet='', directory='', filename='', **kw):
     sheet = sheet.replace("''", "'").upper()
     if filename:
         if _re_build_id.match(filename):
-            sheet = "[%s]%s" % (filename, sheet)
+            sheet = f"[{filename}]{sheet}"
         else:
             if directory and not directory.endswith('/'):
                 directory += '/'
-            sheet = "'%s[%s]%s'" % (directory, filename, sheet)
+            sheet = f"'{directory}[{filename}]{sheet}'"
     elif ' ' in sheet:
-        sheet = "'%s'" % sheet
+        sheet = f"'{sheet}'"
     return sheet
 
 
 def _build_id(ref, sheet_id):
     if sheet_id:
-        return '{}!{}'.format(sheet_id, ref)
+        return f'{sheet_id}!{ref}'
     return ref
 
 
@@ -366,7 +365,7 @@ class Range(Operand):
     _re = _re_range
 
     def process(self, match, context=None, parser=None):
-        d = super(Range, self).process(match)
+        d = super().process(match)
         if len(d) <= 1 and 'indirect' not in d and 'ref' in d:
             try:
                 from .function import Function
@@ -389,8 +388,8 @@ class Range(Operand):
     def __repr__(self):
         if self.attr.get('is_ranges', False):
             from ..ranges import Ranges
-            return '{} <{}>'.format(self.name, Ranges.__name__)
-        return super(Range, self).__repr__()
+            return f'{self.name} <{Ranges.__name__}>'
+        return super().__repr__()
 
     def compile(self):
         if self.attr.get('is_ranges', False):

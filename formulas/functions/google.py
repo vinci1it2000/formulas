@@ -9,8 +9,8 @@
 """
 Python equivalents of google Excel functions.
 """
-from . import wrap_func
 from ..tokens.operand import Error
+from . import wrap_func
 
 
 # noinspection PyUnusedLocal

@@ -10,10 +10,21 @@
 Python equivalents of logical Excel functions.
 """
 import functools
+
 import numpy as np
+
 from . import (
-    wrap_ufunc, Error, flatten, get_error, wrap_func, XlError, raise_errors,
-    Array, replace_empty, _convert2float, return_2d_func
+    Array,
+    Error,
+    XlError,
+    _convert2float,
+    flatten,
+    get_error,
+    raise_errors,
+    replace_empty,
+    return_2d_func,
+    wrap_func,
+    wrap_ufunc,
 )
 
 FUNCTIONS = {}
@@ -91,9 +102,11 @@ FUNCTIONS['_XLFN.IFNA'] = FUNCTIONS['IFNA'] = {
 
 def xswitch(val, *args):
     if isinstance(val, bool):
-        condition = lambda x: val is x
+        def condition(x):
+            return val is x
     else:
-        condition = lambda x: val == x
+        def condition(x):
+            return val == x
     for k, v in zip(args[::2], args[1::2]):
         if isinstance(k, XlError):
             return k
@@ -114,7 +127,8 @@ FUNCTIONS["_XLFN.SWITCH"] = FUNCTIONS["SWITCH"] = {
 def xand(logical, *logicals, func=np.logical_and.reduce):
     args = (logical,) + logicals
     raise_errors(args)
-    check = lambda x: not isinstance(x, str)
+    def check(x):
+        return not isinstance(x, str)
     inp = tuple(flatten(args, check=check, drop_empty=True))
     return func(inp) if inp else Error.errors['#VALUE!']
 

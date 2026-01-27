@@ -9,12 +9,14 @@
 """
 Python equivalents of Excel operators.
 """
-import schedula as sh
-import functools
 import collections
-from . import replace_empty, not_implemented, wrap_func, wrap_ufunc, Error
+import functools
+
+import schedula as sh
+
+from . import Error, not_implemented, replace_empty, wrap_func, wrap_ufunc
+from .look import FUNCTIONS, _get_type_id
 from .text import _str
-from .look import _get_type_id, FUNCTIONS
 
 OPERATORS = collections.defaultdict(lambda: not_implemented)
 

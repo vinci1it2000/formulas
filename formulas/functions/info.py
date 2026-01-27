@@ -9,17 +9,28 @@
 """
 Python equivalents of information Excel functions.
 """
-import functools
 import collections
+import functools
+
 import numpy as np
 import schedula as sh
-from . import (
-    wrap_ranges_func, Error, Array, XlError, wrap_func, is_number, flatten,
-    _text2num, wrap_ufunc, raise_errors, DSP
-)
+
+from ..cell import _get_indices_intersection, _shape
 from ..ranges import Ranges, _intersect
 from ..tokens.function import LambdaFunction
-from ..cell import _shape, _get_indices_intersection
+from . import (
+    DSP,
+    Array,
+    Error,
+    XlError,
+    _text2num,
+    flatten,
+    is_number,
+    raise_errors,
+    wrap_func,
+    wrap_ranges_func,
+    wrap_ufunc,
+)
 
 FUNCTIONS = {}
 

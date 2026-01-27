@@ -10,12 +10,14 @@
 It provides Operator classes.
 """
 
-from . import Token
-from .parenthesis import Parenthesis, _update_n_args
-from ..errors import ParenthesesError, FormulaError
+import collections
+
 # noinspection PyCompatibility
 import regex
-import collections
+
+from ..errors import FormulaError, ParenthesesError
+from . import Token
+from .parenthesis import Parenthesis, _update_n_args
 
 
 class Operator(Token):
@@ -33,24 +35,20 @@ class Operator(Token):
     _replace = ' '
 
     def __repr__(self):
-        return '{} <{}>'.format(self.name, Operator.__name__)
+        return f'{self.name} <{Operator.__name__}>'
 
     def update_input_tokens(self, *tokens):
         if self.name in ' ,:':
             self.attr['is_ranges'] = True
-            from .operand import Range, Error
             from .function import Function
+            from .operand import Error, Range
             for t in tokens:
-                if isinstance(t, Range):
-                    t.attr['is_ranges'] = True
-                elif isinstance(t, Function) and self.name in ':':
-                    t.attr['is_ranges'] = True
-                elif isinstance(t, Error) and t.name == '#REF!':
+                if isinstance(t, Range) or isinstance(t, Function) and self.name in ':' or isinstance(t, Error) and t.name == '#REF!':
                     t.attr['is_ranges'] = True
                 elif not t.attr.get('is_ranges', False):
                     raise FormulaError()
         else:
-            super(Operator, self).update_input_tokens(*tokens)
+            super().update_input_tokens(*tokens)
 
     def set_expr(self, *tokens):
         expr, name = [t.get_expr for t in tokens], self.name
@@ -61,9 +59,9 @@ class Operator(Token):
         elif name == '@':
             expr = '@{}'.format(*expr)
         elif name in ' ,:':
-            expr = '(%s)' % ('%s ' % name.strip(' ')).join(expr)
+            expr = '({})'.format(('{} '.format(name.strip(' '))).join(expr))
         else:
-            expr = '(%s)' % (' %s ' % name).join(expr)
+            expr = '({})'.format((f' {name} ').join(expr))
         self.attr['expr'] = expr
 
     @property
@@ -75,7 +73,7 @@ class Operator(Token):
             s = match.groups()[0].replace(self._replace, '')
             match = self._re_process.match(s)
         if match:
-            return super(Operator, self).process(
+            return super().process(
                 match, context=context, parser=parser
             )
         return {}
@@ -91,7 +89,7 @@ class Operator(Token):
             b = isinstance(t, Parenthesis) and t.has_end
             b |= isinstance(t, Operator) and t.name == '%'
             if not (b or isinstance(t, Operand)):
-                self.attr['name'] = 'u%s' % self.name
+                self.attr['name'] = f'u{self.name}'
                 _update_n_args(stack)
         elif self.name == '@':
             from .operand import Operand
@@ -99,11 +97,11 @@ class Operator(Token):
             b = isinstance(t, Parenthesis) and t.has_end
             b |= isinstance(t, Operator) and t.name == '%'
             if not (b or isinstance(t, Operand)):
-                self.attr['name'] = '%s' % self.name
+                self.attr['name'] = f'{self.name}'
                 _update_n_args(stack)
 
     def ast(self, tokens, stack, builder):
-        super(Operator, self).ast(tokens, stack, builder)
+        super().ast(tokens, stack, builder)
         self.update_name(tokens, stack)
         pred = self.pred
         while stack and isinstance(stack[-1], Operator):
@@ -150,7 +148,7 @@ class OperatorToken(Operator):
     )
 
     def process(self, match, context=None, parser=None):
-        attr = super(OperatorToken, self).process(match, context=context)
+        attr = super().process(match, context=context)
         if 'sum_minus' in attr:
             attr['name'] = '-+'[attr['sum_minus'].count('-') % 2 == 0]
         return attr

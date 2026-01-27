@@ -38,11 +38,11 @@ To install it use (with root privileges):
 
     $ pip install formulas
 
-Or download the last git version and use (with root privileges):
+Or using `uv <https://docs.astral.sh/uv/>`_ (recommended):
 
 .. code-block:: console
 
-    $ python setup.py install
+    $ uv add formulas
 
 
 Install extras
@@ -59,6 +59,12 @@ To install formulas and all extras, do:
 
     $ pip install formulas[all]
 
+Or with uv:
+
+.. code-block:: console
+
+    $ uv add formulas[all]
+
 Development version
 -------------------
 To help with the testing and the development of `formulas`, you can install the
@@ -67,6 +73,14 @@ development version:
 .. code-block:: console
 
     $ pip install https://github.com/vinci1it2000/formulas/archive/dev.zip
+
+Or clone and install with uv:
+
+.. code-block:: console
+
+    $ git clone https://github.com/vinci1it2000/formulas.git
+    $ cd formulas
+    $ uv sync --all-extras
 
 .. _end-quick:
 

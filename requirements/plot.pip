@@ -1,8 +1,0 @@
--r base.pip
-
-flask
-regex
-graphviz
-Pygments
-jinja2
-docutils

@@ -10,10 +10,11 @@
 It provides Parenthesis class.
 """
 
-from . import Token
-from ..errors import ParenthesesError, TokenError
 # noinspection PyCompatibility
 import regex
+
+from ..errors import ParenthesesError, TokenError
+from . import Token
 
 
 class Parenthesis(Token):
@@ -24,8 +25,8 @@ class Parenthesis(Token):
     n_args = 0
 
     def ast(self, tokens, stack, builder):
-        from .operator import Separator
         from .operand import Operand
+        from .operator import Separator
         if tokens and isinstance(
                 tokens[-1], Separator
         ) and self.get_name == ')':
@@ -33,7 +34,7 @@ class Parenthesis(Token):
             Empty().ast(tokens, stack, builder)
         if self.has_start and tokens and isinstance(tokens[-1], Operand):
             raise TokenError
-        super(Parenthesis, self).ast(tokens, stack, builder)
+        super().ast(tokens, stack, builder)
         if self.has_start:
             stack.append(self)
             self.attr['check_n'] = self.attr.get('check_n', lambda t: t.n_args)
@@ -53,7 +54,7 @@ class Parenthesis(Token):
                 builder.append(stack.pop())
             elif n > 1:
                 from .operator import Separator
-                for i in range(n - 1):
+                for _i in range(n - 1):
                     builder.append(Separator(','))
 
             _update_n_args(stack)

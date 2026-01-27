@@ -1,7 +1,0 @@
-schedula>=1.4.1
-regex
-numpy>=1.15
-python-dateutil
-numpy-financial
-scipy
-tqdm
