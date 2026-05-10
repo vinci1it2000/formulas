@@ -18,6 +18,7 @@ Sub-Modules:
     :toctree: functions/
 
     ~comp
+    ~database
     ~date
     ~eng
     ~financial
@@ -180,7 +181,7 @@ def parse_ranges(*args, **kw):
 
 SUBMODULES = [
     '.info', '.logic', '.math', '.stat', '.financial', '.text', '.look', '.eng',
-    '.date', '.comp', '.google'
+    '.date', '.comp', '.database', '.google'
 ]
 # noinspection PyDictCreation
 FUNCTIONS = {}

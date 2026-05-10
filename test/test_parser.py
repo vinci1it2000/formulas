@@ -110,6 +110,30 @@ class TestParser(unittest.TestCase):
         ({}, '=1 + 2', (), '3.0'),
         ({}, '=AVERAGE(((123 + 4 + AVERAGE({1,2}))))', (), '128.5'),
         ({}, '="a" & "b"""', (), 'ab"'),
+        ({}, '=COMBIN(8,2)', (), '28'),
+        ({}, '=COMBINA(4,3)', (), '20'),
+        ({}, '=BASE(31,16,4)', (), '001F'),
+        ({}, '=QUOTIENT(-10,3)', (), '-3'),
+        ({}, '=SERIESSUM(2,0,2,{1,2,3})', (), '57.0'),
+        ({}, '=SEQUENCE(2,3,10,2)', (), '[[10. 12. 14.]\n [16. 18. 20.]]'),
+        ({}, '=RANDARRAY(2,2,1,1,TRUE)', (), '[[1 1]\n [1 1]]'),
+        ({}, '=SUBTOTAL(9,{1,2,3})', (), '6.0'),
+        ({}, '=AGGREGATE(9,6,{1,#DIV/0!,3})', (), '4.0'),
+        ({}, '=AGGREGATE(14,6,{1,8,3},2)', (), '3.0'),
+        ({}, '=DOLLAR(-1234.567,2)', (), '($1,234.57)'),
+        ({}, '=ENCODEURL("a b/ç")', (), 'a%20b%2F%C3%A7'),
+        ({}, '=HYPERLINK("https://example.test","Example")', (), 'Example'),
+        ({}, '=ASC(DBCS("ABC 123 ｶﾞ"))', (), 'ABC 123 ｶﾞ'),
+        ({}, '=DSUM({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '32.0'),
+        ({}, '=DCOUNT({"Tree","Height";"Apple",18;"Pear",12;"Apple","x"},'
+             '"Height",{"Tree";"Apple"})', (), '1'),
+        ({}, '=DCOUNTA({"Tree","Height";"Apple",18;"Pear",12;"Apple","x"},'
+             '"Height",{"Tree";"Apple"})', (), '2'),
+        ({}, '=DGET({"Tree","Height";"Apple",18;"Pear",12},'
+             '"Height",{"Tree";"Pear"})', (), '12'),
+        ({}, '=DAVERAGE({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '16.0'),
         ({}, '=-2', (), '-2.0'),
         ({}, '=10*+2 + 10^--2 + 10/-2', (), '115.0'),
         ({}, '=10>+2', (), 'True'),

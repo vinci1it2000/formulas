@@ -1298,6 +1298,15 @@ FUNCTIONS['VLOOKUP'] = wrap_ufunc(
 )
 
 
+def xhyperlink(link_location, friendly_name=None):
+    return link_location if friendly_name is None else friendly_name
+
+
+FUNCTIONS['HYPERLINK'] = wrap_ufunc(
+    xhyperlink, input_parser=lambda *a: a, args_parser=lambda *a: a
+)
+
+
 def xtranspose(array):
     return np.transpose(array).view(Array)
 

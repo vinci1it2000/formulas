@@ -1,0 +1,4 @@
+-r base.pip
+
+flask
+jinja2
