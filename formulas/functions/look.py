@@ -1307,8 +1307,205 @@ FUNCTIONS['HYPERLINK'] = wrap_ufunc(
 )
 
 
+def ximage(source, alt_text=None, sizing=None, height=None, width=None):
+    if not isinstance(source, str) or not source:
+        return Error.errors['#VALUE!']
+    if sizing is not None:
+        try:
+            sizing = int(sizing)
+        except (TypeError, ValueError):
+            return Error.errors['#VALUE!']
+        if sizing not in (0, 1, 2, 3):
+            return Error.errors['#VALUE!']
+    if sizing != 3 and (height is not None or width is not None):
+        return Error.errors['#VALUE!']
+    for dim in (height, width):
+        if dim is None:
+            continue
+        try:
+            if float(dim) <= 0:
+                return Error.errors['#NUM!']
+        except (TypeError, ValueError):
+            return Error.errors['#VALUE!']
+    return source
+
+
+FUNCTIONS['_XLFN.IMAGE'] = FUNCTIONS['IMAGE'] = wrap_ufunc(
+    ximage, input_parser=lambda *a: a, args_parser=lambda *a: a,
+    excluded={1, 2, 3, 4}
+)
+
+
+def _offset_scalar(v, default=None):
+    if v is None or v is sh.EMPTY:
+        return default
+    if isinstance(v, XlError):
+        raise FoundError(err=v)
+    return int(_convert2float(v))
+
+
+def xoffset(ref, rows, cols, height=None, width=None):
+    """OFFSET — return a sub-range offset from ``ref``.
+
+    For the dynamic case (offsets that are not parse-time literals) the
+    caller must supply a ``ref`` wide enough to contain the offset target;
+    otherwise the function returns ``#REF!`` because cells outside ``ref``
+    were never loaded into the dependency graph. Literal-argument OFFSET
+    is rewritten at parse time and never reaches this function.
+    """
+    if not isinstance(ref, Ranges) or not ref.ranges:
+        return Error.errors['#REF!']
+    try:
+        rows_i = _offset_scalar(rows, 0)
+        cols_i = _offset_scalar(cols, 0)
+        h_i = _offset_scalar(height)
+        w_i = _offset_scalar(width)
+    except FoundError as e:
+        return e.err
+
+    rng = ref.ranges[0]
+    base_r1, base_r2 = int(rng['r1']), int(rng['r2'])
+    base_n1, base_n2 = rng['n1'], rng['n2']
+    base_h, base_w = base_r2 - base_r1 + 1, base_n2 - base_n1 + 1
+    new_h = h_i if h_i is not None else base_h
+    new_w = w_i if w_i is not None else base_w
+
+    if new_h <= 0 or new_w <= 0:
+        return Error.errors['#REF!']
+
+    new_r1, new_n1 = base_r1 + rows_i, base_n1 + cols_i
+    new_r2, new_n2 = new_r1 + new_h - 1, new_n1 + new_w - 1
+
+    if new_r1 < 1 or new_n1 < 1:
+        return Error.errors['#REF!']
+    if (new_r1 < base_r1 or new_r2 > base_r2 or
+            new_n1 < base_n1 or new_n2 > base_n2):
+        return Error.errors['#REF!']
+
+    full = ref.value
+    if not isinstance(full, np.ndarray):
+        full = np.asarray([[full]], object)
+    row_off, col_off = new_r1 - base_r1, new_n1 - base_n1
+    sub = full[row_off:row_off + new_h, col_off:col_off + new_w]
+
+    new_rng = {
+        'sheet_id': rng['sheet_id'],
+        'r1': str(new_r1), 'r2': str(new_r2),
+        'n1': new_n1, 'n2': new_n2,
+    }
+    full_rng = Ranges.format_range(('name', 'n1', 'n2'), **new_rng)
+    return Ranges().set_value(full_rng, sub)
+
+
+FUNCTIONS['OFFSET'] = wrap_func(xoffset, ranges=True)
+
+
 def xtranspose(array):
     return np.transpose(array).view(Array)
 
 
 FUNCTIONS['TRANSPOSE'] = wrap_func(xtranspose)
+
+
+def _gpd_header_key(value):
+    return str(value).casefold() if value is not sh.EMPTY else ''
+
+
+def _gpd_as_2d(value):
+    if isinstance(value, Ranges):
+        value = value.value
+    value = np.asarray(value, object)
+    if value.ndim == 0:
+        value = value.reshape(1, 1)
+    elif value.ndim == 1:
+        value = value.reshape(1, -1)
+    return value
+
+
+def _gpd_resolve_source(source):
+    """Return a 2D array for ``source``; pivots are resolved to their source."""
+    if isinstance(source, Ranges):
+        try:
+            from ..excel._pivot import find_pivot_source
+        except Exception:
+            find_pivot_source = None
+        if find_pivot_source is not None:
+            model = getattr(source, '_model', None)
+            try:
+                resolved = find_pivot_source(model, source) if model else None
+            except Exception:
+                resolved = None
+            if resolved is not None:
+                source = resolved
+    return _gpd_as_2d(source)
+
+
+def xgetpivotdata(data_field, source, *pairs):
+    """GETPIVOTDATA(data_field, pivot_table, [field1, item1, ...]).
+
+    Aggregates (SUM) the numeric values of ``data_field`` in the underlying
+    data range, filtered so that every ``(field, item)`` pair matches.
+
+    Limitations
+    -----------
+    * Only SUM aggregation is implemented; pivot table calculated fields,
+      grouping, and grand-total references are not supported.
+    * If the pivot table reference cannot be resolved to a source range, the
+      provided range is treated *literally* as labelled data (header row +
+      data rows).  This covers the common case of calling GETPIVOTDATA on the
+      raw source table directly.
+    * Returns ``#REF!`` if ``data_field`` is missing, ``#VALUE!`` if a filter
+      field name is missing, and ``0`` when no row matches.
+    """
+    raise_errors(data_field)
+    if len(pairs) % 2:
+        return Error.errors['#VALUE!']
+
+    data = _gpd_resolve_source(source)
+    if data.shape[0] < 1:
+        return Error.errors['#REF!']
+
+    headers = [_gpd_header_key(h) for h in data[0]]
+    field_key = _gpd_header_key(data_field)
+    if field_key not in headers:
+        return Error.errors['#REF!']
+    field_idx = headers.index(field_key)
+
+    rows = data[1:]
+    if rows.shape[0] == 0:
+        return 0
+
+    mask = np.ones(rows.shape[0], dtype=bool)
+    for i in range(0, len(pairs), 2):
+        field, item = pairs[i], pairs[i + 1]
+        raise_errors(field, item)
+        key = _gpd_header_key(field)
+        if key not in headers:
+            return Error.errors['#VALUE!']
+        col = rows[:, headers.index(key)]
+        if isinstance(item, str):
+            target = item.casefold()
+            mask &= np.array(
+                [str(v).casefold() == target for v in col], dtype=bool
+            )
+        else:
+            mask &= np.array([v == item for v in col], dtype=bool)
+        if not mask.any():
+            return 0
+
+    total = 0.0
+    for v in rows[mask, field_idx]:
+        if isinstance(v, XlError):
+            raise FoundError(err=v)
+        if isinstance(v, (bool, np.bool_)):
+            continue
+        try:
+            total += float(v)
+        except (TypeError, ValueError):
+            continue
+    return total
+
+
+FUNCTIONS['_XLFN.GETPIVOTDATA'] = FUNCTIONS['GETPIVOTDATA'] = wrap_func(
+    xgetpivotdata, ranges=True
+)

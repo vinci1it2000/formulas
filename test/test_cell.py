@@ -257,6 +257,8 @@ class TestCell(unittest.TestCase):
          "<Ranges>(A1:B1)=[[4.0 6.0]]"),
         ('D1', '=ISFORMULA(A1:A2)', {'A1:A2': [[3, 1]]},
          "<Ranges>(D1)=[[False]]"),
+        ('D1', '=FORMULATEXT(A1:A2)', {'A1:A2': [[3, 1]]},
+         "<Ranges>(D1)=[[#N/A]]"),
         ('D1', '=N(A1:A2)', {'A1:A2': [[3, 1]]}, "<Ranges>(D1)=[[3]]"),
         ('D1', '=TYPE("1/1/1900")', {}, "<Ranges>(D1)=[[2]]"),
         ('D1', '=N("1/1/1900")', {}, "<Ranges>(D1)=[[0]]"),

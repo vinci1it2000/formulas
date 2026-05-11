@@ -123,7 +123,27 @@ class TestParser(unittest.TestCase):
         ({}, '=DOLLAR(-1234.567,2)', (), '($1,234.57)'),
         ({}, '=ENCODEURL("a b/ç")', (), 'a%20b%2F%C3%A7'),
         ({}, '=HYPERLINK("https://example.test","Example")', (), 'Example'),
+        ({}, '=IMAGE("https://example.test/a.png")', (),
+         'https://example.test/a.png'),
+        ({}, '=IMAGE("https://example.test/a.png","alt")', (),
+         'https://example.test/a.png'),
+        ({}, '=IMAGE("https://example.test/a.png","alt",3,100,200)', (),
+         'https://example.test/a.png'),
+        ({}, '=IMAGE("https://example.test/a.png","alt",5)', (), '#VALUE!'),
+        ({}, '=IMAGE("https://example.test/a.png","alt",3,-1,200)', (),
+         '#NUM!'),
         ({}, '=ASC(DBCS("ABC 123 ｶﾞ"))', (), 'ABC 123 ｶﾞ'),
+        ({}, '=OFFSET(A1, 1, 1)', (Ranges().push('B2', [[42]]),), '[[42]]'),
+        ({}, '=OFFSET(A1:B2, 0, 0, 2, 2)',
+         (Ranges().push('A1:B2', [[1, 2], [3, 4]]),), '[[1 2]\n [3 4]]'),
+        ({}, '=GETPIVOTDATA("Height",{"Tree","Height";"Apple",18;"Pear",12;'
+             '"Apple",14},"Tree","Apple")', (), '32.0'),
+        ({}, '=GETPIVOTDATA("Missing",{"Tree","Height";"Apple",18})',
+         (), '#REF!'),
+        ({}, '=GETPIVOTDATA("Height",{"Tree","Height";"Apple",18},'
+             '"Color","Red")', (), '#VALUE!'),
+        ({}, '=GETPIVOTDATA("Height",{"Tree","Height";"Apple",18;"Pear",12},'
+             '"Tree","Cherry")', (), '0'),
         ({}, '=DSUM({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
              '"Height",{"Tree";"Apple"})', (), '32.0'),
         ({}, '=DCOUNT({"Tree","Height";"Apple",18;"Pear",12;"Apple","x"},'

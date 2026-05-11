@@ -34,9 +34,9 @@ class TestReadme(unittest.TestCase):
         total = ws['D18'].value
         coverage = ws['E18'].value
 
-        self.assertEqual(509, implemented)
+        self.assertEqual(514, implemented)
         self.assertEqual(536, total)
-        self.assertAlmostEqual(0.9496268656716418, coverage)
+        self.assertAlmostEqual(0.9589552238805971, coverage)
 
-        self.assertIn('| TOTAL          | 509         | 536   | 95.0%    |', content)
-        self.assertIn('Overall coverage is currently 509 out of 536 functions (95.0%).', content)
+        self.assertIn('| TOTAL          | 514         | 536   | 95.9%    |', content)
+        self.assertIn('Overall coverage is currently 514 out of 536 functions (95.9%).', content)
