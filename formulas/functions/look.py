@@ -1339,6 +1339,12 @@ FUNCTIONS['_XLFN.IMAGE'] = FUNCTIONS['IMAGE'] = wrap_ufunc(
 def _offset_scalar(v, default=None):
     if v is None or v is sh.EMPTY:
         return default
+    if isinstance(v, Ranges):
+        try:
+            arr = v.value
+        except Exception:
+            raise FoundError(err=Error.errors['#REF!'])
+        v = arr.item() if hasattr(arr, 'item') and arr.size == 1 else arr.flat[0]
     if isinstance(v, XlError):
         raise FoundError(err=v)
     return int(_convert2float(v))
@@ -1422,46 +1428,15 @@ def _gpd_as_2d(value):
     return value
 
 
-def _gpd_resolve_source(source):
-    """Return a 2D array for ``source``; pivots are resolved to their source."""
-    if isinstance(source, Ranges):
-        try:
-            from ..excel._pivot import find_pivot_source
-        except Exception:
-            find_pivot_source = None
-        if find_pivot_source is not None:
-            model = getattr(source, '_model', None)
-            try:
-                resolved = find_pivot_source(model, source) if model else None
-            except Exception:
-                resolved = None
-            if resolved is not None:
-                source = resolved
-    return _gpd_as_2d(source)
-
-
 def xgetpivotdata(data_field, source, *pairs):
-    """GETPIVOTDATA(data_field, pivot_table, [field1, item1, ...]).
-
-    Aggregates (SUM) the numeric values of ``data_field`` in the underlying
-    data range, filtered so that every ``(field, item)`` pair matches.
-
-    Limitations
-    -----------
-    * Only SUM aggregation is implemented; pivot table calculated fields,
-      grouping, and grand-total references are not supported.
-    * If the pivot table reference cannot be resolved to a source range, the
-      provided range is treated *literally* as labelled data (header row +
-      data rows).  This covers the common case of calling GETPIVOTDATA on the
-      raw source table directly.
-    * Returns ``#REF!`` if ``data_field`` is missing, ``#VALUE!`` if a filter
-      field name is missing, and ``0`` when no row matches.
-    """
+    """GETPIVOTDATA — SUM ``data_field`` over rows of ``source`` matching
+    every ``(field, item)`` pair. Treats ``source`` as labelled data: first
+    row is the header, remaining rows are the data. Only SUM is supported."""
     raise_errors(data_field)
     if len(pairs) % 2:
         return Error.errors['#VALUE!']
 
-    data = _gpd_resolve_source(source)
+    data = _gpd_as_2d(source)
     if data.shape[0] < 1:
         return Error.errors['#REF!']
 
@@ -1506,6 +1481,4 @@ def xgetpivotdata(data_field, source, *pairs):
     return total
 
 
-FUNCTIONS['_XLFN.GETPIVOTDATA'] = FUNCTIONS['GETPIVOTDATA'] = wrap_func(
-    xgetpivotdata, ranges=True
-)
+FUNCTIONS['GETPIVOTDATA'] = wrap_func(xgetpivotdata, ranges=True)

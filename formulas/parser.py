@@ -20,9 +20,20 @@ from .tokens.parenthesis import Parenthesis
 from .builder import AstBuilder
 
 
+# Excel sheet limits — clamp targets so we never emit invalid refs.
+_EXCEL_MAX_COL = 16384  # XFD
+_EXCEL_MAX_ROW = 1048576
+
+#: Bounding box (rows, cols) loaded as dependencies when an OFFSET call
+#: has non-literal offsets. 16x16 = 256 cells per call covers the typical
+#: dropdown-driven case while limiting graph bloat.
+DYNAMIC_OFFSET_BOUNDS = (16, 16)
+
+# Word-boundary-anchored to avoid clobbering user functions whose names
+# end in OFFSET (e.g. SOFFSET).
 _re_offset_literal = regex.compile(
     r"""
-    OFFSET\(\s*
+    \bOFFSET\(\s*
     (?P<ref>
         (?:'(?:''|[^'])+'!|[A-Za-z_][\w\.]*!)?
         \$?[A-Z]{1,3}\$?[1-9]\d*
@@ -46,40 +57,48 @@ _re_ref_split = regex.compile(
     """, regex.IGNORECASE | regex.X
 )
 
-#: Bounding-box size (rows, cols) used to load surrounding cells as
-#: dependencies for OFFSET calls whose row/column offsets are not literal
-#: integers. Larger values cover more dynamic targets at the cost of more
-#: cells in the dependency graph.
-DYNAMIC_OFFSET_BOUNDS = (50, 50)
-
 _re_offset_dyn_base = regex.compile(
     r"""
-    OFFSET\(\s*
+    \bOFFSET\(\s*
     (?P<sheet>(?:'(?:''|[^'])+'!|[A-Za-z_][\w\.]*!)?)
     \$?(?P<c1>[A-Z]{1,3})\$?(?P<r1>[1-9]\d*)
     \s*,
     """, regex.IGNORECASE | regex.X
 )
 
+# Matches a complete Excel string literal — `"..."` with `""` as the
+# in-string escape for a literal quote.
+_re_string_literal = regex.compile(r'"(?:""|[^"])*"')
+
+
+def _strip_strings(expr):
+    """Replace string literals with positional placeholders so subsequent
+    regex passes never touch their contents."""
+    lits = []
+
+    def _stash(m):
+        lits.append(m.group(0))
+        return f'\x00{len(lits) - 1}\x00'
+
+    return _re_string_literal.sub(_stash, expr), lits
+
+
+def _restore_strings(expr, lits):
+    if not lits:
+        return expr
+    return regex.sub(
+        r'\x00(\d+)\x00', lambda m: lits[int(m.group(1))], expr
+    )
+
 
 def _split_offset_args(rest):
-    """Split the comma-separated arg tail of OFFSET; respects parens/quotes.
-
-    Returns ``(args, consumed)`` where ``consumed`` is the number of chars
-    of ``rest`` that made up ``OFFSET(...,...)``'s args plus the closing
-    paren; or ``(None, 0)`` if the call is unclosed.
-    """
-    args, buf, depth, in_str = [], [], 0, False
+    """Split the comma-separated arg tail of OFFSET. Strings are already
+    placeholder-substituted upstream, so we only track parens here.
+    Returns ``(args, consumed)`` — ``consumed`` includes the closing paren —
+    or ``(None, 0)`` for an unclosed call."""
+    args, buf, depth = [], [], 0
     for i, ch in enumerate(rest):
-        if in_str:
-            buf.append(ch)
-            if ch == '"':
-                in_str = False
-            continue
-        if ch == '"':
-            in_str = True
-            buf.append(ch)
-        elif ch == '(':
+        if ch == '(':
             depth += 1
             buf.append(ch)
         elif ch == ')':
@@ -97,14 +116,8 @@ def _split_offset_args(rest):
 
 
 def _expand_dynamic_offset_bases(expr):
-    """Auto-expand single-cell bases in OFFSET calls with non-literal offsets.
-
-    After literal-arg OFFSETs have been resolved, any remaining
-    ``OFFSET(<cell>, ...)`` is an indication that at least one offset is
-    dynamic. Replace ``<cell>`` with a bounding-box range so the surrounding
-    cells are loaded into the dependency graph, and ensure height/width are
-    explicit (default to 1, 1) so the runtime function returns a scalar.
-    """
+    """Expand single-cell base + add explicit (1, 1) size for OFFSET calls
+    with non-literal offsets, so surrounding cells become dependencies."""
     rows_bound, cols_bound = DYNAMIC_OFFSET_BOUNDS
     out, i = [], 0
     while i < len(expr):
@@ -115,32 +128,25 @@ def _expand_dynamic_offset_bases(expr):
         out.append(expr[i:m.start()])
         sheet = m.group('sheet') or ''
         c1, r1 = m.group('c1').upper(), int(m.group('r1'))
-        rest = expr[m.end():]
-        args, consumed = _split_offset_args(rest)
+        args, consumed = _split_offset_args(expr[m.end():])
         if args is None or len(args) < 2:
             out.append(expr[m.start():m.end()])
             i = m.end()
             continue
         n1 = _col2index(c1)
-        n2, r2 = n1 + cols_bound - 1, r1 + rows_bound - 1
+        n2 = min(n1 + cols_bound - 1, _EXCEL_MAX_COL)
+        r2 = min(r1 + rows_bound - 1, _EXCEL_MAX_ROW)
         box = f'{sheet}{c1}{r1}:{_index2col(n2)}{r2}'
-        # Args in `args`: rows, cols, [height, width]
-        # rows/cols stay as-is. If height/width missing, add 1, 1.
         if len(args) == 2:
             args = args + ['1', '1']
-        new_call = f'OFFSET({box}, ' + ', '.join(args) + ')'
-        out.append(new_call)
+        out.append(f'OFFSET({box}, ' + ', '.join(args) + ')')
         i = m.end() + consumed
     return ''.join(out)
 
 
 def _resolve_literal_offset(expr):
-    """Rewrite OFFSET(<lit-ref>, <int>, <int>[, <int>[, <int>]]) at parse time.
-
-    Returns the expression with all resolvable OFFSET calls replaced by
-    direct range references. Unresolvable cases (non-literal args, out-of-
-    bounds offsets) are left untouched or substituted with #REF!.
-    """
+    """Rewrite OFFSET(<lit-ref>, <int>, <int>[, <int>[, <int>]]) into a
+    direct A1 reference; emit #REF! on out-of-bounds or invalid sizes."""
     def _replace(match):
         m = _re_ref_split.match(match.group('ref').strip())
         if not m:
@@ -164,7 +170,8 @@ def _resolve_literal_offset(expr):
                 return '#REF!'
             new_n2, new_r2 = new_n1 + w_i - 1, new_r1 + h_i - 1
 
-        if new_n1 < 1 or new_r1 < 1 or new_n2 < 1 or new_r2 < 1:
+        if (new_n1 < 1 or new_r1 < 1
+                or new_n2 > _EXCEL_MAX_COL or new_r2 > _EXCEL_MAX_ROW):
             return '#REF!'
 
         new_c1, new_c2 = _index2col(new_n1), _index2col(new_n2)
@@ -172,11 +179,25 @@ def _resolve_literal_offset(expr):
             return f'{sheet}{new_c1}{new_r1}'
         return f'{sheet}{new_c1}{new_r1}:{new_c2}{new_r2}'
 
-    prev = None
-    while expr != prev:
-        prev = expr
-        expr = _re_offset_literal.sub(_replace, expr)
+    # Bounded fixpoint to handle nested OFFSETs without unbounded loops on
+    # pathological input.
+    for _ in range(8):
+        new_expr = _re_offset_literal.sub(_replace, expr)
+        if new_expr == expr:
+            break
+        expr = new_expr
     return expr
+
+
+def _rewrite_offsets(expr):
+    """Apply both OFFSET rewriters with string literals masked out so
+    regex matches never escape into ``"..."`` content."""
+    if 'OFFSET' not in expr and 'offset' not in expr:
+        return expr
+    stripped, lits = _strip_strings(expr)
+    stripped = _resolve_literal_offset(stripped)
+    stripped = _expand_dynamic_offset_bases(stripped)
+    return _restore_strings(stripped, lits)
 
 
 class Parser:
@@ -202,8 +223,7 @@ class Parser:
     def ast(self, expression, context=None):
         try:
             match = self.is_formula(expression.replace('\n', '')).groupdict()
-            expr = _resolve_literal_offset(match['name'])
-            expr = _expand_dynamic_offset_bases(expr)
+            expr = _rewrite_offsets(match['name'])
             match['name'] = expr
         except (AttributeError, KeyError):
             raise FormulaError(expression)
