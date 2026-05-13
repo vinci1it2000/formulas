@@ -66,6 +66,24 @@ class TestParser(unittest.TestCase):
         ('=ATAN2( 10 , 2)', 'ATAN2(10,2)'),
         ('=DAYS360( 10 , 2)', 'DAYS360(10,2)'),
         ('=FIRSTPARAMEMPTY(,,1)', 'FIRSTPARAMEMPTY(,,1)'),
+        # OFFSET parse-time rewrite — literal args resolve to a direct ref.
+        ('=OFFSET(A1, 2, 3)', 'D3'),
+        ('=OFFSET(A1, 0, 0, 2, 2)', 'A1:B2'),
+        # Regression: OFFSET inside a string literal must be left alone.
+        ('="OFFSET(A1, 1, 1)"', 'OFFSET(A1, 1, 1)'),
+        ('="hello OFFSET(B5, 2, 2) world"', 'hello OFFSET(B5, 2, 2) world'),
+        # Regression: word-boundary anchor — don't clobber user functions
+        # whose name ends in OFFSET.
+        ('=SOFFSET(1, 2, 3)', 'SOFFSET(1,2,3)'),
+        # Regression: clamp out-of-bounds literal OFFSET to #REF! instead
+        # of emitting an invalid multi-letter column.
+        ('=OFFSET(XFD1, 0, 1000000)', '#REF!'),
+        ('=OFFSET(A1, 1048576, 0)', '#REF!'),
+        ('=OFFSET(A1, -1, 0)', '#REF!'),
+        # Bounded fixpoint — 7-deep nested OFFSETs resolve fully (under
+        # the 8-iteration cap) to a single cell.
+        ('=OFFSET(OFFSET(OFFSET(OFFSET(OFFSET(OFFSET(OFFSET('
+         'A1, 1, 1), 1, 1), 1, 1), 1, 1), 1, 1), 1, 1), 1, 1)', 'H8'),
     )
     def test_valid_formula(self, case):
         inputs, result = case
