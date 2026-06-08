@@ -162,6 +162,8 @@ class TestParser(unittest.TestCase):
              '"Color","Red")', (), '#VALUE!'),
         ({}, '=GETPIVOTDATA("Height",{"Tree","Height";"Apple",18;"Pear",12},'
              '"Tree","Cherry")', (), '0'),
+        # Expected values in this block are closed-form Excel-compatible
+        # results over inline arrays, not cached values from test.xlsx.
         ({}, '=DSUM({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
              '"Height",{"Tree";"Apple"})', (), '32.0'),
         ({}, '=DCOUNT({"Tree","Height";"Apple",18;"Pear",12;"Apple","x"},'
@@ -172,6 +174,54 @@ class TestParser(unittest.TestCase):
              '"Height",{"Tree";"Pear"})', (), '12'),
         ({}, '=DAVERAGE({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
              '"Height",{"Tree";"Apple"})', (), '16.0'),
+        ({}, '=DMAX({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '18.0'),
+        ({}, '=DMIN({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '14.0'),
+        ({}, '=DPRODUCT({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '252.0'),
+        ({}, '=DSTDEV({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '2.8284271247461903'),
+        ({}, '=DSTDEVP({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '2.0'),
+        ({}, '=DVAR({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '8.0'),
+        ({}, '=DVARP({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '4.0'),
+        ({}, '=DGET({"Tree","Height";"Apple",18;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '[[#NUM!]]'),
+        ({}, '=DGET({"Tree","Height";"Apple",18},'
+             '"Height",{"Tree";"Pear"})', (), '[[#VALUE!]]'),
+        ({}, '=DSUM({"Tree","Height";"Apple",18},"Missing",{"Tree";"Apple"})',
+         (), '[[#VALUE!]]'),
+        ({}, '=DSUM({"Tree","Height";"Apple",18},"Height",{"Missing";"Apple"})',
+         (), '[[#VALUE!]]'),
+        ({}, '=DSUM({"Tree","Height";"Apple",#N/A},"Height",{"Tree";"Apple"})',
+         (), '[[#N/A]]'),
+        ({}, '=DCOUNT({"Tree","Height";"Apple","18";"Apple","x"},'
+             '"Height",{"Tree";"Apple"})', (), '1'),
+        ({}, '=DCOUNTA({"Tree","Height";"Apple",""},"Height",{"Tree";"Apple"})',
+         (), '0'),
+        ({}, '=COMBIN(-1,2)', (), '#NUM!'),
+        ({}, '=COMBIN(TRUE,2)', (), '#VALUE!'),
+        ({}, '=BASE(31,1)', (), '#NUM!'),
+        ({}, '=QUOTIENT(1,0)', (), '#DIV/0!'),
+        ({}, '=SEQUENCE(0,1)', (), '#VALUE!'),
+        ({}, '=RANDARRAY(0,1)', (), '#VALUE!'),
+        ({}, '=SUBTOTAL(1,{#DIV/0!})', (), '[[#DIV/0!]]'),
+        ({}, '=AGGREGATE(9,8,{1,2,3})', (), '#VALUE!'),
+        ({}, '=DOLLAR(1234.5,0)', (), '$1,235'),
+        ({}, '=JIS("ABC 123")', (), 'ＡＢＣ　１２３'),
+        ({}, '=HYPERLINK("https://example.test")', (),
+         'https://example.test'),
+        ({}, '=IMAGE(1)', (), '#VALUE!'),
+        ({}, '=IMAGE("https://example.test/a.png","alt",2,100,200)', (),
+         '#VALUE!'),
+        ({}, '=OFFSET(A1, 0, 0, 0, 1)', (), '#REF!'),
+        ({}, '=GETPIVOTDATA("Height",{"Tree","Height";"Apple",18},"Tree")',
+         (), '#VALUE!'),
+        ({}, '=GETPIVOTDATA("Height",{"Tree","Height";"Apple",#N/A},'
+             '"Tree","Apple")', (), '[[#N/A]]'),
         ({}, '=-2', (), '-2.0'),
         ({}, '=10*+2 + 10^--2 + 10/-2', (), '115.0'),
         ({}, '=10>+2', (), 'True'),

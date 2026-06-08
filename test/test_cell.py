@@ -2010,6 +2010,15 @@ class TestCell(unittest.TestCase):
         time.sleep(dt)
         self.assertNotEqual(out, str(dsp()[cell.output]))
 
+    def test_formulatext_formula_cell(self):
+        dsp = sh.Dispatcher()
+        source = Cell('A1', '=SUM(1,2)').compile()
+        target = Cell('D1', '=FORMULATEXT(A1)').compile()
+        assert source.add(dsp)
+        assert target.add(dsp)
+
+        self.assertEqual("<Ranges>(D1)=[['=SUM(1, 2)']]", str(dsp()[target.output]))
+
     def test_formulatext_array_branch(self):
         """The array branch of xformulatext is taken when the referenced
         range has a multi-cell formula assignment node in the dsp."""
