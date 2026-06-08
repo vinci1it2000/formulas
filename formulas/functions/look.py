@@ -1308,6 +1308,12 @@ FUNCTIONS['HYPERLINK'] = wrap_ufunc(
 
 
 def ximage(source, alt_text=None, sizing=None, height=None, width=None):
+    """IMAGE — validate arguments and return the source URL string.
+
+    The formula engine has no rendering host, so it deliberately does not
+    fetch or render images.  Unsupported sizing/dimension combinations return
+    the same argument errors Excel would surface.
+    """
     if not isinstance(source, str) or not source:
         return Error.errors['#VALUE!']
     if sizing is not None:

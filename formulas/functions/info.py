@@ -203,6 +203,12 @@ def _formula_text(pred_entries):
 
 
 def xformulatext(dsp=None, ref=None):
+    """FORMULATEXT — return formulas known to the compiled dispatcher.
+
+    Cells without a formula return ``#N/A``.  The implementation only
+    introspects formulas present in the loaded model; it does not recover
+    formulas from cached values or external workbooks.
+    """
     rng = ref.ranges[0]
     pred = dsp.solution.workflow.pred
     if rng['r1'] == rng['r2'] and rng['c1'] == rng['c2']:
