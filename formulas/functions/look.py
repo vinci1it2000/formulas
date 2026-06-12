@@ -1201,12 +1201,34 @@ def xfilter(array, condition, if_empty=Error.errors['#VALUE!']):
 FUNCTIONS['_XLFN._XLWS.FILTER'] = FUNCTIONS['FILTER'] = wrap_func(xfilter)
 
 
-def args_parser_lookup_array(
-        lookup_val, lookup_vec, result_vec=None, match_type=1):
-    result_vec = np.ravel(lookup_vec if result_vec is None else result_vec)
+def args_parser_lookup_vectors(
+        lookup_val, lookup_vec, result_vec, match_type=1):
     return args_parser_match_array(
         lookup_val, lookup_vec, match_type
-    ) + (result_vec,)
+    ) + (np.ravel(result_vec),)
+
+
+def _lookup_array_form(arr):
+    # Excel array form: search the first row when the array is wider
+    # than tall, otherwise the first column; return the value from the
+    # last row/column. Single rows/columns fall back to the vector form
+    # with the lookup vector as its own result vector.
+    arr = np.atleast_2d(np.asarray(arr, object))
+    nr, nc = arr.shape
+    if nr > 1 and nc > 1:
+        if nc > nr:
+            return arr[0], arr[-1]
+        return arr[:, 0], arr[:, -1]
+    return arr, arr
+
+
+def args_parser_lookup_array(
+        lookup_val, lookup_vec, result_vec=None, match_type=1):
+    if result_vec is None:
+        lookup_vec, result_vec = _lookup_array_form(lookup_vec)
+    return args_parser_lookup_vectors(
+        lookup_val, lookup_vec, result_vec, match_type
+    )
 
 
 def xlookup(
@@ -1283,7 +1305,7 @@ def args_parser_hlookup(val, vec, index, match_type=1, transpose=False):
     except IndexError:
         raise FoundError(err=Error.errors['#REF!'])
     vec = vec[0].ravel()
-    return args_parser_lookup_array(val, vec, ref, bool(match_type))
+    return args_parser_lookup_vectors(val, vec, ref, bool(match_type))
 
 
 FUNCTIONS['HLOOKUP'] = wrap_ufunc(
