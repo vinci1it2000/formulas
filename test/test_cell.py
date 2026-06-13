@@ -257,6 +257,21 @@ class TestCell(unittest.TestCase):
          "<Ranges>(A1:B1)=[[4.0 6.0]]"),
         ('D1', '=ISFORMULA(A1:A2)', {'A1:A2': [[3, 1]]},
          "<Ranges>(D1)=[[False]]"),
+        ('D1', '=FORMULATEXT(A1:A2)', {'A1:A2': [[3, 1]]},
+         "<Ranges>(D1)=[[#N/A]]"),
+        # Dynamic OFFSET — at least one cell-ref offset so the parser
+        # bounding-box expansion kicks in and xoffset runs at runtime.
+        ('D1', '=OFFSET(A1, B1, C1)',
+         {'A1:P16': [[r * 100 + c for c in range(16)] for r in range(16)],
+          'B1': 2, 'C1': 3},
+         "<Ranges>(D1)=[[203]]"),
+        ('D1:E2', '=OFFSET(A1, B1, C1, D2, E2)',
+         {'A1:P16': [[r * 100 + c for c in range(16)] for r in range(16)],
+          'B1': 1, 'C1': 1, 'D2': 2, 'E2': 2},
+         "<Ranges>(D1:E2)=[[101 102]\n [201 202]]"),
+        ('D1', '=OFFSET(A1, B1, C1)',
+         {'A1:P16': [[1] * 16] * 16, 'B1': 100, 'C1': 0},
+         "<Ranges>(D1)=[[#REF!]]"),
         ('D1', '=N(A1:A2)', {'A1:A2': [[3, 1]]}, "<Ranges>(D1)=[[3]]"),
         ('D1', '=TYPE("1/1/1900")', {}, "<Ranges>(D1)=[[2]]"),
         ('D1', '=N("1/1/1900")', {}, "<Ranges>(D1)=[[0]]"),
@@ -1994,3 +2009,52 @@ class TestCell(unittest.TestCase):
         out = str(dsp()[cell.output])
         time.sleep(dt)
         self.assertNotEqual(out, str(dsp()[cell.output]))
+
+    def test_formulatext_formula_cell(self):
+        dsp = sh.Dispatcher()
+        source = Cell('A1', '=SUM(1,2)').compile()
+        target = Cell('D1', '=FORMULATEXT(A1)').compile()
+        assert source.add(dsp)
+        assert target.add(dsp)
+
+        self.assertEqual("<Ranges>(D1)=[['=SUM(1, 2)']]", str(dsp()[target.output]))
+
+    def test_formulatext_array_branch(self):
+        """The array branch of xformulatext is taken when the referenced
+        range has a multi-cell formula assignment node in the dsp."""
+        from formulas.functions.info import xformulatext
+        from formulas.ranges import Ranges
+
+        class _Workflow:
+            def __init__(self, pred): self.pred = pred
+
+        class _Solution:
+            def __init__(self, pred): self.workflow = _Workflow(pred)
+
+        class _Assign:
+            def __init__(self, rng_name, inputs):
+                self.range = Ranges().push(rng_name)
+                self.inputs = inputs
+
+        class _Dsp:
+            def __init__(self, pred, assigns):
+                self.solution = _Solution(pred)
+                self._assigns = assigns
+
+            def get_node(self, name):
+                if name in self._assigns:
+                    return (self._assigns[name],)
+                raise ValueError(name)
+
+        formula_text = "=SUM(A2:A3)"
+        pred = {'A1': [formula_text], 'A2': [formula_text]}
+        assigns = {
+            '=A1:A2': _Assign(
+                'A1:A2', {sh.SELF: {'A1': (0, 0), 'A2': (1, 0)}}
+            )
+        }
+        ref = Ranges().push('A1:A2')
+        result = xformulatext(dsp=_Dsp(pred, assigns), ref=ref)
+        self.assertEqual(result.shape, (2, 1))
+        self.assertEqual(result[0, 0], formula_text)
+        self.assertEqual(result[1, 0], formula_text)

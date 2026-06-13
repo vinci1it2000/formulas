@@ -193,3 +193,55 @@ FUNCTIONS['_XLFN.ISFORMULA'] = FUNCTIONS['ISFORMULA'] = {
     'extra_inputs': collections.OrderedDict([(DSP, sh.EMPTY)]),
     'function': wrap_func(xisformula, ranges=True)
 }
+
+
+def _formula_text(pred_entries):
+    for entry in pred_entries:
+        if isinstance(entry, str) and entry.startswith('='):
+            return entry
+    return Error.errors['#N/A']
+
+
+def xformulatext(dsp=None, ref=None):
+    """FORMULATEXT — return formulas known to the compiled dispatcher.
+
+    Cells without a formula return ``#N/A``.  The implementation only
+    introspects formulas present in the loaded model; it does not recover
+    formulas from cached values or external workbooks.
+    """
+    rng = ref.ranges[0]
+    pred = dsp.solution.workflow.pred
+    if rng['r1'] == rng['r2'] and rng['c1'] == rng['c2']:
+        return _formula_text(pred.get(rng['name'], ()))
+    try:
+        rng_ass = dsp.get_node(f"={rng['name']}")[0]
+    except ValueError:
+        return _formula_text(pred.get(rng['name'], ()))
+    base = rng_ass.range.ranges[0]
+    out = np.empty(_shape(**base), object)
+    out[:] = Error.errors['#N/A']
+    for k, ind in rng_ass.inputs.items():
+        if k is sh.SELF:
+            for n, v in ind.items():
+                if n in pred:
+                    if isinstance(v, dict):
+                        v = _get_indices_intersection(base, v)
+                    i, j = v
+                    out[i, j] = _formula_text(pred[n])
+        else:
+            r = Ranges().push(k)
+            ist = _intersect(base, r.ranges[0])
+            if ist:
+                br, bc = _get_indices_intersection(base, ist)
+                v = xformulatext(dsp, r)
+                if isinstance(v, np.ndarray):
+                    rr, rc = _get_indices_intersection(r.ranges[0], ist)
+                    v = v[rr, rc]
+                out[br, bc] = v
+    return out.view(Array)
+
+
+FUNCTIONS['_XLFN.FORMULATEXT'] = FUNCTIONS['FORMULATEXT'] = {
+    'extra_inputs': collections.OrderedDict([(DSP, sh.EMPTY)]),
+    'function': wrap_func(xformulatext, ranges=True)
+}

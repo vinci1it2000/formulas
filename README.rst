@@ -7,7 +7,7 @@ formulas: An Excel formulas interpreter in Python.
 |month_downloads| |github_issues| |python_ver| |proj_license| |binder|
 
 :release:       1.3.4
-:date:          2026-03-11 18:35:00
+:date:          2026-05-10 19:55:00
 :repository:    https://github.com/vinci1it2000/formulas
 :pypi-repo:     https://pypi.org/project/formulas/
 :docs:          http://formulas.readthedocs.io/
@@ -452,7 +452,7 @@ current implementation status by category.
 +----------------+-------------+-------+----------+
 | CUBE           | 0           | 7     | 0.0%     |
 +----------------+-------------+-------+----------+
-| DATABASE       | 0           | 12    | 0.0%     |
+| DATABASE       | 12          | 12    | 100.0%   |
 +----------------+-------------+-------+----------+
 | DATE & TIME    | 25          | 25    | 100.0%   |
 +----------------+-------------+-------+----------+
@@ -464,22 +464,22 @@ current implementation status by category.
 +----------------+-------------+-------+----------+
 | LOGICAL        | 19          | 19    | 100.0%   |
 +----------------+-------------+-------+----------+
-| LOOKUP         | 33          | 40    | 82.5%    |
+| LOOKUP         | 38          | 40    | 95.0%    |
 +----------------+-------------+-------+----------+
-| MATH & TRIG    | 71          | 80    | 88.8%    |
+| MATH & TRIG    | 80          | 80    | 100.0%   |
 +----------------+-------------+-------+----------+
 | STATISTICAL    | 111         | 111   | 100.0%   |
 +----------------+-------------+-------+----------+
-| TEXT           | 44          | 50    | 88.0%    |
+| TEXT           | 47          | 50    | 94.0%    |
 +----------------+-------------+-------+----------+
-| WEB            | 0           | 3     | 0.0%     |
+| WEB            | 1           | 3     | 33.3%    |
 +----------------+-------------+-------+----------+
 | OPERATORS      | 15          | 15    | 100.0%   |
 +----------------+-------------+-------+----------+
-| TOTAL          | 483         | 536   | 90.1%    |
+| TOTAL          | 513         | 536   | 95.7%    |
 +----------------+-------------+-------+----------+
 
-Overall coverage is currently 483 out of 536 functions (90.1%).
+Overall coverage is currently 513 out of 536 functions (95.7%).
 
 .. _end-pypi:
 

@@ -14,6 +14,7 @@ import json
 import regex
 import functools
 import unicodedata
+import urllib.parse
 import numpy as np
 import schedula as sh
 from ..errors import FoundError
@@ -349,6 +350,39 @@ def xasc(value):
 
 
 FUNCTIONS['ASC'] = wrap_ufunc(xasc, **_kw0)
+
+
+_ASCII_TO_FULLWIDTH = {chr(cp): chr(cp + 0xFEE0) for cp in range(0x21, 0x7F)}
+_ASCII_TO_FULLWIDTH[' '] = '\u3000'
+_HALF_TO_KATAKANA_BASE = {}
+for _kana, _half in _KATAKANA_BASE_TO_HALF.items():
+    _HALF_TO_KATAKANA_BASE.setdefault(_half, _kana)
+
+
+def xjis(value):
+    s = _str(value)
+    out = []
+    i = 0
+    while i < len(s):
+        ch = s[i]
+        if ch in _ASCII_TO_FULLWIDTH:
+            out.append(_ASCII_TO_FULLWIDTH[ch])
+        elif ch in _HALF_TO_KATAKANA_BASE:
+            kana = _HALF_TO_KATAKANA_BASE[ch]
+            if i + 1 < len(s) and \
+                    s[i + 1] in (_HALF_DAKUTEN, _HALF_HANDAKUTEN):
+                mark = _COMB_DAKUTEN if s[i + 1] == _HALF_DAKUTEN else \
+                    _COMB_HANDAKUTEN
+                kana = unicodedata.normalize('NFC', kana + mark)
+                i += 1
+            out.append(kana)
+        else:
+            out.append(ch)
+        i += 1
+    return ''.join(out)
+
+
+FUNCTIONS['DBCS'] = FUNCTIONS['JIS'] = wrap_ufunc(xjis, **_kw0)
 
 
 def xbahttext(value):
@@ -1006,6 +1040,27 @@ def xfixed(number, decimals=2, no_commas=False):
 FUNCTIONS['FIXED'] = wrap_ufunc(
     xfixed, input_parser=lambda *a: a, args_parser=lambda *a: a
 )
+
+
+def xdollar(number, decimals=2):
+    res = xfixed(number, decimals, False)
+    if isinstance(res, XlError):
+        return res
+    if res.startswith('-'):
+        return '($%s)' % res[1:]
+    return '$%s' % res
+
+
+FUNCTIONS['DOLLAR'] = wrap_ufunc(
+    xdollar, input_parser=lambda *a: a, args_parser=lambda *a: a
+)
+
+
+def xencodeurl(text):
+    return urllib.parse.quote(_str(text), safe='-_.~')
+
+
+FUNCTIONS['ENCODEURL'] = wrap_ufunc(xencodeurl, **_kw0)
 
 
 def xtextsplit(

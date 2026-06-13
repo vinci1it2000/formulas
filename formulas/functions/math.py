@@ -97,6 +97,54 @@ def xceiling(num, sig, ceil=math.ceil, dfl=0):
 FUNCTIONS['CEILING'] = wrap_ufunc(xceiling)
 
 
+def xcombin(number, number_chosen, repetitions=False):
+    if isinstance(number, bool) or isinstance(number_chosen, bool):
+        return Error.errors['#VALUE!']
+    number = int(float(number))
+    number_chosen = int(float(number_chosen))
+    if repetitions:
+        if number < 1 or number_chosen < 0:
+            return Error.errors['#NUM!']
+        number += number_chosen - 1
+    elif number < 0 or number_chosen < 0 or number_chosen > number:
+        return Error.errors['#NUM!']
+    return math.comb(number, number_chosen)
+
+
+FUNCTIONS['COMBIN'] = wrap_ufunc(
+    xcombin, input_parser=lambda *a: a,
+    args_parser=lambda *a: map(replace_empty, a)
+)
+FUNCTIONS['_XLFN.COMBINA'] = FUNCTIONS['COMBINA'] = wrap_ufunc(
+    functools.partial(xcombin, repetitions=True),
+    input_parser=lambda *a: a, args_parser=lambda *a: map(replace_empty, a)
+)
+
+
+def xbase(number, radix, min_length=0):
+    number = int(float(number))
+    radix = int(float(radix))
+    min_length = int(float(replace_empty(min_length)))
+    if number < 0 or number >= 2 ** 53 or not 2 <= radix <= 36 or \
+            min_length < 0:
+        return Error.errors['#NUM!']
+    digits = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    if number == 0:
+        res = '0'
+    else:
+        res = ''
+        while number:
+            number, rem = divmod(number, radix)
+            res = digits[rem] + res
+    return res.zfill(min_length)
+
+
+FUNCTIONS['_XLFN.BASE'] = FUNCTIONS['BASE'] = wrap_ufunc(
+    xbase, input_parser=lambda *a: a,
+    args_parser=lambda *a: map(replace_empty, a)
+)
+
+
 def xceiling_math(num, sig=None, mode=0, ceil=math.ceil):
     if sig == 0:
         return 0
@@ -348,6 +396,32 @@ def xrandbetween(bottom, top):
 FUNCTIONS['RANDBETWEEN'] = wrap_ufunc(xrandbetween, input_parser=lambda *a: a)
 
 
+def xrandarray(rows=1, columns=1, min=0, max=1, whole_number=False):
+    rows = int(float(replace_empty(rows)))
+    columns = int(float(replace_empty(columns)))
+    minimum = float(replace_empty(min))
+    maximum = float(replace_empty(max))
+    whole_number = replace_empty(whole_number, False)
+    if isinstance(whole_number, str):
+        whole_number = {'TRUE': True, 'FALSE': False}[whole_number.upper()]
+    else:
+        whole_number = bool(whole_number)
+    if rows < 1 or columns < 1 or minimum > maximum:
+        return Error.errors['#VALUE!']
+    if whole_number:
+        start, stop = math.ceil(minimum), math.floor(maximum) + 1
+        if start >= stop:
+            return Error.errors['#VALUE!']
+        return np.random.randint(start, stop, (rows, columns))
+    return minimum + (maximum - minimum) * np.random.rand(rows, columns)
+
+
+FUNCTIONS['_XLFN.RANDARRAY'] = FUNCTIONS['RANDARRAY'] = {
+    'extra_inputs': collections.OrderedDict([(COMPILING, False)]),
+    'function': wrap_impure_func(wrap_func(xrandarray))
+}
+
+
 def _xroman(form):
     form = int(form + 1)
     num, let = (1000, 500, 100, 50, 10, 5, 1), 'MDCLXVI'
@@ -405,6 +479,31 @@ FUNCTIONS['SIN'] = wrap_ufunc(np.sin)
 FUNCTIONS['SINH'] = wrap_ufunc(np.sinh)
 
 
+def xsequence(rows, columns=1, start=1, step=1):
+    rows = int(float(replace_empty(rows)))
+    columns = int(float(replace_empty(columns)))
+    if rows < 1 or columns < 1:
+        return Error.errors['#VALUE!']
+    start = float(replace_empty(start))
+    step = float(replace_empty(step))
+    return (start + step * np.arange(rows * columns)).reshape(rows, columns)
+
+
+FUNCTIONS['_XLFN.SEQUENCE'] = FUNCTIONS['SEQUENCE'] = wrap_func(xsequence)
+
+
+def xseriessum(x, n, m, coefficients):
+    raise_errors(x, n, m, coefficients)
+    x = float(replace_empty(x))
+    n = float(replace_empty(n))
+    m = float(replace_empty(m))
+    coefficients = tuple(flatten(coefficients, None, True))
+    return sum(float(c) * x ** (n + i * m) for i, c in enumerate(coefficients))
+
+
+FUNCTIONS['SERIESSUM'] = wrap_func(xseriessum)
+
+
 def xsumproduct(*args):
     # Check all arrays are the same length
     # Excel returns #VAlUE! error if they don't match
@@ -454,6 +553,107 @@ FUNCTIONS['SUMSQ'] = wrap_func(functools.partial(
 ))
 
 
+def _aggregate_values(values, ignore_errors=False, count_all=False):
+    vals = []
+    for v in flatten(values, None):
+        if v is sh.EMPTY:
+            continue
+        if isinstance(v, XlError):
+            if ignore_errors:
+                continue
+            raise FoundError(err=v)
+        if count_all:
+            vals.append(v)
+        elif is_number(v, xl_return=False):
+            vals.append(float(v))
+    return vals
+
+
+def _xaggregate(function_num, values, ignore_errors=False, k=None):
+    values = _aggregate_values(values, ignore_errors)
+    if function_num == 1:
+        return np.mean(values) if values else Error.errors['#DIV/0!']
+    if function_num == 2:
+        return len(values)
+    if function_num == 3:
+        return len(_aggregate_values(values, ignore_errors, True))
+    if function_num == 4:
+        return max(values) if values else 0
+    if function_num == 5:
+        return min(values) if values else 0
+    if function_num == 6:
+        return np.prod(values) if values else 0
+    if function_num == 7:
+        return np.std(values, ddof=1) if len(values) > 1 else \
+            Error.errors['#DIV/0!']
+    if function_num == 8:
+        return np.std(values, ddof=0) if values else Error.errors['#DIV/0!']
+    if function_num == 9:
+        return np.sum(values)
+    if function_num == 10:
+        return np.var(values, ddof=1) if len(values) > 1 else \
+            Error.errors['#DIV/0!']
+    if function_num == 11:
+        return np.var(values, ddof=0) if values else Error.errors['#DIV/0!']
+    if function_num == 12:
+        return np.median(values) if values else Error.errors['#NUM!']
+    if function_num == 13:
+        counts = collections.Counter(values)
+        if not counts or max(counts.values()) < 2:
+            return Error.errors['#N/A']
+        for value, count in counts.items():
+            if count == max(counts.values()):
+                return value
+    values = sorted(values)
+    if not values:
+        return Error.errors['#NUM!']
+    if function_num in (14, 15):
+        k = int(float(k))
+        if not 1 <= k <= len(values):
+            return Error.errors['#NUM!']
+        return values[-k] if function_num == 14 else values[k - 1]
+    if function_num in (16, 18):
+        if k is None:
+            return Error.errors['#VALUE!']
+        method = 'linear'
+        q = float(k)
+        if function_num == 18 and not 0 < q < 1:
+            return Error.errors['#NUM!']
+        return np.percentile(values, q * 100, method=method)
+    if function_num in (17, 19):
+        if k is None:
+            return Error.errors['#VALUE!']
+        q = int(float(k))
+        if not 0 <= q <= 4:
+            return Error.errors['#NUM!']
+        if function_num == 19 and q in (0, 4):
+            return Error.errors['#NUM!']
+        return np.percentile(values, q * 25, method='linear')
+    return Error.errors['#VALUE!']
+
+
+def xsubtotal(function_num, ref1, *refs):
+    function_num = int(float(replace_empty(function_num)))
+    if function_num > 100:
+        function_num -= 100
+    return _xaggregate(function_num, (ref1,) + refs)
+
+
+FUNCTIONS['SUBTOTAL'] = wrap_func(xsubtotal)
+
+
+def xaggregate(function_num, options, ref1, ref2=None):
+    function_num = int(float(replace_empty(function_num)))
+    options = int(float(replace_empty(options)))
+    if not 0 <= options <= 7:
+        return Error.errors['#VALUE!']
+    ignore_errors = options in (2, 3, 6, 7)
+    return _xaggregate(function_num, ref1, ignore_errors, ref2)
+
+
+FUNCTIONS['_XLFN.AGGREGATE'] = FUNCTIONS['AGGREGATE'] = wrap_func(xaggregate)
+
+
 def sumx2my2(array_x, array_y, func=lambda x, y: np.sum(x ** 2 - y ** 2)):
     raise_errors(array_x, array_y)
     array_x = np.asarray(array_x).reshape(-1, 1)
@@ -483,6 +683,18 @@ FUNCTIONS['SUMXMY2'] = wrap_func(functools.partial(
 
 FUNCTIONS['TAN'] = wrap_ufunc(np.tan)
 FUNCTIONS['TANH'] = wrap_ufunc(np.tanh)
+
+
+def xquotient(numerator, denominator):
+    if denominator == 0:
+        return Error.errors['#DIV/0!']
+    return math.trunc(float(numerator) / float(denominator))
+
+
+FUNCTIONS['QUOTIENT'] = wrap_ufunc(
+    xquotient, input_parser=lambda *a: a,
+    args_parser=lambda *a: map(replace_empty, a)
+)
 
 
 def xtrunc(x, d=0, func=math.trunc):

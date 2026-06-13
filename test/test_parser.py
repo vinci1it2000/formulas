@@ -66,6 +66,24 @@ class TestParser(unittest.TestCase):
         ('=ATAN2( 10 , 2)', 'ATAN2(10,2)'),
         ('=DAYS360( 10 , 2)', 'DAYS360(10,2)'),
         ('=FIRSTPARAMEMPTY(,,1)', 'FIRSTPARAMEMPTY(,,1)'),
+        # OFFSET parse-time rewrite — literal args resolve to a direct ref.
+        ('=OFFSET(A1, 2, 3)', 'D3'),
+        ('=OFFSET(A1, 0, 0, 2, 2)', 'A1:B2'),
+        # Regression: OFFSET inside a string literal must be left alone.
+        ('="OFFSET(A1, 1, 1)"', 'OFFSET(A1, 1, 1)'),
+        ('="hello OFFSET(B5, 2, 2) world"', 'hello OFFSET(B5, 2, 2) world'),
+        # Regression: word-boundary anchor — don't clobber user functions
+        # whose name ends in OFFSET.
+        ('=SOFFSET(1, 2, 3)', 'SOFFSET(1,2,3)'),
+        # Regression: clamp out-of-bounds literal OFFSET to #REF! instead
+        # of emitting an invalid multi-letter column.
+        ('=OFFSET(XFD1, 0, 1000000)', '#REF!'),
+        ('=OFFSET(A1, 1048576, 0)', '#REF!'),
+        ('=OFFSET(A1, -1, 0)', '#REF!'),
+        # Bounded fixpoint — 7-deep nested OFFSETs resolve fully (under
+        # the 8-iteration cap) to a single cell.
+        ('=OFFSET(OFFSET(OFFSET(OFFSET(OFFSET(OFFSET(OFFSET('
+         'A1, 1, 1), 1, 1), 1, 1), 1, 1), 1, 1), 1, 1), 1, 1)', 'H8'),
     )
     def test_valid_formula(self, case):
         inputs, result = case
@@ -110,6 +128,100 @@ class TestParser(unittest.TestCase):
         ({}, '=1 + 2', (), '3.0'),
         ({}, '=AVERAGE(((123 + 4 + AVERAGE({1,2}))))', (), '128.5'),
         ({}, '="a" & "b"""', (), 'ab"'),
+        ({}, '=COMBIN(8,2)', (), '28'),
+        ({}, '=COMBINA(4,3)', (), '20'),
+        ({}, '=BASE(31,16,4)', (), '001F'),
+        ({}, '=QUOTIENT(-10,3)', (), '-3'),
+        ({}, '=SERIESSUM(2,0,2,{1,2,3})', (), '57.0'),
+        ({}, '=SEQUENCE(2,3,10,2)', (), '[[10. 12. 14.]\n [16. 18. 20.]]'),
+        ({}, '=RANDARRAY(2,2,1,1,TRUE)', (), '[[1 1]\n [1 1]]'),
+        ({}, '=SUBTOTAL(9,{1,2,3})', (), '6.0'),
+        ({}, '=AGGREGATE(9,6,{1,#DIV/0!,3})', (), '4.0'),
+        ({}, '=AGGREGATE(14,6,{1,8,3},2)', (), '3.0'),
+        ({}, '=DOLLAR(-1234.567,2)', (), '($1,234.57)'),
+        ({}, '=ENCODEURL("a b/ç")', (), 'a%20b%2F%C3%A7'),
+        ({}, '=HYPERLINK("https://example.test","Example")', (), 'Example'),
+        ({}, '=IMAGE("https://example.test/a.png")', (),
+         'https://example.test/a.png'),
+        ({}, '=IMAGE("https://example.test/a.png","alt")', (),
+         'https://example.test/a.png'),
+        ({}, '=IMAGE("https://example.test/a.png","alt",3,100,200)', (),
+         'https://example.test/a.png'),
+        ({}, '=IMAGE("https://example.test/a.png","alt",5)', (), '#VALUE!'),
+        ({}, '=IMAGE("https://example.test/a.png","alt",3,-1,200)', (),
+         '#NUM!'),
+        ({}, '=ASC(DBCS("ABC 123 ｶﾞ"))', (), 'ABC 123 ｶﾞ'),
+        ({}, '=OFFSET(A1, 1, 1)', (Ranges().push('B2', [[42]]),), '[[42]]'),
+        ({}, '=OFFSET(A1:B2, 0, 0, 2, 2)',
+         (Ranges().push('A1:B2', [[1, 2], [3, 4]]),), '[[1 2]\n [3 4]]'),
+        ({}, '=GETPIVOTDATA("Height",{"Tree","Height";"Apple",18;"Pear",12;'
+             '"Apple",14},"Tree","Apple")', (), '32.0'),
+        ({}, '=GETPIVOTDATA("Missing",{"Tree","Height";"Apple",18})',
+         (), '#REF!'),
+        ({}, '=GETPIVOTDATA("Height",{"Tree","Height";"Apple",18},'
+             '"Color","Red")', (), '#VALUE!'),
+        ({}, '=GETPIVOTDATA("Height",{"Tree","Height";"Apple",18;"Pear",12},'
+             '"Tree","Cherry")', (), '0'),
+        # Expected values in this block are closed-form Excel-compatible
+        # results over inline arrays, not cached values from test.xlsx.
+        ({}, '=DSUM({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '32.0'),
+        ({}, '=DCOUNT({"Tree","Height";"Apple",18;"Pear",12;"Apple","x"},'
+             '"Height",{"Tree";"Apple"})', (), '1'),
+        ({}, '=DCOUNTA({"Tree","Height";"Apple",18;"Pear",12;"Apple","x"},'
+             '"Height",{"Tree";"Apple"})', (), '2'),
+        ({}, '=DGET({"Tree","Height";"Apple",18;"Pear",12},'
+             '"Height",{"Tree";"Pear"})', (), '12'),
+        ({}, '=DAVERAGE({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '16.0'),
+        ({}, '=DMAX({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '18.0'),
+        ({}, '=DMIN({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '14.0'),
+        ({}, '=DPRODUCT({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '252.0'),
+        ({}, '=DSTDEV({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '2.8284271247461903'),
+        ({}, '=DSTDEVP({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '2.0'),
+        ({}, '=DVAR({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '8.0'),
+        ({}, '=DVARP({"Tree","Height";"Apple",18;"Pear",12;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '4.0'),
+        ({}, '=DGET({"Tree","Height";"Apple",18;"Apple",14},'
+             '"Height",{"Tree";"Apple"})', (), '[[#NUM!]]'),
+        ({}, '=DGET({"Tree","Height";"Apple",18},'
+             '"Height",{"Tree";"Pear"})', (), '[[#VALUE!]]'),
+        ({}, '=DSUM({"Tree","Height";"Apple",18},"Missing",{"Tree";"Apple"})',
+         (), '[[#VALUE!]]'),
+        ({}, '=DSUM({"Tree","Height";"Apple",18},"Height",{"Missing";"Apple"})',
+         (), '[[#VALUE!]]'),
+        ({}, '=DSUM({"Tree","Height";"Apple",#N/A},"Height",{"Tree";"Apple"})',
+         (), '[[#N/A]]'),
+        ({}, '=DCOUNT({"Tree","Height";"Apple","18";"Apple","x"},'
+             '"Height",{"Tree";"Apple"})', (), '1'),
+        ({}, '=DCOUNTA({"Tree","Height";"Apple",""},"Height",{"Tree";"Apple"})',
+         (), '0'),
+        ({}, '=COMBIN(-1,2)', (), '#NUM!'),
+        ({}, '=COMBIN(TRUE,2)', (), '#VALUE!'),
+        ({}, '=BASE(31,1)', (), '#NUM!'),
+        ({}, '=QUOTIENT(1,0)', (), '#DIV/0!'),
+        ({}, '=SEQUENCE(0,1)', (), '#VALUE!'),
+        ({}, '=RANDARRAY(0,1)', (), '#VALUE!'),
+        ({}, '=SUBTOTAL(1,{#DIV/0!})', (), '[[#DIV/0!]]'),
+        ({}, '=AGGREGATE(9,8,{1,2,3})', (), '#VALUE!'),
+        ({}, '=DOLLAR(1234.5,0)', (), '$1,235'),
+        ({}, '=JIS("ABC 123")', (), 'ＡＢＣ　１２３'),
+        ({}, '=HYPERLINK("https://example.test")', (),
+         'https://example.test'),
+        ({}, '=IMAGE(1)', (), '#VALUE!'),
+        ({}, '=IMAGE("https://example.test/a.png","alt",2,100,200)', (),
+         '#VALUE!'),
+        ({}, '=OFFSET(A1, 0, 0, 0, 1)', (), '#REF!'),
+        ({}, '=GETPIVOTDATA("Height",{"Tree","Height";"Apple",18},"Tree")',
+         (), '#VALUE!'),
+        ({}, '=GETPIVOTDATA("Height",{"Tree","Height";"Apple",#N/A},'
+             '"Tree","Apple")', (), '[[#N/A]]'),
         ({}, '=-2', (), '-2.0'),
         ({}, '=10*+2 + 10^--2 + 10/-2', (), '115.0'),
         ({}, '=10>+2', (), 'True'),

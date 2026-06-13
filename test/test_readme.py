@@ -8,6 +8,7 @@
 import doctest
 import os
 import unittest
+import zipfile
 from pathlib import Path
 
 from openpyxl import load_workbook
@@ -34,9 +35,22 @@ class TestReadme(unittest.TestCase):
         total = ws['D18'].value
         coverage = ws['E18'].value
 
-        self.assertEqual(483, implemented)
+        self.assertEqual(513, implemented)
         self.assertEqual(536, total)
-        self.assertAlmostEqual(0.9011194029850746, coverage)
+        self.assertAlmostEqual(0.957089552238806, coverage)
 
-        self.assertIn('| TOTAL          | 483         | 536   | 90.1%    |', content)
-        self.assertIn('Overall coverage is currently 483 out of 536 functions (90.1%).', content)
+        self.assertIn('| TOTAL          | 513         | 536   | 95.7%    |', content)
+        self.assertIn('Overall coverage is currently 513 out of 536 functions (95.7%).', content)
+
+    def test_excel_function_fixture_preserves_formulas(self):
+        with zipfile.ZipFile(ROOT / 'test' / 'test_files' / 'test.xlsx') as xlsx:
+            worksheet_paths = [
+                name for name in xlsx.namelist()
+                if name.startswith('xl/worksheets/sheet') and name.endswith('.xml')
+            ]
+            formula_count = sum(
+                xlsx.read(name).decode('utf-8', 'ignore').count('<f')
+                for name in worksheet_paths
+            )
+
+        self.assertGreater(formula_count, 1000)

@@ -1298,8 +1298,193 @@ FUNCTIONS['VLOOKUP'] = wrap_ufunc(
 )
 
 
+def xhyperlink(link_location, friendly_name=None):
+    return link_location if friendly_name is None else friendly_name
+
+
+FUNCTIONS['HYPERLINK'] = wrap_ufunc(
+    xhyperlink, input_parser=lambda *a: a, args_parser=lambda *a: a
+)
+
+
+def ximage(source, alt_text=None, sizing=None, height=None, width=None):
+    """IMAGE — validate arguments and return the source URL string.
+
+    The formula engine has no rendering host, so it deliberately does not
+    fetch or render images.  Unsupported sizing/dimension combinations return
+    the same argument errors Excel would surface.
+    """
+    if not isinstance(source, str) or not source:
+        return Error.errors['#VALUE!']
+    if sizing is not None:
+        try:
+            sizing = int(sizing)
+        except (TypeError, ValueError):
+            return Error.errors['#VALUE!']
+        if sizing not in (0, 1, 2, 3):
+            return Error.errors['#VALUE!']
+    if sizing != 3 and (height is not None or width is not None):
+        return Error.errors['#VALUE!']
+    for dim in (height, width):
+        if dim is None:
+            continue
+        try:
+            if float(dim) <= 0:
+                return Error.errors['#NUM!']
+        except (TypeError, ValueError):
+            return Error.errors['#VALUE!']
+    return source
+
+
+FUNCTIONS['_XLFN.IMAGE'] = FUNCTIONS['IMAGE'] = wrap_ufunc(
+    ximage, input_parser=lambda *a: a, args_parser=lambda *a: a,
+    excluded={1, 2, 3, 4}
+)
+
+
+def _offset_scalar(v, default=None):
+    if v is None or v is sh.EMPTY:
+        return default
+    if isinstance(v, Ranges):
+        try:
+            arr = v.value
+        except Exception:
+            raise FoundError(err=Error.errors['#REF!'])
+        v = arr.item() if hasattr(arr, 'item') and arr.size == 1 else arr.flat[0]
+    if isinstance(v, XlError):
+        raise FoundError(err=v)
+    return int(_convert2float(v))
+
+
+def xoffset(ref, rows, cols, height=None, width=None):
+    """OFFSET — return a sub-range offset from ``ref``.
+
+    For the dynamic case (offsets that are not parse-time literals) the
+    caller must supply a ``ref`` wide enough to contain the offset target;
+    otherwise the function returns ``#REF!`` because cells outside ``ref``
+    were never loaded into the dependency graph. Literal-argument OFFSET
+    is rewritten at parse time and never reaches this function.
+    """
+    if not isinstance(ref, Ranges) or not ref.ranges:
+        return Error.errors['#REF!']
+    try:
+        rows_i = _offset_scalar(rows, 0)
+        cols_i = _offset_scalar(cols, 0)
+        h_i = _offset_scalar(height)
+        w_i = _offset_scalar(width)
+    except FoundError as e:
+        return e.err
+
+    rng = ref.ranges[0]
+    base_r1, base_r2 = int(rng['r1']), int(rng['r2'])
+    base_n1, base_n2 = rng['n1'], rng['n2']
+    base_h, base_w = base_r2 - base_r1 + 1, base_n2 - base_n1 + 1
+    new_h = h_i if h_i is not None else base_h
+    new_w = w_i if w_i is not None else base_w
+
+    if new_h <= 0 or new_w <= 0:
+        return Error.errors['#REF!']
+
+    new_r1, new_n1 = base_r1 + rows_i, base_n1 + cols_i
+    new_r2, new_n2 = new_r1 + new_h - 1, new_n1 + new_w - 1
+
+    if new_r1 < 1 or new_n1 < 1:
+        return Error.errors['#REF!']
+    if (new_r1 < base_r1 or new_r2 > base_r2 or
+            new_n1 < base_n1 or new_n2 > base_n2):
+        return Error.errors['#REF!']
+
+    full = ref.value
+    if not isinstance(full, np.ndarray):
+        full = np.asarray([[full]], object)
+    row_off, col_off = new_r1 - base_r1, new_n1 - base_n1
+    sub = full[row_off:row_off + new_h, col_off:col_off + new_w]
+
+    new_rng = {
+        'sheet_id': rng['sheet_id'],
+        'r1': str(new_r1), 'r2': str(new_r2),
+        'n1': new_n1, 'n2': new_n2,
+    }
+    full_rng = Ranges.format_range(('name', 'n1', 'n2'), **new_rng)
+    return Ranges().set_value(full_rng, sub)
+
+
+FUNCTIONS['OFFSET'] = wrap_func(xoffset, ranges=True)
+
+
 def xtranspose(array):
     return np.transpose(array).view(Array)
 
 
 FUNCTIONS['TRANSPOSE'] = wrap_func(xtranspose)
+
+
+def _gpd_header_key(value):
+    return str(value).casefold() if value is not sh.EMPTY else ''
+
+
+def _gpd_as_2d(value):
+    if isinstance(value, Ranges):
+        value = value.value
+    value = np.asarray(value, object)
+    if value.ndim == 0:
+        value = value.reshape(1, 1)
+    elif value.ndim == 1:
+        value = value.reshape(1, -1)
+    return value
+
+
+def xgetpivotdata(data_field, source, *pairs):
+    """GETPIVOTDATA — SUM ``data_field`` over rows of ``source`` matching
+    every ``(field, item)`` pair. Treats ``source`` as labelled data: first
+    row is the header, remaining rows are the data. Only SUM is supported."""
+    raise_errors(data_field)
+    if len(pairs) % 2:
+        return Error.errors['#VALUE!']
+
+    data = _gpd_as_2d(source)
+    if data.shape[0] < 1:
+        return Error.errors['#REF!']
+
+    headers = [_gpd_header_key(h) for h in data[0]]
+    field_key = _gpd_header_key(data_field)
+    if field_key not in headers:
+        return Error.errors['#REF!']
+    field_idx = headers.index(field_key)
+
+    rows = data[1:]
+    if rows.shape[0] == 0:
+        return 0
+
+    mask = np.ones(rows.shape[0], dtype=bool)
+    for i in range(0, len(pairs), 2):
+        field, item = pairs[i], pairs[i + 1]
+        raise_errors(field, item)
+        key = _gpd_header_key(field)
+        if key not in headers:
+            return Error.errors['#VALUE!']
+        col = rows[:, headers.index(key)]
+        if isinstance(item, str):
+            target = item.casefold()
+            mask &= np.array(
+                [str(v).casefold() == target for v in col], dtype=bool
+            )
+        else:
+            mask &= np.array([v == item for v in col], dtype=bool)
+        if not mask.any():
+            return 0
+
+    total = 0.0
+    for v in rows[mask, field_idx]:
+        if isinstance(v, XlError):
+            raise FoundError(err=v)
+        if isinstance(v, (bool, np.bool_)):
+            continue
+        try:
+            total += float(v)
+        except (TypeError, ValueError):
+            continue
+    return total
+
+
+FUNCTIONS['GETPIVOTDATA'] = wrap_func(xgetpivotdata, ranges=True)
