@@ -1,0 +1,92 @@
+{
+  "$schema": "https://fundingjson.org/schema/v1.1.0.json",
+  "version": "v1.1.0",
+  "entity": {
+    "type": "individual",
+    "role": "maintainer",
+    "name": "Vincenzo Arcidiacono",
+    "email": "vinci1it2000@gmail.com",
+    "description": "Creator and primary maintainer of formulas, an established open-source Python spreadsheet calculation engine. The project is developed as long-term public infrastructure for executing spreadsheet logic independently of proprietary desktop software, with a focus on formula correctness, interoperability, reproducibility, testing, documentation, and sustainable releases.",
+    "webpageUrl": {
+      "url": "https://github.com/vinci1it2000"
+    }
+  },
+  "projects": [
+    {
+      "guid": "formulas",
+      "name": "formulas",
+      "description": "formulas is an open-source, vendor-independent spreadsheet calculation engine for Python. It parses, compiles, and executes spreadsheet formulas and workbook models without requiring Microsoft Excel or the Excel COM server, and already supports .xlsx, .ods, and portable JSON workflows. Its long-term goal is to provide an open calculation runtime that can reproduce spreadsheet semantics across Microsoft Excel, LibreOffice Calc, Apache OpenOffice Calc, and other spreadsheet ecosystems, allowing models to run consistently in servers, cloud services, automation pipelines, scientific workflows, and reproducible applications without dependence on a proprietary spreadsheet runtime. The current Excel compatibility suite implements 483 of 536 tracked functions (90.1%). Several major categories already have complete coverage, while the DATABASE category remains a clearly identified gap at 0 of 12 functions. Public package statistics report more than 20 million cumulative PyPI downloads, and the project has nearly 500 GitHub stars. Funding will be used to close high-impact compatibility gaps, implement the full Excel DATABASE-function family, substantially expand ODS/OpenFormula and LibreOffice/OpenOffice compatibility, and create a cross-engine conformance suite that continuously compares formulas and workbook results across spreadsheet implementations. The intended outcome is durable open infrastructure for portable spreadsheet computation rather than a clone of a proprietary user interface.",
+      "webpageUrl": {
+        "url": "https://github.com/vinci1it2000/formulas"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/vinci1it2000/formulas"
+      },
+      "licenses": [
+        "spdx:EUPL-1.1"
+      ],
+      "tags": [
+        "python",
+        "spreadsheets",
+        "developer-tools",
+        "automation",
+        "data-processing",
+        "calculation-engine",
+        "interoperability",
+        "open-source",
+        "open-document",
+        "office"
+      ]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "bank-transfer",
+        "type": "bank",
+        "description": "Bank transfer details are available on request by email. This is the preferred channel for institutional grants and sponsorships."
+      },
+      {
+        "guid": "donorbox",
+        "type": "payment-provider",
+        "address": "https://donorbox.org/formulas",
+        "description": "Public donation channel for supporting the ongoing development and maintenance of formulas."
+      }
+    ],
+    "plans": [
+      {
+        "guid": "spreadsheet-interoperability",
+        "status": "active",
+        "name": "Open spreadsheet interoperability and compatibility grant",
+        "description": "A 12-month program to advance Formulas as a vendor-independent open-source spreadsheet calculation engine. Work covers: completing DATABASE functions; improving ODS, LibreOffice Calc and Apache OpenOffice Calc compatibility; building cross-engine XLSX/ODS conformance tests; closing high-impact Excel compatibility gaps; and strengthening CI, documentation, releases and long-term maintainability.",
+        "amount": 60000,
+        "currency": "USD",
+        "frequency": "one-time",
+        "channels": [
+          "bank-transfer",
+          "donorbox"
+        ]
+      }
+    ],
+    "history": [
+      {
+        "year": 2025,
+        "income": 50000,
+        "currency": "EUR",
+        "description": "Formulas received EUR 50,000 in grant support through the NLnet NGI0 Commons Fund for open-source development and advancement of the project."
+      },
+      {
+        "year": 2025,
+        "income": 0,
+        "currency": "EUR",
+        "description": "JetBrains supported Formulas with in-kind developer tooling through PyCharm licensing for open-source project development and maintenance. This is non-cash support and is therefore recorded with zero monetary income."
+      },
+      {
+        "year": 2026,
+        "income": 0,
+        "currency": "EUR",
+        "description": "JetBrains supported Formulas with in-kind developer tooling through PyCharm licensing for open-source project development and maintenance. This is non-cash support and is therefore recorded with zero monetary income."
+      }
+    ]
+  }
+}
