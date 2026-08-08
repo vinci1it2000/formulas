@@ -33,6 +33,7 @@ from ..cell import Cell, RangesAssembler, Ref, CellWrapper, InvRangesAssembler
 from ..tokens.operand import XlError, _re_sheet_id, _re_build_id
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl.utils.exceptions import IllegalCharacterError
+from openpyxl.utils import column_index_from_string, get_column_letter
 
 log = logging.getLogger(__name__)
 BOOK = sh.Token('Book')
@@ -694,8 +695,29 @@ class ExcelModel:
             if sheet_name not in sheet_names:
                 book.create_sheet(sheet_name)
             sheet = book[sheet_name]
+                        # Constrain range to actual sheet dimensions to avoid corrupting
+            # max_row/max_column when accessing full column/row references like D:D or 5:5
+            # Excel internally treats D:D as D1:D1048576, and 5:5 as A5:XFD5 (16384 columns), but subsequent calls to
+            # sheet[ref] will actually create such cells and hurt performance. So we need to fix them to actual sheet
+            # dimensions.
+
+            # Handle columns (c1 and c2)
             rng['c1'] = rng['c1'] or 'A'
+            if rng['c1'] != 'A':
+                rng['c1'] = get_column_letter(column_index_from_string(rng['c1']))
+
+            c2_idx = column_index_from_string(rng['c2'])
+            if c2_idx > sheet.max_column:
+                c2_idx = sheet.max_column
+                rng['c2'] = get_column_letter(c2_idx)
+
+            # Handle rows (r1 and r2)
             rng['r1'] = int(rng['r1']) or 1
+
+            r2_value = int(rng['r2'])
+            if r2_value > sheet.max_row:
+                rng['r2'] = sheet.max_row
+
             ref = '{c1}{r1}:{c2}{r2}'.format(**rng)
             for c, v in zip(np.ravel(sheet[ref]), np.ravel(r.value)):
                 try:
