@@ -130,12 +130,12 @@ xskew = functools.partial(
 FUNCTIONS['_XLFN.SKEW'] = FUNCTIONS['SKEW'] = wrap_func(xskew)
 xmode_sngl = functools.partial(
     xfunc, func=_xmode_sngl, convert=_convert,
-    parse_args=lambda a: (v for v in a if v is not "")
+    parse_args=lambda a: (v for v in a if not (type(v) is str and v == ""))
 )
 FUNCTIONS['_XLFN.MODE.SNGL'] = FUNCTIONS['MODE.SNGL'] = wrap_func(xmode_sngl)
 xmode_mult = functools.partial(
     xfunc, func=_xmode_mult, convert=_convert,
-    parse_args=lambda a: (v for v in a if v is not "")
+    parse_args=lambda a: (v for v in a if not (type(v) is str and v == ""))
 )
 FUNCTIONS['_XLFN.MODE.MULT'] = FUNCTIONS['MODE.MULT'] = wrap_func(xmode_mult)
 xkurt = functools.partial(xfunc, func=_xkurt, default=None)
