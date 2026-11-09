@@ -142,7 +142,7 @@ if __name__ == '__main__':
         ],
         package_data={
             'formulas.functions': ['*.json'],
-            'formulas.gui': ['*']
+            'formulas.gui': ['templates/*']
         },
         install_requires=[
             'click',
