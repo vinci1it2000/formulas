@@ -85,7 +85,7 @@ if __name__ == '__main__':
         'plot': ['graphviz', 'regex', 'flask', 'Pygments', 'jinja2', 'docutils']
     }
     # noinspection PyTypeChecker
-    extras['cli'] = extras['excel'] + ['click', 'click_log', 'flask']
+    extras['cli'] = extras['excel'] + ['click', 'click_log', 'flask', 'gunicorn']
     extras['all'] = sorted(functools.reduce(set.union, extras.values(), set()))
     extras['dev'] = extras['all'] + [
         'wheel', 'sphinx>=7.2', 'gitchangelog', 'mako', 'sphinx_rtd_theme',
@@ -142,7 +142,7 @@ if __name__ == '__main__':
         ],
         package_data={
             'formulas.functions': ['*.json'],
-            'formulas.gui': ['*']
+            'formulas.gui': ['templates/*']
         },
         install_requires=[
             'click',

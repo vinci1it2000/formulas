@@ -769,7 +769,7 @@ def serve(ctx, files, host, port, circular):
     from schedula.utils.form import cli as _cli
     ctx.params.clear()
     ctx.params['folder'] = osp.dirname(osp.dirname(__file__))
-    ctx.params['app'] = 'formulas.app:create_app'
+    ctx.params['app'] = 'formulas.app:create_app()'
     cmd = _cli.run
     ctx.args.extend(['--bind', f'{host}:{port}'])
     return cmd.invoke(ctx)
