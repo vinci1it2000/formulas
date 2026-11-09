@@ -859,5 +859,6 @@ class TestCli(unittest.TestCase):
             ])
         self.assertEqual(0, result.exit_code, result.output)
         run_mock.assert_called_once()
+        self.assertEqual('formulas.app:create_app()', run_mock.call_args[0][0].params['app'])
         self.assertEqual(json.dumps((self.excel,)), os.environ['FORMULAS_SERVE_FILES'])
         self.assertEqual('false', os.environ['FORMULAS_SERVE_CIRCULAR'])
