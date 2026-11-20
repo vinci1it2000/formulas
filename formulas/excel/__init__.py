@@ -495,9 +495,9 @@ class ExcelModel:
                 formula_ranges = self.formula_ranges(context)
                 external_links = self.external_links(context)
 
-                _name = '%s'
+                _prefix = ''
                 if 'sheet_id' in rng:
-                    _name = f'{rng["sheet_id"]}!{_name}'
+                    _prefix = f'{rng["sheet_id"]}!'
                 if wk not in sheet_limits:
                     sheet_limits[wk] = wk.max_row, wk.max_column
                 max_row, max_column = sheet_limits[wk]
@@ -510,7 +510,7 @@ class ExcelModel:
                 cells = []
                 for row in it:
                     for c in row:
-                        n = _name % c.coordinate
+                        n = _prefix + c.coordinate
                         if n in self.cells:
                             continue
                         elif hasattr(c, 'value'):

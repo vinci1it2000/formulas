@@ -245,11 +245,11 @@ class RangesAssembler:
         sheet_id = base['sheet_id']
         ists = {}
         nodes = dsp.default_values
-        _name = f'{sheet_id}!%s' if sheet_id else '%s'
+        _prefix = f'{sheet_id}!' if sheet_id else ''
         for n, r in tuple(self.missing):
             c = _index2col(n)
             ref = '{}{}'.format(c, r)
-            name = _name % ref
+            name = _prefix + ref
             ist = {
                 'r1': r, 'r2': r, 'c1': c, 'c2': c, 'n1': n, 'n2': n,
                 'ref': ref, 'name': name, 'sheet_id': sheet_id
@@ -324,7 +324,7 @@ class InvRangesAssembler(RangesAssembler):
         res = []
         base = self.assembler.range.ranges[0]
         sheet_id = base['sheet_id']
-        _name = f'{sheet_id}!%s' if sheet_id else '%s'
+        _prefix = f'{sheet_id}!' if sheet_id else ''
         for d in self.assembler.outputs.values():
             if isinstance(d, tuple):
                 c, r = d
@@ -334,7 +334,7 @@ class InvRangesAssembler(RangesAssembler):
                 for n, r in d:
                     c = _index2col(n)
                     ref = '{}{}'.format(c, r)
-                    name = _name % ref
+                    name = _prefix + ref
                     ranges.append({
                         'r1': r, 'r2': r, 'c1': c, 'c2': c, 'n1': n, 'n2': n,
                         'ref': ref, 'name': name, 'sheet_id': sheet_id
@@ -346,7 +346,7 @@ class InvRangesAssembler(RangesAssembler):
             for n, r in self.assembler.missing:
                 c = _index2col(n)
                 ref = '{}{}'.format(c, r)
-                name = _name % ref
+                name = _prefix + ref
                 sol[name] = Ranges().set_value({
                     'r1': r, 'r2': r, 'c1': c, 'c2': c, 'n1': n, 'n2': n,
                     'ref': ref, 'name': name, 'sheet_id': sheet_id

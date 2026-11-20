@@ -888,7 +888,7 @@ def xindex(array, row_num, col_num=None, area_num=1):
             arrays = []
             base = array.ranges[0]
             sheet_id = base['sheet_id']
-            _name = f'{sheet_id}!%s' if sheet_id else '%s'
+            _prefix = f'{sheet_id}!' if sheet_id else ''
             for rng in array.ranges:
                 arr = []
                 rngs = Ranges((rng,), array.values)
@@ -899,7 +899,7 @@ def xindex(array, row_num, col_num=None, area_num=1):
                     for n in range(rng['n1'], rng['n2'] + 1):
                         c = _index2col(n)
                         ref = '{}{}'.format(c, r)
-                        name = _name % ref
+                        name = _prefix + ref
                         row.append(Ranges(values=dict(array.values)).set_value({
                             'r1': r, 'r2': r, 'c1': c, 'c2': c, 'n1': n,
                             'n2': n,

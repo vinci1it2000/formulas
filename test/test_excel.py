@@ -15,6 +15,7 @@ import unittest
 import platform
 import os.path as osp
 import schedula as sh
+from openpyxl import Workbook
 from formulas.ranges import Ranges
 from formulas.excel.xlreader import load_workbook
 from formulas.excel import (
@@ -302,6 +303,42 @@ class TestExcelModel(unittest.TestCase):
                 for k, v in xl_model.write(xl_model.books).items()
             })
         )
+
+    def test_excel_model_percent_sheet_name(self):
+        wb = Workbook()
+        ws = wb.active
+        ws.title = '135% Test'
+        ws['A1'], ws['A2'], ws['B1'], ws['B2'] = 1, 2, 3, 4
+        ws = wb.create_sheet('Normal')
+        ws['A1'], ws['A2'] = 10, 20
+        ws = wb.create_sheet('Other Data')
+        ws['A1'], ws['A2'] = 100, 200
+        ws = wb.create_sheet('Calc')
+        ws['A1'] = "=SUM('135% Test'!A1:A2)"
+        ws['A2'] = "=SUM('135% Test'!A1:A5)"
+        ws['A3'] = "=INDEX('135% Test'!A1:B2, 2, 2)"
+        ws['A4'] = "='135% Test'!B1"
+        ws['A5'] = "=SUM(Normal!A1:A2)"
+        ws['A6'] = "=SUM('Other Data'!A1:A2)"
+        dirpath = osp.join(mydir, 'tmp')
+        os.makedirs(dirpath, exist_ok=True)
+        fpath = osp.join(dirpath, 'percent.xlsx')
+        wb.save(fpath)
+
+        xl_model = ExcelModel().loads(fpath).finish()
+        calc = "'[percent.xlsx]CALC'!A%d"
+        outputs = [calc % i for i in range(1, 7)]
+        sol = xl_model.calculate()
+        self.assertEqual([3, 3, 4, 3, 30, 300], [
+            sol[k].value[0, 0] for k in outputs
+        ])
+        sol = xl_model.calculate({
+            "'[percent.xlsx]135% TEST'!A1:A5": [[5], [6], [7], [8], [9]]
+        })
+        self.assertEqual(9, sol["'[percent.xlsx]135% TEST'!A5"].value[0, 0])
+        self.assertEqual([11, 35, 4, 3, 30, 300], [
+            sol[k].value[0, 0] for k in outputs
+        ])
 
     def test_excel_from_dict(self):
         xl_model = ExcelModel().from_dict({
